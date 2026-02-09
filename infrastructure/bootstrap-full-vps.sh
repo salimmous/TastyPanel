@@ -3,26 +3,27 @@
 # On a fresh Ubuntu 24.04 VPS, this script clones TastyPanel and runs the full install
 # so the server is 100% dedicated to the panel (Nginx, PHP, MySQL, Redis, panel, cron).
 #
-# Usage (one command on a new VPS):
-#   curl -sSL https://raw.githubusercontent.com/YOUR_ORG/tastypanel/main/infrastructure/bootstrap-full-vps.sh | sudo bash -s -- REPO_URL=https://github.com/YOUR_ORG/tastypanel.git PANEL_HOST=your-server-ip-or-domain
+# Usage (one command on a new VPS — full VPS b7al CloudPanel):
+#   curl -sSL https://raw.githubusercontent.com/salimmous/TastyPanel/main/infrastructure/bootstrap-full-vps.sh | sudo bash -s -- PANEL_HOST=84.247.160.84 PANEL_PORT=8042
+#   → Panel: http://84.247.160.84:8042/platform/install
 #
-# Or download and run:
-#   sudo bash bootstrap-full-vps.sh REPO_URL=... PANEL_HOST=...
+# Or with gh:  gh repo clone salimmous/TastyPanel /var/www/tastypanel && cd /var/www/tastypanel && sudo PANEL_HOST=... PANEL_PORT=8042 bash infrastructure/install-ubuntu-24.04.sh
 #
-# Required: REPO_URL (git clone URL)
-# Optional: PANEL_HOST (default: panel.example.com), PANEL_PORT (default: 80), DB_PASS, etc.
+# REPO_URL defaults to https://github.com/salimmous/TastyPanel.git (optional override).
+# PANEL_PORT: default 8080 in install script; use PANEL_PORT=8042 (or 80, 8443, etc.) so panel is on that port.
 # See infrastructure/install-ubuntu-24.04.sh for all variables.
 
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-}"
-PANEL_HOST="${PANEL_HOST:-panel.example.com}"
+REPO_URL="${REPO_URL:-https://github.com/salimmous/TastyPanel.git}"
+PANEL_HOST="${PANEL_HOST:-}"
 PANEL_PORT="${PANEL_PORT:-80}"
 APP_DIR="${APP_DIR:-/var/www/tastypanel}"
 
-if [[ -z "$REPO_URL" ]]; then
-  echo "REPO_URL is required. Example:"
-  echo "  curl -sSL https://raw.githubusercontent.com/.../bootstrap-full-vps.sh | sudo bash -s -- REPO_URL=https://github.com/you/tastypanel.git PANEL_HOST=84.247.160.84"
+if [[ -z "$PANEL_HOST" ]]; then
+  echo "PANEL_HOST is required (server IP or domain). Example:"
+  echo "  curl -sSL .../bootstrap-full-vps.sh | sudo bash -s -- PANEL_HOST=84.247.160.84 PANEL_PORT=8042"
+  echo "  # Panel URL will be: http://PANEL_HOST:PANEL_PORT/platform/install (default port 8080, use PANEL_PORT=8042 etc.)"
   exit 1
 fi
 
@@ -60,5 +61,6 @@ sudo -E bash infrastructure/install-ubuntu-24.04.sh
 
 echo ""
 echo "==> Done. VPS is now dedicated to TastyPanel (nafs l7aja b7al CloudPanel)."
-echo "    Open: http://${PANEL_HOST}:${PANEL_PORT}/platform/install (or https if configured)"
+echo "    Open: http://${PANEL_HOST}:${PANEL_PORT}/platform/install"
+echo "    (or https if PANEL_SCHEME=https)"
 echo ""

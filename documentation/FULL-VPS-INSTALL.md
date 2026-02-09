@@ -2,6 +2,8 @@
 
 CloudPanel kay yakhod VPS kamal: one command 3la fresh server w t7ot panel. Hna nafs l7aja.
 
+**Official repo:** https://github.com/salimmous/TastyPanel
+
 ## Idea
 
 - **Dedicated VPS**: one server, 100% for TastyPanel (panel + tenant sites).
@@ -10,33 +12,35 @@ CloudPanel kay yakhod VPS kamal: one command 3la fresh server w t7ot panel. Hna 
 
 ## Option 1: One command (bootstrap)
 
-On a **new Ubuntu 24.04** VPS (root or sudo):
+On a **new Ubuntu 24.04** VPS (root or sudo). REPO is default (salimmous/TastyPanel), ghir PANEL_HOST:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/YOUR_ORG/tastypanel/main/infrastructure/bootstrap-full-vps.sh | sudo bash -s -- \
-  REPO_URL=https://github.com/YOUR_ORG/tastypanel.git \
-  PANEL_HOST=84.247.160.84
+curl -sSL https://raw.githubusercontent.com/salimmous/TastyPanel/main/infrastructure/bootstrap-full-vps.sh | sudo bash -s -- PANEL_HOST=84.247.160.84
 ```
 
-Replace:
-- `YOUR_ORG/tastypanel` with your repo.
-- `PANEL_HOST` with your server IP or domain (e.g. `panel.example.com`).
+Replace `84.247.160.84` with your server IP or domain.
 
-Optional: `PANEL_PORT=80`, `DB_PASS=...`, `PANEL_SSL_SELF_SIGNED=true`, etc. (same as `install-ubuntu-24.04.sh`).
+Optional: `PANEL_PORT=80`, `DB_PASS=...`, `PANEL_SSL_SELF_SIGNED=true`, `REPO_URL=...` (same as `install-ubuntu-24.04.sh`).
 
 Then open: `http://PANEL_HOST:PORT/platform/install` and finish the web installer.
 
-## Option 2: Two steps (clone then install)
-
-Same idea, two commands:
+## Option 2: gh clone then install
 
 ```bash
-# 1) Clone
-sudo git clone https://github.com/YOUR_ORG/tastypanel.git /var/www/tastypanel
+# 1) Clone (gh CLI)
+gh repo clone salimmous/TastyPanel /var/www/tastypanel
 cd /var/www/tastypanel
 
 # 2) Full install (takes the VPS)
-sudo REPO_URL=https://github.com/YOUR_ORG/tastypanel.git PANEL_HOST=84.247.160.84 bash infrastructure/install-ubuntu-24.04.sh
+sudo PANEL_HOST=84.247.160.84 bash infrastructure/install-ubuntu-24.04.sh
+```
+
+Or with git:
+
+```bash
+sudo git clone https://github.com/salimmous/TastyPanel.git /var/www/tastypanel
+cd /var/www/tastypanel
+sudo PANEL_HOST=84.247.160.84 bash infrastructure/install-ubuntu-24.04.sh
 ```
 
 Then open `/platform/install` in the browser.
@@ -59,9 +63,10 @@ After that, you create sites from the platform; each tenant gets its own dir, DB
 - **Fresh Ubuntu 24.04** (or 22.04) VPS
 - Root or sudo
 - Min 1GB RAM, 10GB disk (2GB+ RAM recommended)
-- `REPO_URL` must be a public repo, or use SSH key so git can clone
+- **REPO_URL** only if the panel directory is empty (first install). If the code is already at `/var/www/tastypanel` (e.g. copied or extracted), the install script skips clone and does not require REPO_URL — **officially** works without git clone.
 
 ## Summary
 
 - **CloudPanel** = one command → VPS kamal for the panel.
-- **TastyPanel** = same thing: run **bootstrap-full-vps.sh** (or clone + **install-ubuntu-24.04.sh**) on a fresh VPS → **dakchi ga3ma khaddam**, nafs l7aja.
+- **TastyPanel** = same thing: run **bootstrap-full-vps.sh** (or `gh repo clone salimmous/TastyPanel` + **install-ubuntu-24.04.sh**) on a fresh VPS → **dakchi ga3ma khaddam**, nafs l7aja.
+- **Repo:** https://github.com/salimmous/TastyPanel — `gh repo clone salimmous/TastyPanel`

@@ -77,12 +77,18 @@ sudo mysql -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb
 sudo mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
 sudo mysql -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost'; FLUSH PRIVILEGES;"
 
-echo "==> Cloning project"
+echo "==> Project directory"
 sudo mkdir -p "$APP_DIR"
-sudo chown -R "$USER:$USER" "$APP_DIR"
-if [[ ! -d "$APP_DIR/.git" ]]; then
-  require_value "$REPO_URL" "REPO_URL is required. Example: REPO_URL=https://github.com/you/tastypanel.git"
+# Skip clone if project already present (git repo or existing code e.g. composer.json)
+if [[ -d "$APP_DIR/.git" ]]; then
+  echo "    (git repo at $APP_DIR, skipping clone)"
+elif [[ -f "$APP_DIR/composer.json" ]]; then
+  echo "    (project already at $APP_DIR, skipping clone — no REPO_URL needed)"
+else
+  require_value "$REPO_URL" "REPO_URL is required when installing to an empty directory. Example: REPO_URL=https://github.com/salimmous/TastyPanel.git"
+  sudo chown -R "$USER:$USER" "$APP_DIR" 2>/dev/null || true
   git clone "$REPO_URL" "$APP_DIR"
+  sudo chown -R "$USER:$USER" "$APP_DIR"
 fi
 
 cd "$APP_DIR"
