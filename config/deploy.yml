@@ -1,0 +1,84 @@
+# Kamal deployment config for TastyPanel
+# Assumes a single app host; adjust roles/hosts as needed.
+
+service: tastypanel
+
+image:
+  name: ${REGISTRY}/tastypanel
+  tag: latest
+
+servers:
+  web:
+    hosts:
+      - ${HOSTS}
+    roles:
+      - web
+      - app
+
+registry:
+  username: ${REGISTRY_USER}
+  password: ${REGISTRY_PASSWORD}
+
+env:
+  clear:
+    APP_ENV: production
+    APP_DEBUG: false
+  secret:
+    - APP_KEY
+    - DB_CONNECTION
+    - DB_HOST
+    - DB_PORT
+    - DB_DATABASE
+    - DB_USERNAME
+    - DB_PASSWORD
+    - REDIS_HOST
+    - REDIS_PORT
+    - REDIS_PASSWORD
+    - CACHE_STORE
+    - SESSION_DRIVER
+    - QUEUE_CONNECTION
+    - APP_URL
+    - APP_MODE
+    - TENANT_MODE
+    - AUTO_PROVISION_ON_TENANT_CREATE
+    - TENANT_APP_REPO
+    - TENANT_APP_BRANCH
+    - FRONTEND_AUTO
+
+builder:
+  dockerfile: docker/Dockerfile.prod
+
+accessories:
+  redis:
+    image: redis:7-alpine
+    host: ${HOSTS}
+    volumes:
+      - redis-data:/data
+  mysql:
+    image: mysql:8.0
+    host: ${HOSTS}
+    env:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  redis-data:
+  mysql-data:
+
+traefik:
+  enabled: false
+
+healthcheck:
+  path: /health
+  port: 80
+  interval: 10
+  timeout: 5
+  retries: 3
+
+# SSH user applied to all hosts unless overridden
+ssh:
+  user: ${SSH_USER}

@@ -1,0 +1,30 @@
+groups:
+  - name: tastypanel.rules
+    rules:
+      - alert: HighFailedJobs
+        expr: tastypanel_queue_failed_jobs > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of failed jobs"
+          description: "Queue failed jobs exceeded 20 for 5 minutes."
+
+      - alert: ProvisioningFailures
+        expr: tastypanel_provisioning_failed_total > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Provisioning failures detected"
+          description: "At least one provisioning job failed."
+
+      - alert: CriticalErrorsPresent
+        expr: tastypanel_errors_critical_unresolved > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Unresolved critical errors"
+          description: "Critical unresolved application errors are present."
+

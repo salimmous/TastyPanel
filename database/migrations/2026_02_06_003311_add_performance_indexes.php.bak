@@ -1,0 +1,114 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Tenants table indexes
+        Schema::table('tenants', function (Blueprint $table) {
+            $table->index('status');
+            $table->index('created_at');
+            $table->index(['status', 'created_at']);
+            $table->index('plan_id');
+        });
+
+        // Domains table indexes
+        Schema::table('domains', function (Blueprint $table) {
+            $table->index('tenant_id');
+            $table->index('is_primary');
+            $table->index(['tenant_id', 'is_primary']);
+            $table->index('ssl_verified_at');
+        });
+
+        // Recipes table indexes (if exists)
+        if (Schema::hasTable('recipes')) {
+            Schema::table('recipes', function (Blueprint $table) {
+                if (!Schema::hasColumn('recipes', 'tenant_id')) {
+                    return; // Skip if no tenant_id
+                }
+                $table->index('tenant_id');
+                $table->index('published_at');
+                $table->index(['tenant_id', 'published_at']);
+                $table->index('category_id');
+                $table->index('slug');
+            });
+        }
+
+        // Articles table indexes (if exists)
+        if (Schema::hasTable('articles')) {
+            Schema::table('articles', function (Blueprint $table) {
+                if (!Schema::hasColumn('articles', 'tenant_id')) {
+                    return;
+                }
+                $table->index('tenant_id');
+                $table->index('published_at');
+                $table->index(['tenant_id', 'published_at']);
+                $table->index('slug');
+            });
+        }
+
+        // Categories table indexes (if exists)
+        if (Schema::hasTable('categories')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->index('slug');
+                if (Schema::hasColumn('categories', 'tenant_id')) {
+                    $table->index('tenant_id');
+                }
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('tenants', function (Blueprint $table) {
+            $table->dropIndex(['status']);
+            $table->dropIndex(['created_at']);
+            $table->dropIndex(['status', 'created_at']);
+            $table->dropIndex(['plan_id']);
+        });
+
+        Schema::table('domains', function (Blueprint $table) {
+            $table->dropIndex(['tenant_id']);
+            $table->dropIndex(['is_primary']);
+            $table->dropIndex(['tenant_id', 'is_primary']);
+            $table->dropIndex(['ssl_verified_at']);
+        });
+
+        if (Schema::hasTable('recipes')) {
+            Schema::table('recipes', function (Blueprint $table) {
+                $table->dropIndex(['tenant_id']);
+                $table->dropIndex(['published_at']);
+                $table->dropIndex(['tenant_id', 'published_at']);
+                $table->dropIndex(['category_id']);
+                $table->dropIndex(['slug']);
+            });
+        }
+
+        if (Schema::hasTable('articles')) {
+            Schema::table('articles', function (Blueprint $table) {
+                $table->dropIndex(['tenant_id']);
+                $table->dropIndex(['published_at']);
+                $table->dropIndex(['tenant_id', 'published_at']);
+                $table->dropIndex(['slug']);
+            });
+        }
+
+        if (Schema::hasTable('categories')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->dropIndex(['slug']);
+                if (Schema::hasColumn('categories', 'tenant_id')) {
+                    $table->dropIndex(['tenant_id']);
+                }
+            });
+        }
+    }
+};

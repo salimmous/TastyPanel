@@ -1,0 +1,42 @@
+server {
+    listen 80;
+    server_name {{SERVER_NAME}};
+    root {{WEB_ROOT}};
+    index index.php index.html;
+
+    client_max_body_size 50M;
+
+    {{ACCESS_LOG}}
+    {{ERROR_LOG}}
+
+    # Short cache for HTML (safe for SPA shell)
+    location / {
+        add_header Cache-Control "public, max-age=120";
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Long cache for static assets
+    location ~* \.(?:css|js|mjs|json|map|woff|woff2|ttf|otf|eot|svg|svgz|jpg|jpeg|png|gif|webp|ico|avif)$ {
+        expires 365d;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # API / dynamic fallback
+    location /api/ {
+        add_header Cache-Control "no-store";
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass {{PHP_FPM}};
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+{{SSL_BLOCK}}

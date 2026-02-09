@@ -1,0 +1,89 @@
+FROM php:8.2-fpm-alpine
+
+LABEL maintainer="TastyPanel <support@tastypanel.site>"
+
+# ============================================
+# Install System Dependencies
+# ============================================
+RUN apk add --no-cache \
+    curl \
+    zip \
+    unzip \
+    git \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libzip-dev \
+    icu-dev \
+    oniguruma-dev \
+    supervisor \
+    fcgi
+
+# ============================================
+# Install PHP Extensions
+# ============================================
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+    pdo_mysql \
+    gd \
+    zip \
+    intl \
+    bcmath \
+    opcache \
+    pcntl
+
+# Install Redis extension
+RUN pecl install redis \
+    && docker-php-ext-enable redis
+
+# ============================================
+# Install Composer
+# ============================================
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# ============================================
+# PHP Production Settings
+# ============================================
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+COPY docker/php.ini $PHP_INI_DIR/conf.d/99-custom.ini
+COPY docker/opcache.ini $PHP_INI_DIR/conf.d/opcache.ini
+
+# ============================================
+# PHP-FPM Health Check
+# ============================================
+RUN wget -O /usr/local/bin/php-fpm-healthcheck \
+    https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck \
+    && chmod +x /usr/local/bin/php-fpm-healthcheck
+
+# ============================================
+# Application Setup
+# ============================================
+WORKDIR /var/www/html
+
+# Copy composer files first for caching
+COPY composer.json composer.lock ./
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# Copy application code
+COPY --chown=www-data:www-data . .
+
+# Run post-install scripts
+RUN composer dump-autoload --optimize
+
+# ============================================
+# Permissions
+# ============================================
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# ============================================
+# Expose & Run
+# ============================================
+EXPOSE 9000
+
+USER www-data
+
+CMD ["php-fpm"]

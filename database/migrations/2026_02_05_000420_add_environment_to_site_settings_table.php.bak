@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('site_settings', function (Blueprint $table) {
+            $table->string('environment')->default('production')->after('tenant_id');
+        });
+
+        DB::table('site_settings')->update(['environment' => 'production']);
+
+        Schema::table('site_settings', function (Blueprint $table) {
+            $table->dropUnique('site_settings_tenant_id_unique');
+            $table->unique(['tenant_id', 'environment']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('site_settings', function (Blueprint $table) {
+            $table->dropUnique(['tenant_id', 'environment']);
+            $table->dropColumn('environment');
+            $table->unique('tenant_id');
+        });
+    }
+};

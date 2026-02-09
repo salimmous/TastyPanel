@@ -1,0 +1,19 @@
+[{{POOL_NAME}}]
+user = {{POOL_USER}}
+group = {{POOL_GROUP}}
+listen = /run/php/{{POOL_NAME}}.sock
+listen.owner = {{POOL_USER}}
+listen.group = {{POOL_GROUP}}
+pm = dynamic
+pm.max_children = {{PM_MAX_CHILDREN}}
+pm.start_servers = {{PM_START_SERVERS}}
+pm.min_spare_servers = {{PM_MIN_SPARE}}
+pm.max_spare_servers = {{PM_MAX_SPARE}}
+pm.max_requests = 500
+php_admin_value[upload_max_filesize] = 50M
+php_admin_value[post_max_size] = 52M
+php_admin_value[date.timezone] = UTC
+php_admin_value[open_basedir] = {{WEB_ROOT}}:/tmp
+php_admin_value[memory_limit] = 512M
+
+; Opcache is global (see opcache.ini example). Keep per-tenant isolation at pool level.
