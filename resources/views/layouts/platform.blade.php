@@ -212,19 +212,26 @@
 
     <div
         class="min-h-full flex"
+        data-palette-items="{{ e(json_encode($paletteItems)) }}"
         x-data="{
             sidebarOpen: false,
             paletteOpen: false,
             paletteQuery: '',
             paletteIndex: 0,
-            paletteItems: @json($paletteItems),
+            paletteItems: [],
+            init() {
+                try {
+                    const raw = this.$el.getAttribute('data-palette-items');
+                    this.paletteItems = raw ? JSON.parse(raw) : [];
+                } catch (_) { this.paletteItems = []; }
+            },
             filteredPalette() {
                 const q = (this.paletteQuery || '').toLowerCase().trim();
-                const items = this.paletteItems || [];
+                const items = Array.isArray(this.paletteItems) ? this.paletteItems : [];
                 if (!q) return items;
                 return items.filter(i => {
-                    const hay = ((i.label || '') + ' ' + (i.keywords || '')).toLowerCase();
-                    return hay.includes(q);
+                    const hay = ((i && i.label) || '') + ' ' + ((i && i.keywords) || '');
+                    return hay.toLowerCase().includes(q);
                 });
             },
             openPalette() {
@@ -435,7 +442,7 @@
                     <template x-if="filteredPalette().length === 0">
                         <div class="p-6 text-sm text-gray-600">No results.</div>
                     </template>
-                    <template x-for="(item, idx) in filteredPalette()" :key="item.href">
+                    <template x-for="(item, idx) in filteredPalette()" :key="(item.href || '') + '-' + (item.label || idx)">
                         <a
                             :href="item.href"
                             class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-100 hover:bg-gray-50"

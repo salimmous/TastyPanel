@@ -238,30 +238,48 @@
             </div>
             <div
                 class="p-5"
+                data-runbook-actions="{{ e(json_encode($actionList ?? [])) }}"
+                data-runbook-tenants="{{ e(json_encode($tenants ?? [])) }}"
+                data-runbook-domains="{{ e(json_encode($domains ?? [])) }}"
+                data-runbook-selected-id="{{ e(old('action_id') ?? $lastActionId ?? '') }}"
+                data-runbook-tenant-id="{{ e(old('tenant_id') ?? $lastTenantId ?? '') }}"
+                data-runbook-domain-id="{{ e(old('domain_id') ?? $lastDomainId ?? '') }}"
+                data-runbook-confirm-text="{{ e(old('confirm') ?? '') }}"
                 x-data="{
                     q: '',
-                    actions: @json($actionList ?? []),
-                    tenants: @json($tenants ?? []),
-                    domains: @json($domains ?? []),
-                    selectedId: @json(old('action_id') ?? ($lastActionId ?? '')),
-                    tenantId: @json(old('tenant_id') ?? ($lastTenantId ?? '')),
-                    domainId: @json(old('domain_id') ?? ($lastDomainId ?? '')),
-                    confirmText: @json(old('confirm') ?? ''),
+                    actions: [],
+                    tenants: [],
+                    domains: [],
+                    selectedId: '',
+                    tenantId: '',
+                    domainId: '',
+                    confirmText: '',
                     init() {
+                        try {
+                            this.actions = JSON.parse(this.$el.getAttribute('data-runbook-actions') || '[]');
+                            this.tenants = JSON.parse(this.$el.getAttribute('data-runbook-tenants') || '[]');
+                            this.domains = JSON.parse(this.$el.getAttribute('data-runbook-domains') || '[]');
+                        } catch (_) {}
+                        this.selectedId = this.$el.getAttribute('data-runbook-selected-id') || '';
+                        this.tenantId = this.$el.getAttribute('data-runbook-tenant-id') || '';
+                        this.domainId = this.$el.getAttribute('data-runbook-domain-id') || '';
+                        this.confirmText = this.$el.getAttribute('data-runbook-confirm-text') || '';
                         if (!this.selectedId && this.actions.length) this.selectedId = this.actions[0].id;
                         if (!this.tenantId) this.tenantId = '';
                         if (!this.domainId) this.domainId = '';
                     },
                     filtered() {
+                        const actions = this.actions || [];
                         const q = (this.q || '').toLowerCase().trim();
-                        if (!q) return this.actions;
-                        return this.actions.filter(a => {
-                            const hay = `${a.id} ${a.label} ${a.description} ${a.category}`.toLowerCase();
-                            return hay.includes(q);
+                        if (!q) return actions;
+                        return actions.filter(a => {
+                            const hay = (a.id || '') + ' ' + (a.label || '') + ' ' + (a.description || '') + ' ' + (a.category || '');
+                            return hay.toLowerCase().includes(q);
                         });
                     },
                     selected() {
-                        return this.actions.find(a => String(a.id) === String(this.selectedId)) || this.actions[0] || null;
+                        const actions = this.actions || [];
+                        return actions.find(a => String(a.id) === String(this.selectedId)) || actions[0] || null;
                     },
                     select(id) {
                         this.selectedId = id;
@@ -281,14 +299,14 @@
                     },
                     filteredDomains() {
                         const tenantId = String(this.tenantId || '');
-                        if (!tenantId) return this.domains;
+                        if (!tenantId) return this.domains || [];
                         return (this.domains || []).filter(d => String(d.tenant_id) === tenantId);
                     },
                     domainLabel(d) {
-                        const host = d.hostname || `domain#${d.id}`;
-                        const env = d.environment ? ` (${d.environment})` : '';
-                        const tenant = d.tenant && d.tenant.name ? ` - ${d.tenant.name}` : '';
-                        return `${host}${env}${tenant}`;
+                        const host = d.hostname || 'domain#' + (d.id || '');
+                        const env = d.environment ? ' (' + d.environment + ')' : '';
+                        const tenant = d.tenant && d.tenant.name ? ' - ' + d.tenant.name : '';
+                        return host + env + tenant;
                     },
                     syncTenantFromDomain() {
                         if (!this.domainId) return;
@@ -300,13 +318,13 @@
                 }"
                 @runbook-quick.window="
                     const d = $event.detail || {};
-                    if (d.actionId) select(d.actionId);
+                    if (d.actionId && typeof select === 'function') select(d.actionId);
                     if (d.tenantId !== undefined && d.tenantId !== null) { tenantId = String(d.tenantId); domainId = ''; }
-                    if (d.domainId !== undefined && d.domainId !== null) { domainId = String(d.domainId); syncTenantFromDomain(); }
+                    if (d.domainId !== undefined && d.domainId !== null) { domainId = String(d.domainId); if (typeof syncTenantFromDomain === 'function') syncTenantFromDomain(); }
                     confirmText = '';
                     $nextTick(() => {
-                        if ($refs.runner) $refs.runner.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        if (needsConfirm() && $refs.confirm) $refs.confirm.focus();
+                        if ($refs.runner && $refs.runner.scrollIntoView) $refs.runner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        if (typeof needsConfirm === 'function' && needsConfirm() && $refs.confirm) $refs.confirm.focus();
                     });
                 "
             >
@@ -439,11 +457,21 @@
 
     <div
         class="mt-6 bg-white shadow rounded-lg overflow-hidden"
+        data-env-base="{{ e(url('/platform/tenants')) }}"
+        data-env-tenants="{{ e(json_encode($tenants ?? [])) }}"
+        data-env-domains="{{ e(json_encode($domains ?? [])) }}"
         x-data="{
             q: '',
-            base: @json(url('/platform/tenants')),
-            tenants: @json($tenants ?? []),
-            domains: @json($domains ?? []),
+            base: '',
+            tenants: [],
+            domains: [],
+            init() {
+                this.base = this.$el.getAttribute('data-env-base') || '';
+                try {
+                    this.tenants = JSON.parse(this.$el.getAttribute('data-env-tenants') || '[]');
+                    this.domains = JSON.parse(this.$el.getAttribute('data-env-domains') || '[]');
+                } catch (_) {}
+            },
             norm(v) { return String(v || '').toLowerCase(); },
             envOf(d) {
                 const e = this.norm(d && d.environment);
@@ -760,16 +788,26 @@
 
 	    <div
 	        class="mt-6 bg-white shadow rounded-lg overflow-hidden"
+	        data-bulk-action-id="{{ e(old('action_id') ?? '') }}"
+	        data-bulk-confirm="{{ e(old('confirm') ?? '') }}"
+	        data-bulk-actions="{{ e(json_encode($bulkActionList ?? [])) }}"
+	        data-bulk-tenants="{{ e(json_encode($tenants ?? [])) }}"
 	        x-data="{
 	            q: '',
 	            max: 50,
 	            limitHit: false,
-	            actionId: @json(old('action_id') ?? ''),
-	            confirmText: @json(old('confirm') ?? ''),
-	            actions: @json($bulkActionList ?? []),
-	            tenants: @json($tenants ?? []),
+	            actionId: '',
+	            confirmText: '',
+	            actions: [],
+	            tenants: [],
 	            selected: [],
 	            init() {
+	                this.actionId = this.$el.getAttribute('data-bulk-action-id') || '';
+	                this.confirmText = this.$el.getAttribute('data-bulk-confirm') || '';
+	                try {
+	                    this.actions = JSON.parse(this.$el.getAttribute('data-bulk-actions') || '[]');
+	                    this.tenants = JSON.parse(this.$el.getAttribute('data-bulk-tenants') || '[]');
+	                } catch (_) {}
 	                if (!this.actionId && this.actions.length) this.actionId = this.actions[0].id;
 	            },
 	            meta() {
