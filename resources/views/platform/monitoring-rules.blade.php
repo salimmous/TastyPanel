@@ -20,7 +20,7 @@
     <div class="bg-white shadow rounded-lg overflow-hidden mb-6">
         <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
             <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wider">Platform Defaults</h2>
-            <p class="mt-1 text-xs text-gray-600">Used when a tenant rule is missing or fields are empty.</p>
+            <p class="mt-1 text-xs text-gray-600">Fallback values for interval/SSL days. Tenant-scoped notifications require at least one channel.</p>
         </div>
         <div class="p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -328,4 +328,3 @@
         </div>
     </div>
 @endsection
-

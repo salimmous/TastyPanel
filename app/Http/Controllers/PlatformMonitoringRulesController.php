@@ -128,7 +128,7 @@ class PlatformMonitoringRulesController extends Controller
             'deleted' => (int) $deleted,
         ]);
 
-        return back()->with('success', 'Monitoring rule reset (defaults will apply).');
+        return back()->with('success', 'Monitoring rule reset (tenant-scoped notifications will stop).');
     }
 
     private function audit(string $action, array $newValues = []): void
@@ -155,4 +155,3 @@ class PlatformMonitoringRulesController extends Controller
         }
     }
 }
-
