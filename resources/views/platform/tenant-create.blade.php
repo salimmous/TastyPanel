@@ -18,6 +18,9 @@
                 <p class="mt-1 text-sm text-gray-500">
                     Create a new manual site. No theme or provisioning is applied automatically. You can assign a theme and deploy later from the admin tools.
                 </p>
+                <p class="mt-2 text-xs text-gray-400">
+                    Workflow (Laravel patch, provision, admin access): <code class="text-gray-500">documentation/TENANT-WORKFLOW.md</code>
+                </p>
             </div>
         </div>
 

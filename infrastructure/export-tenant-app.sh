@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Export Laravel tenant app template (patch = theme + dashboard) for TENANT_APP_REPO.
+# Usage: export-tenant-app.sh <destination_dir>  → then git init, push to GitHub, set TENANT_APP_REPO.
+# See documentation/TENANT-WORKFLOW.md
 set -euo pipefail
 
 DESTINATION="${1:-}"

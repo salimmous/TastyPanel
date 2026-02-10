@@ -1,6 +1,6 @@
 # Tenant App Repo (Template)
 
-Use this guide to create a dedicated tenant‑site repository that the platform clones for each new site.
+Use this guide to create a dedicated tenant‑site repository that the platform clones for each new site. This repo can be your **theme + dashboard** (one patch) for every tenant — see **Workflow:** `documentation/TENANT-WORKFLOW.md`.
 
 ## 1) Export a clean tenant app
 
@@ -45,3 +45,7 @@ TENANT_APP_BRANCH=main
 ```
 
 Now every new tenant will be cloned from this repo and run in single‑tenant mode.
+
+## Workflow (theme + dashboard, install, admin access)
+
+For the full order — create tenant → provision instance (install f backend) → admin access → setup site m9ad — see **`documentation/TENANT-WORKFLOW.md`**.

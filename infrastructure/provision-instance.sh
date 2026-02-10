@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Provision tenant instance: clone Laravel patch (TENANT_APP_REPO = theme + dashboard), DB, composer, migrate.
+# See documentation/TENANT-WORKFLOW.md
 set -euo pipefail
 
 SITE_KEY="${1:-}"

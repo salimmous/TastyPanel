@@ -45,3 +45,5 @@
 - ISR في القالب مضبوط على 5 دقائق؛ يمكن لاحقاً إضافة endpoint revalidate وربطه بالـ webhooks.
 - الاستهلاك: كل تينانت يخدم من بورت مستقل؛ Nginx reverse proxy.
 - إذا `TENANT_APP_REPO` فارغ، المنصة تستعمل repo الحالي (`base_path`) كـ fallback لبناء instance.
+
+**Workflow (theme + dashboard, install, admin access):** `documentation/TENANT-WORKFLOW.md`.

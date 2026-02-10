@@ -99,6 +99,7 @@ return [
 
     'instances' => [
         'root' => env('TENANT_INSTANCES_ROOT', '/var/www/tastypanel-sites'),
+        // Laravel patch (theme + dashboard). Empty = "default" placeholder. See documentation/TENANT-WORKFLOW.md
         'repo' => env('TENANT_APP_REPO', ''),
         'branch' => env('TENANT_APP_BRANCH', 'main'),
         'php_version' => env('TENANT_PHP_VERSION', '8.3'),

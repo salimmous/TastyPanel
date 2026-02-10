@@ -84,9 +84,15 @@ Each tenant can have independent:
 
 This means creating a tenant from platform does not auto-install a theme or deploy files unless you turn provisioning on.
 
+## Tenant workflow (Laravel patch)
+
+Create site → provision instance (Laravel clone) → admin access (SSH/SFTP) → setup site. Full order and scripts: **`documentation/TENANT-WORKFLOW.md`**. See also `documentation/TENANT-APP-REPO.md` for the tenant app template (theme + dashboard).
+
 ## Documentation index
 
 - `documentation/UBUNTU-24.04-INSTALL.md` VPS installation
+- `documentation/TENANT-WORKFLOW.md` tenant workflow (Laravel patch, provision, admin access)
+- `documentation/TENANT-APP-REPO.md` tenant app repo (theme + dashboard)
 - `documentation/CONTROL-PANEL.md` control panel capabilities
 - `documentation/nginx/NGINX-SETUP.md` Nginx details
 - `documentation/PROD-CHECKLIST.md` go-live checks

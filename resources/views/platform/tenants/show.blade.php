@@ -595,6 +595,7 @@
                                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Install Application</h3>
                                     <div class="mt-2">
                                         <p class="text-sm text-gray-500 mb-4">Select an application to install on this tenant. Any existing files in the root directory may be overwritten.</p>
+                                        <p class="text-xs text-gray-400 mb-4">Workflow (Laravel patch, provision, admin access): <code class="text-gray-500">documentation/TENANT-WORKFLOW.md</code></p>
                                         
                                         <div class="space-y-4">
                                             <div>
