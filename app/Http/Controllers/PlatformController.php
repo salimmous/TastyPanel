@@ -567,6 +567,9 @@ class PlatformController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'domain' => 'required|string|max:255|unique:domains,hostname',
+            'admin_email' => 'nullable|email|max:255',
+            'admin_user' => 'nullable|string|max:255',
+            'admin_password' => 'nullable|string|min:8|max:255',
         ]);
 
         $tenant = Tenant::create([
@@ -582,18 +585,29 @@ class PlatformController extends Controller
             'status' => 'pending',
         ]);
 
+        $jobMeta = ['domain_id' => $domain->id];
+        if (!empty($validated['admin_email'])) {
+            $jobMeta['admin_email'] = $validated['admin_email'];
+        }
+        if (!empty($validated['admin_user'])) {
+            $jobMeta['admin_user'] = $validated['admin_user'];
+        }
+        if (!empty($validated['admin_password'])) {
+            $jobMeta['admin_password'] = $validated['admin_password'];
+        }
+
         // Create Provisioning Job
         $job = \App\Models\ProvisioningJob::create([
             'tenant_id' => $tenant->id,
             'status' => 'pending',
             'message' => 'Provisioning started for ' . $domain->hostname,
-            'meta' => ['domain_id' => $domain->id],
+            'meta' => $jobMeta,
         ]);
 
         // Dispatch Job
         \App\Jobs\ProcessTenantProvisioningJob::dispatch($tenant->id, $domain->id, $job->id);
 
-        return redirect()->route('platform.tenants')->with('success', 'Tenant created successfully. Provisioning started in background.');
+        return redirect()->route('platform.tenants.show', $tenant->id)->with('success', 'Site created. Install (provisioning) started — status below.');
     }
 
     public function installApp(Request $request, $id)

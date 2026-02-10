@@ -7,10 +7,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Platform') - TastyPanel</title>
     
-    <!-- Fonts: Inter + Sora -->
+    <!-- Fonts: Outfit (rounded, modern) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Icons: Phosphor -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -22,21 +22,21 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Sora', 'Inter', 'sans-serif'],
+                        sans: ['Outfit', 'system-ui', 'sans-serif'],
+                        display: ['Outfit', 'system-ui', 'sans-serif'],
                     },
                     colors: {
                         primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
                         }
                     }
                 }
@@ -51,18 +51,17 @@
 
         :root {
             --tp-surface: #ffffff;
-            --tp-border: rgba(15, 23, 42, 0.10);
-            --tp-muted: #64748b;
-            --tp-ink: #0f172a;
-            --tp-primary: #2563eb;
+            --tp-border: rgba(41, 37, 36, 0.12);
+            --tp-muted: #78716c;
+            --tp-ink: #1c1917;
+            --tp-primary: #d97706;
         }
 
         body {
-            background:
-                radial-gradient(1000px circle at 18% 8%, rgba(37, 99, 235, 0.10), transparent 60%),
-                radial-gradient(900px circle at 78% 18%, rgba(16, 185, 129, 0.10), transparent 55%),
-                radial-gradient(1100px circle at 55% 95%, rgba(245, 158, 11, 0.08), transparent 55%),
-                linear-gradient(#f8fafc, #f3f4f6);
+            background: #fafaf9;
+            background-image:
+                radial-gradient(ellipse 120% 80% at 10% 0%, rgba(253, 230, 138, 0.15), transparent 50%),
+                radial-gradient(ellipse 80% 60% at 90% 20%, rgba(254, 243, 199, 0.12), transparent 45%);
         }
 
         .fade-in-up {
@@ -77,12 +76,12 @@
         .tp-kbd {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 11px;
-            border: 1px solid rgba(15, 23, 42, 0.12);
+            border: 1px solid rgba(41, 37, 36, 0.15);
             border-bottom-width: 2px;
             border-radius: 6px;
             padding: 2px 6px;
-            background: rgba(255, 255, 255, 0.75);
-            color: rgba(15, 23, 42, 0.80);
+            background: rgba(255, 255, 255, 0.9);
+            color: rgba(41, 37, 36, 0.85);
         }
 
         /* Legacy utility classes used across some platform pages (staging/automation/roles). */
@@ -121,10 +120,10 @@
 
         .btn-primary {
             background: var(--tp-primary);
-            border-color: rgba(37, 99, 235, 0.35);
+            border-color: rgba(217, 119, 6, 0.5);
             color: #fff;
         }
-        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:hover { background: #b45309; }
 
         .btn-secondary {
             background: rgba(148, 163, 184, 0.18);
@@ -159,8 +158,8 @@
             transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
         }
         .input:focus {
-            border-color: rgba(37, 99, 235, 0.55);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            border-color: rgba(217, 119, 6, 0.5);
+            box-shadow: 0 0 0 3px rgba(253, 230, 138, 0.35);
             background: #fff;
         }
 
@@ -186,7 +185,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="h-full font-sans antialiased text-gray-900">
+<body class="h-full font-sans antialiased text-stone-900">
     
     @php
         $paletteItems = [
@@ -266,7 +265,7 @@
         <div x-show="sidebarOpen" class="fixed inset-0 z-40 flex lg:hidden" role="dialog" aria-modal="true">
             <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false"></div>
 
-            <div x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300 transform" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" class="relative flex-1 flex flex-col max-w-xs w-full bg-slate-900 pt-5 pb-4">
+            <div x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300 transform" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" class="relative flex-1 flex flex-col max-w-xs w-full bg-stone-900 pt-5 pb-4">
                 <div class="absolute top-0 right-0 -mr-12 pt-2">
                     <button type="button" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" @click="sidebarOpen = false">
                         <span class="sr-only">Close sidebar</span>
@@ -276,7 +275,7 @@
                 <div class="flex-shrink-0 flex items-center px-4">
                     <div class="flex flex-col">
                         <span class="text-xl font-bold text-white tracking-tight font-display">TastyPanel</span>
-                        <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Platform</span>
+                        <span class="text-xs text-amber-400/90 uppercase tracking-widest font-semibold">Platform</span>
                     </div>
                 </div>
                 <div class="mt-5 flex-1 h-0 overflow-y-auto">
@@ -289,12 +288,12 @@
         </div>
 
         <!-- Desktop Sidebar -->
-        <div class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r border-slate-800 bg-slate-900">
+        <div class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r border-stone-700/80 bg-stone-900">
             <div class="flex-1 flex flex-col min-h-0">
-                <div class="flex items-center h-16 flex-shrink-0 px-6 bg-slate-900 border-b border-slate-800">
+                <div class="flex items-center h-16 flex-shrink-0 px-6 bg-stone-900 border-b border-stone-700/80">
                      <div class="flex flex-col">
                         <span class="text-xl font-bold text-white tracking-tight font-display">TastyPanel</span>
-                        <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Platform</span>
+                        <span class="text-xs text-amber-400/90 uppercase tracking-widest font-semibold">Platform</span>
                     </div>
                 </div>
                 <div class="flex-1 flex flex-col overflow-y-auto sidebar-scroll">
@@ -304,17 +303,17 @@
                 </div>
                 
                 <!-- Use Profile / Logout -->
-                <div class="flex-shrink-0 flex border-t border-slate-800 p-4">
+                <div class="flex-shrink-0 flex border-t border-stone-700/80 p-4">
                     <div class="flex-shrink-0 w-full group block">
                         <div class="flex items-center">
-                            <div class="inline-flex items-center justify-center h-9 w-9 rounded-full bg-slate-700 text-slate-300">
+                            <div class="inline-flex items-center justify-center h-9 w-9 rounded-full bg-stone-700 text-amber-200/90">
                                 <span class="font-medium leading-none">{{ substr(Auth::user()->name ?? 'A', 0, 1) }}</span>
                             </div>
                             <div class="ml-3">
                                 <p class="text-sm font-medium text-white">{{ Auth::user()->name ?? 'Admin User' }}</p>
                                 <form action="{{ route('platform.logout') }}" method="POST" class="mt-1">
                                     @csrf
-                                    <button type="submit" class="text-xs font-medium text-slate-400 hover:text-white transition-colors">Sign out</button>
+                                    <button type="submit" class="text-xs font-medium text-stone-400 hover:text-amber-200/90 transition-colors">Sign out</button>
                                 </form>
                             </div>
                         </div>
@@ -325,22 +324,22 @@
 
         <!-- Main Content -->
         <div class="lg:pl-64 flex flex-col flex-1">
-            <div class="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200 lg:hidden">
-                <button type="button" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 lg:hidden" @click="sidebarOpen = true">
+            <div class="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white/95 backdrop-blur border-b border-stone-200 lg:hidden">
+                <button type="button" class="px-4 border-r border-stone-200 text-stone-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 lg:hidden" @click="sidebarOpen = true">
                     <span class="sr-only">Open sidebar</span>
                     <i class="ph ph-list text-2xl"></i>
                 </button>
                 <div class="flex-1 px-4 flex justify-between">
                     <div class="flex-1 flex items-center">
-                        <h1 class="text-lg font-semibold text-gray-900 font-display">@yield('header')</h1>
+                        <h1 class="text-lg font-semibold text-stone-900 font-display">@yield('header')</h1>
                     </div>
                 </div>
             </div>
 
             <main class="flex-1 pb-8">
                 <!-- Page Header (Desktop) -->
-                <div class="hidden lg:flex bg-white border-b border-gray-200 px-8 py-5 justify-between items-center shadow-sm">
-                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight font-display">@yield('header')</h1>
+                <div class="hidden lg:flex bg-white/95 backdrop-blur border-b border-stone-200 px-8 py-5 justify-between items-center shadow-sm">
+                    <h1 class="text-2xl font-bold text-stone-900 tracking-tight font-display">@yield('header')</h1>
                     <div class="flex items-center space-x-4">
                          <!-- Header Actions Slot -->
                          @hasSection('header_actions')
@@ -348,10 +347,10 @@
                          @else
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50 shadow-sm"
+                                class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-semibold text-stone-800 hover:bg-stone-50 shadow-sm transition-colors"
                                 @click="openPalette()"
                             >
-                                <i class="ph ph-magnifying-glass text-lg text-gray-500"></i>
+                                <i class="ph ph-magnifying-glass text-lg text-stone-500"></i>
                                 Command
                                 <span class="tp-kbd">Ctrl K</span>
                             </button>
@@ -414,51 +413,51 @@
 
     <!-- Command Palette -->
     <div x-cloak x-show="paletteOpen" class="fixed inset-0 z-50" role="dialog" aria-modal="true">
-        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]" @click="closePalette()"></div>
-        <div class="absolute inset-0 flex items-start justify-center p-4 sm:p-8">
+        <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" @click="closePalette()"></div>
+        <div class="absolute inset-0 flex items-start justify-center p-4 sm:p-8 pt-[15vh]">
             <div
-                class="w-full max-w-2xl rounded-2xl border border-white/40 shadow-2xl overflow-hidden bg-white/95"
+                class="w-full max-w-2xl rounded-2xl border border-stone-200 shadow-2xl overflow-hidden bg-white"
                 @keydown.stop.prevent.arrow-down="paletteMove(1)"
                 @keydown.stop.prevent.arrow-up="paletteMove(-1)"
                 @keydown.stop.prevent.enter="paletteGo()"
             >
-                <div class="px-4 sm:px-5 py-4 border-b border-gray-200 bg-white">
+                <div class="px-4 sm:px-5 py-4 border-b border-stone-200 bg-stone-50/50">
                     <div class="flex items-center gap-3">
-                        <i class="ph ph-command text-xl text-gray-500"></i>
+                        <i class="ph ph-command text-xl text-amber-500"></i>
                         <input
                             x-ref="paletteInput"
                             type="text"
                             x-model="paletteQuery"
-                            class="w-full border-0 focus:ring-0 text-sm placeholder:text-gray-400"
+                            class="w-full border-0 bg-transparent focus:ring-0 text-sm text-stone-900 placeholder:text-stone-400"
                             placeholder="Search: tenants, queue, services, backups..."
                             autocomplete="off"
                         />
-                        <button type="button" class="text-sm text-gray-500 hover:text-gray-800" @click="closePalette()">
+                        <button type="button" class="text-sm text-stone-500 hover:text-stone-800" @click="closePalette()">
                             <span class="tp-kbd">Esc</span>
                         </button>
                     </div>
                 </div>
-                <div class="max-h-[60vh] overflow-auto bg-white">
+                <div class="max-h-[50vh] overflow-auto bg-white">
                     <template x-if="filteredPalette().length === 0">
-                        <div class="p-6 text-sm text-gray-600">No results.</div>
+                        <div class="p-6 text-sm text-stone-600">No results.</div>
                     </template>
                     <template x-for="(item, idx) in filteredPalette()" :key="(item.href || '') + '-' + (item.label || idx)">
                         <a
                             :href="item.href"
-                            class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-100 hover:bg-gray-50"
-                            :class="idx === paletteIndex ? 'bg-gray-50' : ''"
+                            class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-stone-100 hover:bg-amber-50/50 transition-colors"
+                            :class="idx === paletteIndex ? 'bg-amber-50/70' : ''"
                             @mouseenter="paletteIndex = idx"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-600">
+                                <div class="h-9 w-9 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-center text-amber-600">
                                     <i class="ph ph-arrow-right text-lg"></i>
                                 </div>
                                 <div>
-                                    <div class="text-sm font-semibold text-gray-900" x-text="item.label"></div>
-                                    <div class="text-xs text-gray-600" x-text="item.keywords"></div>
+                                    <div class="text-sm font-semibold text-stone-900" x-text="item.label"></div>
+                                    <div class="text-xs text-stone-500" x-text="item.keywords"></div>
                                 </div>
                             </div>
-                            <div class="text-xs text-gray-500">Go</div>
+                            <div class="text-xs text-stone-400">Go</div>
                         </a>
                     </template>
                 </div>

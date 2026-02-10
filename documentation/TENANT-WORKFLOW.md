@@ -37,11 +37,16 @@ Had l-workflow kaywaddi men "create tenant" 7ta "site m9ad fih dashboard w datab
 
 - Ila bghiti frontend (Next.js) m3a tenant: `FRONTEND_AUTO=true` w scripts `provision-frontend.sh` / `deprovision-frontend.sh`. After provisioning, frontend yt-provision auto. Tafsil: `documentation/TENANT-FRONTEND-AUTO.md`.
 
-## 7) Résumé — Workflow (dima Laravel)
+## 7) One-click install (b7al WordPress, install + import)
+
+Bach **one click** → site khedam **direct** (admin jahiz, optional demo/import): patch n9ad b **seed** (admin + optional demo), provision y-run seed, platform t-pass admin credentials. Tafsil: **`documentation/TENANT-ONE-CLICK-INSTALL.md`**.
+
+## 8) Résumé — Workflow (dima Laravel)
 
 1. **Patch** = tenant app repo **Laravel** (theme + dashboard). Export or custom repo → `TENANT_APP_REPO`.
 2. **Create tenant** → **Provision instance** (Laravel clone f backend) → **Admin access** (SSH/SFTP) → **Setup site** (Laravel already live aw "Install Application" Laravel).
 3. Install (provision + install app) kay imchi f backend/terminal; man ba3d kay tla3 site **Laravel** m9ad fih dashboard w database; 9bal setup site khass admin access ykon m3a l-tenant.
+4. **One-click (goal):** provision + seed (admin + demo) → site direct khedam. See `TENANT-ONE-CLICK-INSTALL.md`.
 
 **Workflow tani (4 steps):**
 
