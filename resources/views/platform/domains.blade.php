@@ -4,31 +4,38 @@
 @section('header', 'Domain Center')
 
 @section('content')
-    <div class="sm:flex sm:items-center sm:justify-between mb-6 gap-4">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8 gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Domain Center</h1>
-            <p class="mt-2 text-sm text-gray-700">Domain inventory (prod/staging/preview) + SSL/HTTP3/Nginx actions.</p>
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+                    <i class="ph ph-globe-stand text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Domain Center</h1>
+                    <p class="mt-0.5 text-sm text-gray-500">Inventory (prod/staging/preview) + SSL, HTTP/3 & Nginx actions.</p>
+                </div>
+            </div>
         </div>
 
-        <form method="GET" action="{{ route('platform.domains') }}" class="flex items-center gap-2">
+        <form method="GET" action="{{ route('platform.domains') }}" class="flex flex-wrap items-center gap-2 sm:gap-3">
             <div class="relative">
-                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
                 <input
                     type="text"
                     name="q"
                     value="{{ $q ?? '' }}"
                     placeholder="Search hostname or tenant…"
-                    class="pl-9 pr-3 py-2 rounded-md border border-gray-200 bg-white text-sm w-[260px] focus:ring-primary-500 focus:border-primary-500 shadow-sm"
+                    class="pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm w-[240px] sm:w-[260px] focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-shadow"
                 >
             </div>
-            <select name="env" class="py-2 rounded-md border border-gray-200 bg-white text-sm focus:ring-primary-500 focus:border-primary-500 shadow-sm">
+            <select name="env" class="py-2.5 pl-3 pr-8 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500">
                 <option value="">All envs</option>
-                <option value="production" {{ ($env ?? '') === 'production' ? 'selected' : '' }}>production</option>
-                <option value="staging" {{ ($env ?? '') === 'staging' ? 'selected' : '' }}>staging</option>
-                <option value="preview" {{ ($env ?? '') === 'preview' ? 'selected' : '' }}>preview</option>
+                <option value="production" {{ ($env ?? '') === 'production' ? 'selected' : '' }}>Production</option>
+                <option value="staging" {{ ($env ?? '') === 'staging' ? 'selected' : '' }}>Staging</option>
+                <option value="preview" {{ ($env ?? '') === 'preview' ? 'selected' : '' }}>Preview</option>
             </select>
-            <button type="submit" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 shadow-sm">
-                Filter
+            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 shadow-sm hover:shadow transition-shadow">
+                <i class="ph ph-funnel-simple text-base"></i> Filter
             </button>
         </form>
     </div>
@@ -59,36 +66,51 @@
         $sslDays = $sslDays ?? 14;
     @endphp
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white shadow rounded-lg p-4 border border-gray-100">
-            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Domains</div>
-            <div class="mt-2 text-2xl font-bold text-gray-900">{{ (int) ($stats['total'] ?? 0) }}</div>
-            <div class="mt-1 text-xs text-gray-600">All envs</div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+        <div class="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 sm:p-5 hover:border-gray-300/80 transition-colors">
+            <div class="flex items-center gap-2 text-gray-500">
+                <i class="ph ph-stack text-lg"></i>
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Domains</span>
+            </div>
+            <div class="mt-3 text-2xl font-bold tabular-nums text-gray-900">{{ (int) ($stats['total'] ?? 0) }}</div>
+            <div class="mt-1 text-xs text-gray-500">All envs</div>
         </div>
-        <div class="bg-white shadow rounded-lg p-4 border border-gray-100">
-            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Production</div>
-            <div class="mt-2 text-2xl font-bold text-gray-900">{{ (int) ($stats['production'] ?? 0) }}</div>
-            <div class="mt-1 text-xs text-gray-600">Live</div>
+        <div class="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 sm:p-5 hover:border-green-200/60 transition-colors">
+            <div class="flex items-center gap-2 text-gray-500">
+                <i class="ph ph-check-circle text-lg text-green-500"></i>
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Production</span>
+            </div>
+            <div class="mt-3 text-2xl font-bold tabular-nums text-gray-900">{{ (int) ($stats['production'] ?? 0) }}</div>
+            <div class="mt-1 text-xs text-gray-500">Live</div>
         </div>
-        <div class="bg-white shadow rounded-lg p-4 border border-gray-100">
-            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Staging</div>
-            <div class="mt-2 text-2xl font-bold text-gray-900">{{ (int) ($stats['staging'] ?? 0) }}</div>
-            <div class="mt-1 text-xs text-gray-600">Sync enabled</div>
+        <div class="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 sm:p-5 hover:border-amber-200/60 transition-colors">
+            <div class="flex items-center gap-2 text-gray-500">
+                <i class="ph ph-git-branch text-lg text-amber-500"></i>
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Staging</span>
+            </div>
+            <div class="mt-3 text-2xl font-bold tabular-nums text-gray-900">{{ (int) ($stats['staging'] ?? 0) }}</div>
+            <div class="mt-1 text-xs text-gray-500">Sync enabled</div>
         </div>
-        <div class="bg-white shadow rounded-lg p-4 border border-gray-100">
-            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Preview</div>
-            <div class="mt-2 text-2xl font-bold text-gray-900">{{ (int) ($stats['preview'] ?? 0) }}</div>
-            <div class="mt-1 text-xs text-gray-600">Full page preview</div>
+        <div class="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 sm:p-5 hover:border-slate-200/80 transition-colors">
+            <div class="flex items-center gap-2 text-gray-500">
+                <i class="ph ph-eye text-lg text-slate-500"></i>
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Preview</span>
+            </div>
+            <div class="mt-3 text-2xl font-bold tabular-nums text-gray-900">{{ (int) ($stats['preview'] ?? 0) }}</div>
+            <div class="mt-1 text-xs text-gray-500">Full page preview</div>
         </div>
-        <div class="bg-white shadow rounded-lg p-4 border border-gray-100">
-            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Warnings</div>
-            <div class="mt-2 text-2xl font-bold text-gray-900">{{ (int) ($stats['ssl_expiring'] ?? 0) + (int) ($stats['http3_issues'] ?? 0) }}</div>
-            <div class="mt-1 text-xs text-gray-600">SSL expiring + HTTP/3 issues</div>
+        <div class="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 sm:p-5 hover:border-amber-200/60 transition-colors">
+            <div class="flex items-center gap-2 text-gray-500">
+                <i class="ph ph-warning text-lg text-amber-500"></i>
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Warnings</span>
+            </div>
+            <div class="mt-3 text-2xl font-bold tabular-nums {{ ((int)($stats['ssl_expiring'] ?? 0) + (int)($stats['http3_issues'] ?? 0)) > 0 ? 'text-amber-700' : 'text-gray-900' }}">{{ (int) ($stats['ssl_expiring'] ?? 0) + (int) ($stats['http3_issues'] ?? 0) }}</div>
+            <div class="mt-1 text-xs text-gray-500">SSL expiring + HTTP/3</div>
         </div>
     </div>
 
     <div
-        class="bg-white shadow rounded-lg overflow-hidden"
+        class="bg-white shadow-sm rounded-xl border border-gray-200/80 overflow-hidden"
         x-data="{
             open: false,
             domainId: '',
@@ -162,37 +184,37 @@
             },
         }"
     >
-        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between gap-3">
-            <div>
+        <div class="px-5 sm:px-6 py-4 border-b border-gray-200 bg-gray-50/80 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
                 <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wider">Domains</h2>
-                <div class="mt-1 text-xs text-gray-500">
+                <span class="text-xs text-gray-500 font-medium">
                     Showing {{ method_exists($domains, 'count') ? $domains->count() : 0 }}
-                </div>
+                </span>
             </div>
             <div class="flex items-center gap-2">
                 <button
                     type="button"
-                    class="inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-colors"
                     @click="bulkConfirmText = ''; bulkOpen = true"
                 >
-                    <i class="ph ph-certificate mr-2 text-gray-600"></i> Renew expiring SSL
+                    <i class="ph ph-certificate text-gray-500"></i> Renew expiring SSL
                 </button>
             </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-white">
+                <thead class="bg-gray-50/70">
                     <tr>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Hostname</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tenant</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Env</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">DNS</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">SSL</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nginx</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">HTTP/3</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Warnings</th>
-                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Hostname</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tenant</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Env</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">DNS</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">SSL</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nginx</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">HTTP/3</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Warnings</th>
+                        <th class="px-5 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -366,7 +388,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-5 py-10 text-center text-sm text-gray-600">No domains found.</td>
+                            <td colspan="9" class="px-5 py-16 text-center">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
+                                        <i class="ph ph-globe-stand text-3xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-600">No domains found</p>
+                                    <p class="text-xs text-gray-500 max-w-sm">Add a site with a domain from Sites, or adjust the filter above.</p>
+                                </div>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -382,49 +412,58 @@
         <!-- Bulk SSL Renew Modal -->
         <div
             x-show="bulkOpen"
-            x-transition.opacity
+            x-transition:enter="ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
             style="display: none;"
             class="fixed inset-0 z-50 overflow-y-auto"
             aria-labelledby="modal-title" role="dialog" aria-modal="true"
         >
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="bulkOpen = false"></div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" aria-hidden="true" @click="bulkOpen = false"></div>
+                <div class="relative w-full max-w-lg rounded-2xl bg-white shadow-xl ring-1 ring-gray-200/80 overflow-hidden">
                     <form method="POST" action="{{ route('platform.control.run') }}">
                         @csrf
                         <input type="hidden" name="action_id" value="ssl_renew_expiring">
 
-                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2" id="modal-title">Renew expiring SSL</h3>
-                            <p class="text-sm text-gray-600">
-                                This will attempt to renew certificates expiring soon (based on <span class="font-mono">ssl_alert_days</span>). It can take time.
+                        <div class="px-6 pt-6 pb-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                                    <i class="ph ph-certificate text-xl"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900" id="modal-title">Renew expiring SSL</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">
+                                Renew certificates expiring soon (based on <span class="font-mono text-gray-700">ssl_alert_days</span>). May take a moment.
                             </p>
 
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Type <span class="font-mono" x-text="bulkPhrase"></span> to confirm
+                            <div class="mt-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Type <span class="font-mono text-gray-900" x-text="bulkPhrase"></span> to confirm
                                 </label>
                                 <input
                                     type="text"
                                     name="confirm"
                                     x-model="bulkConfirmText"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm font-mono"
+                                    class="block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm font-mono focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                                     :placeholder="bulkPhrase"
                                     autocomplete="off"
                                 >
                             </div>
                         </div>
 
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <div class="bg-gray-50/80 px-6 py-4 flex flex-row-reverse gap-3 border-t border-gray-200">
                             <button
                                 type="submit"
-                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                class="inline-flex justify-center items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                                 :disabled="!canBulkRun()"
                             >
                                 Run
                             </button>
-                            <button type="button" @click="bulkOpen = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            <button type="button" @click="bulkOpen = false" class="inline-flex justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                                 Cancel
                             </button>
                         </div>

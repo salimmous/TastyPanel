@@ -93,6 +93,7 @@ Create site → provision instance (Laravel clone) → admin access (SSH/SFTP) �
 - `documentation/UBUNTU-24.04-INSTALL.md` VPS installation
 - `documentation/TENANT-WORKFLOW.md` tenant workflow (Laravel patch, provision, admin access)
 - `documentation/TENANT-APP-REPO.md` tenant app repo (theme + dashboard)
+- `documentation/PLATFORM-PRO-CHECKLIST.md` platform pro — all modules connected, config checklist, verification
 - `documentation/CONTROL-PANEL.md` control panel capabilities
 - `documentation/nginx/NGINX-SETUP.md` Nginx details
 - `documentation/PROD-CHECKLIST.md` go-live checks

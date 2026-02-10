@@ -129,7 +129,6 @@ Route::prefix('platform')->middleware(['admin.ip'])->group(function () {
         Route::get('/users', [PlatformController::class, 'users'])->name('platform.users');
         Route::resource('/roles', \App\Http\Controllers\Admin\RoleController::class)->names('platform.roles');
         Route::get('/settings', [PlatformController::class, 'settings'])->name('platform.settings');
-        Route::get('/settings', [PlatformController::class, 'settings'])->name('platform.settings');
         Route::post('/settings', [PlatformController::class, 'updateSettings'])->name('platform.settings.update');
         Route::post('/settings/test-email', [PlatformController::class, 'sendTestEmail'])->name('platform.settings.test-email');
 
