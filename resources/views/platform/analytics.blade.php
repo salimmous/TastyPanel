@@ -4,7 +4,6 @@
 @section('header', 'Analytics')
 
 @section('content')
-@section('content')
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-blue-500 p-6">
             <div class="flex items-center">

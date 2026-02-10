@@ -4,7 +4,6 @@
 @section('header', 'Queue Management')
 
 @section('content')
-@section('content')
     @if(session('success'))
         <div class="rounded-md bg-green-50 p-4 mb-6">
             <div class="flex">
@@ -196,5 +195,4 @@
             @endif
         </div>
     </div>
-@endsection
 @endsection

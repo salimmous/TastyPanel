@@ -4,7 +4,6 @@
 @section('header', 'Audit Logs')
 
 @section('content')
-@section('content')
     <div class="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Activity Logs</h1>
@@ -27,7 +26,7 @@
                     @forelse($logs as $log)
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $log->created_at->format('Y-m-d H:i') }}
+                                {{ optional($log->created_at)->format('Y-m-d H:i') ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
@@ -65,5 +64,4 @@
         </div>
         @endif
     </div>
-@endsection
 @endsection

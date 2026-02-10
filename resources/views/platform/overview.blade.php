@@ -4,7 +4,6 @@
 @section('header', 'Platform Overview')
 
 @section('content')
-@section('content')
     <!-- System Metrics -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
         <!-- CPU Load -->

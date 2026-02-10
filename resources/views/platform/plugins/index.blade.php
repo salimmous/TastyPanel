@@ -4,7 +4,6 @@
 @section('header', 'Plugins')
 
 @section('content')
-@section('content')
     <div class="bg-white overflow-hidden shadow rounded-lg">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h3 class="text-lg leading-6 font-medium text-gray-900">Installed Plugins</h3>

@@ -19,12 +19,20 @@ class EnsureTwoFactorVerified
             return $next($request);
         }
 
+        if ($request->is('platform/2fa*') || $request->is('platform/logout')) {
+            return $next($request);
+        }
+
         $verified = $request->session()->get('two_factor_verified', false);
         if (!$verified) {
-            return response()->json([
-                'message' => 'Two-factor authentication required.',
-                'code' => 'two_factor_required',
-            ], 403);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Two-factor authentication required.',
+                    'code' => 'two_factor_required',
+                ], 403);
+            }
+
+            return redirect()->route('platform.2fa');
         }
 
         return $next($request);

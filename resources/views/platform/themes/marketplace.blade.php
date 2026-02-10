@@ -4,7 +4,6 @@
 @section('header', 'Marketplace')
 
 @section('content')
-@section('content')
     <div class="mb-6 sm:flex sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Theme Marketplace</h1>

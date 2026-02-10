@@ -6,7 +6,14 @@ use App\Http\Controllers\Admin\SsoController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\PlatformController;
+use App\Http\Controllers\PlatformDeployController;
+use App\Http\Controllers\PlatformDomainController;
 use App\Http\Controllers\PlatformInstallController;
+use App\Http\Controllers\PlatformMonitoringController;
+use App\Http\Controllers\PlatformMonitoringRulesController;
+use App\Http\Controllers\PlatformOpsController;
+use App\Http\Controllers\PlatformSecurityController;
+use App\Http\Controllers\PlatformTwoFactorController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -34,18 +41,51 @@ Route::get('/login', function () {
     return redirect()->route('platform.login');
 })->name('login');
 
-Route::prefix('platform')->group(function () {
+Route::prefix('platform')->middleware(['admin.ip'])->group(function () {
     Route::get('/install', [PlatformInstallController::class, 'show'])->name('platform.install');
     Route::post('/install/complete', [PlatformInstallController::class, 'complete'])->name('platform.install.complete');
 
     Route::get('/login', [PlatformController::class, 'showLogin'])->name('platform.login');
     Route::post('/login', [PlatformController::class, 'login']);
-    Route::post('/logout', [PlatformController::class, 'logout'])->name('platform.logout');
 
-    Route::middleware(['web'])->group(function () {
+    Route::middleware(['auth:web'])->group(function () {
+        Route::get('/2fa', [PlatformTwoFactorController::class, 'show'])->name('platform.2fa');
+        Route::post('/2fa/verify', [PlatformTwoFactorController::class, 'verify'])->name('platform.2fa.verify');
+        Route::post('/2fa/resend', [PlatformTwoFactorController::class, 'resend'])->name('platform.2fa.resend');
+        Route::post('/logout', [PlatformController::class, 'logout'])->name('platform.logout');
+    });
+
+    Route::middleware(['auth:web', 'admin.2fa'])->group(function () {
         Route::get('/', [PlatformController::class, 'dashboard'])->name('platform.dashboard');
         Route::get('/dashboard', [PlatformController::class, 'dashboard']);
         Route::get('/overview', [PlatformController::class, 'overview'])->name('platform.overview');
+        Route::get('/control', [PlatformOpsController::class, 'index'])->name('platform.control');
+        Route::get('/deploy', [PlatformDeployController::class, 'index'])->name('platform.deploy');
+        Route::get('/monitoring', [PlatformMonitoringController::class, 'index'])->name('platform.monitoring');
+        Route::get('/monitoring/rules', [PlatformMonitoringRulesController::class, 'index'])->name('platform.monitoring.rules');
+        Route::post('/monitoring/rules/{tenant}', [PlatformMonitoringRulesController::class, 'upsert'])->name('platform.monitoring.rules.upsert');
+        Route::delete('/monitoring/rules/{tenant}', [PlatformMonitoringRulesController::class, 'destroy'])->name('platform.monitoring.rules.destroy');
+        Route::post('/monitoring/settings', [PlatformMonitoringController::class, 'updateSettings'])->name('platform.monitoring.settings.update');
+        Route::post('/monitoring/uptime-checks', [PlatformMonitoringController::class, 'storeUptimeCheck'])->name('platform.monitoring.uptime.store');
+        Route::post('/monitoring/uptime-checks/{check}', [PlatformMonitoringController::class, 'updateUptimeCheck'])->name('platform.monitoring.uptime.update');
+        Route::delete('/monitoring/uptime-checks/{check}', [PlatformMonitoringController::class, 'destroyUptimeCheck'])->name('platform.monitoring.uptime.destroy');
+        Route::post('/monitoring/uptime-checks/{check}/run', [PlatformMonitoringController::class, 'runUptimeCheck'])->name('platform.monitoring.uptime.run');
+
+        Route::get('/domains', [PlatformDomainController::class, 'index'])->name('platform.domains');
+        Route::get('/domains/{domain}/dns', [PlatformDomainController::class, 'dns'])->name('platform.domains.dns');
+
+        Route::get('/security', [PlatformSecurityController::class, 'index'])->name('platform.security');
+        Route::post('/security', [PlatformSecurityController::class, 'update'])->name('platform.security.update');
+        Route::post('/security/2fa/enable', [PlatformSecurityController::class, 'enableTwoFactor'])->name('platform.security.2fa.enable');
+        Route::post('/security/2fa/disable', [PlatformSecurityController::class, 'disableTwoFactor'])->name('platform.security.2fa.disable');
+        Route::post('/security/sessions/revoke-other', [PlatformSecurityController::class, 'revokeOtherSessions'])->name('platform.security.sessions.revoke_other');
+        Route::post('/security/emergency-lock', [PlatformSecurityController::class, 'emergencyLock'])->name('platform.security.emergency_lock');
+
+        Route::post('/control/run', [PlatformOpsController::class, 'run'])->name('platform.control.run');
+        Route::post('/control/bulk-run', [PlatformOpsController::class, 'bulkRun'])->name('platform.control.bulk-run');
+        Route::post('/control/firewall/rules', [PlatformOpsController::class, 'firewallStore'])->name('platform.control.firewall.store');
+        Route::post('/control/firewall/rules/{rule}/toggle', [PlatformOpsController::class, 'firewallToggle'])->name('platform.control.firewall.toggle');
+        Route::delete('/control/firewall/rules/{rule}', [PlatformOpsController::class, 'firewallDestroy'])->name('platform.control.firewall.destroy');
         Route::get('/tenants', [PlatformController::class, 'tenants'])->name('platform.tenants');
         Route::get('/tenants/create', [PlatformController::class, 'createTenant'])->name('platform.tenants.create');
         Route::post('/tenants', [PlatformController::class, 'storeTenant'])->name('platform.tenants.store');
@@ -62,6 +102,11 @@ Route::prefix('platform')->group(function () {
         Route::post('/tenants/{id}/staging/enable', [\App\Http\Controllers\Admin\StagingController::class, 'enable'])->name('platform.tenants.staging.enable');
         Route::post('/tenants/{id}/staging/sync', [\App\Http\Controllers\Admin\StagingController::class, 'sync'])->name('platform.tenants.staging.sync');
         Route::post('/tenants/{id}/staging/disable', [\App\Http\Controllers\Admin\StagingController::class, 'destroy'])->name('platform.tenants.staging.disable');
+        Route::get('/tenants/{id}/preview', [\App\Http\Controllers\Admin\PreviewWebController::class, 'index'])->name('platform.tenants.preview');
+        Route::post('/tenants/{id}/preview/enable', [\App\Http\Controllers\Admin\PreviewWebController::class, 'enable'])->name('platform.tenants.preview.enable');
+        Route::post('/tenants/{id}/preview/sync', [\App\Http\Controllers\Admin\PreviewWebController::class, 'sync'])->name('platform.tenants.preview.sync');
+        Route::post('/tenants/{id}/preview/promote', [\App\Http\Controllers\Admin\PreviewWebController::class, 'promote'])->name('platform.tenants.preview.promote');
+        Route::post('/tenants/{id}/preview/disable', [\App\Http\Controllers\Admin\PreviewWebController::class, 'destroy'])->name('platform.tenants.preview.disable');
         Route::get('/tenants/{id}/automation', [\App\Http\Controllers\Admin\AutomationController::class, 'index'])->name('platform.tenants.automation');
         Route::post('/admin/automation/update', [\App\Http\Controllers\Admin\AutomationController::class, 'update'])->name('platform.automation.update');
         Route::post('/admin/automation/test', [\App\Http\Controllers\Admin\AutomationController::class, 'test'])->name('platform.automation.test');
@@ -88,9 +133,7 @@ Route::prefix('platform')->group(function () {
         Route::post('/settings', [PlatformController::class, 'updateSettings'])->name('platform.settings.update');
         Route::post('/settings/test-email', [PlatformController::class, 'sendTestEmail'])->name('platform.settings.test-email');
 
-        Route::get('/revenue', [\App\Http\Controllers\Admin\RevenueController::class, 'index'])->name('platform.revenue');
-        Route::get('/revenue/api/dashboard', [\App\Http\Controllers\Admin\RevenueController::class, 'dashboard']);
-        Route::get('/revenue/api/mrr', [\App\Http\Controllers\Admin\RevenueController::class, 'mrrChart']);
+        // Billing/Revenue routes intentionally removed for this platform admin setup.
 
         // Advanced Features
         Route::get('/analytics', [PlatformController::class, 'analytics'])->name('platform.analytics');

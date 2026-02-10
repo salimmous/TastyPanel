@@ -30,7 +30,7 @@
                     <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
                         <div class="text-sm text-blue-800 font-medium mb-1">Staging URL</div>
                         <div class="text-xs text-blue-600 break-all">
-                             http://staging.{{ $tenant->domains->firstWhere('is_primary', true)->domain ?? 'unknown' }}
+                             http://staging.{{ $tenant->domains->firstWhere('is_primary', true)->hostname ?? 'unknown' }}
                         </div>
                     </div>
 

@@ -33,6 +33,7 @@ class AuditLogService
             'method' => request()->method(),
             'url' => request()->fullUrl(),
             'status' => 'success',
+            'created_at' => now(),
         ]);
     }
 
@@ -52,6 +53,7 @@ class AuditLogService
             'url' => request()->fullUrl(),
             'status' => $success ? 'success' : 'failed',
             'error_message' => $success ? null : $reason,
+            'created_at' => now(),
         ]);
     }
 

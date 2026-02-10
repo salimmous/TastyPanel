@@ -7,6 +7,51 @@ use Illuminate\Support\Facades\Log;
 
 class CloudflareService
 {
+    public function listDnsRecords(string $zoneId, array $query = []): array
+    {
+        $params = array_filter(array_merge([
+            'per_page' => 100,
+            'page' => 1,
+        ], $query), fn ($v) => $v !== null && $v !== '');
+
+        $response = Http::withToken(config('services.cloudflare.token'))
+            ->acceptJson()
+            ->get("https://api.cloudflare.com/client/v4/zones/{$zoneId}/dns_records", $params);
+
+        $payload = $response->json();
+        if (!$response->ok() || !($payload['success'] ?? false)) {
+            $message = 'Cloudflare DNS list failed';
+            if (!empty($payload['errors'][0]['message'])) {
+                $message = $payload['errors'][0]['message'];
+            }
+            throw new \RuntimeException($message);
+        }
+
+        return $payload['result'] ?? [];
+    }
+
+    public function getDnsRecord(string $zoneId, string $recordId): ?array
+    {
+        $response = Http::withToken(config('services.cloudflare.token'))
+            ->acceptJson()
+            ->get("https://api.cloudflare.com/client/v4/zones/{$zoneId}/dns_records/{$recordId}");
+
+        if ($response->status() === 404) {
+            return null;
+        }
+
+        $payload = $response->json();
+        if (!$response->ok() || !($payload['success'] ?? false)) {
+            $message = 'Cloudflare DNS read failed';
+            if (!empty($payload['errors'][0]['message'])) {
+                $message = $payload['errors'][0]['message'];
+            }
+            throw new \RuntimeException($message);
+        }
+
+        return $payload['result'] ?? null;
+    }
+
     public function createARecord(string $zoneId, string $hostname, string $ip, bool $proxied = true): string
     {
         $response = Http::withToken(config('services.cloudflare.token'))

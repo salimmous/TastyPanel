@@ -200,4 +200,9 @@ class Tenant extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function alertRule()
+    {
+        return $this->hasOne(TenantAlertRule::class);
+    }
 }

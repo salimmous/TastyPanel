@@ -111,14 +111,18 @@
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
                     <i class="ph ph-calendar-check mr-2"></i> Cron Jobs
                 </button>
-                 <a href="{{ route('platform.tenants.staging', $tenant->id) }}"
-                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
-                    Staging <i class="ph ph-arrow-square-out ml-1"></i>
-                </a>
-                <a href="{{ route('platform.tenants.automation', $tenant->id) }}"
-                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
-                    Automation <i class="ph ph-arrow-square-out ml-1"></i>
-                </a>
+	                 <a href="{{ route('platform.tenants.staging', $tenant->id) }}"
+	                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
+	                    Staging <i class="ph ph-arrow-square-out ml-1"></i>
+	                </a>
+                    <a href="{{ route('platform.tenants.preview', $tenant->id) }}"
+	                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
+	                    Preview <i class="ph ph-arrow-square-out ml-1"></i>
+	                </a>
+	                <a href="{{ route('platform.tenants.automation', $tenant->id) }}"
+	                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
+	                    Automation <i class="ph ph-arrow-square-out ml-1"></i>
+	                </a>
             </nav>
         </div>
 
@@ -656,23 +660,108 @@
             </div>
         </div>
 
-        <!-- Secrets Tab -->
-        <div x-show="activeTab === 'secrets'" style="display: none;" class="space-y-6">
-            <div class="bg-white shadow sm:rounded-lg">
-                <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Environment Secrets</h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage sensitive environment variables for this tenant.</p>
-                    </div>
-                    <button @click="$dispatch('open-secret-modal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                        <i class="ph ph-plus mr-2"></i> Add Secret
-                    </button>
-                </div>
-                <div class="px-4 py-5 sm:p-6">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key</th>
+		        <!-- Secrets Tab -->
+		        <div
+		            x-show="activeTab === 'secrets'"
+		            style="display: none;"
+		            class="space-y-6"
+		            x-data="{
+		                secretsExport: @json(($tenant->secrets ?? collect())->map(fn($s) => [
+		                    'id' => $s->id,
+		                    'secret_key' => $s->secret_key,
+		                    'updated_at' => optional($s->updated_at)->toDateTimeString(),
+		                ])->values()),
+		                exportKeys() {
+		                    const payload = {
+		                        tenant: { id: {{ (int) $tenant->id }}, name: @json((string) ($tenant->name ?? '')) },
+		                        keys: this.secretsExport || [],
+		                    };
+		                    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+		                    const url = URL.createObjectURL(blob);
+		                    const a = document.createElement('a');
+		                    a.href = url;
+		                    a.download = `tenant-${payload.tenant.id}-secrets-keys.json`;
+		                    document.body.appendChild(a);
+		                    a.click();
+		                    a.remove();
+		                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+		                },
+		            }"
+		        >
+		            <div class="bg-white shadow sm:rounded-lg">
+		                <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+		                    <div>
+		                        <h3 class="text-lg leading-6 font-medium text-gray-900">Environment Secrets</h3>
+		                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage sensitive environment variables for this tenant.</p>
+		                    </div>
+	                        <div class="flex items-center gap-3">
+	                            <button
+	                                type="button"
+	                                @click="$dispatch('open-env-sync-modal')"
+	                                class="inline-flex items-center px-4 py-2 border border-gray-200 text-sm font-semibold rounded-md shadow-sm text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+	                            >
+	                                <i class="ph ph-arrows-clockwise mr-2 text-gray-600"></i> Sync all to .env
+	                            </button>
+	                            <form method="POST" action="{{ route('platform.control.run') }}">
+	                                @csrf
+	                                <input type="hidden" name="action_id" value="tenant_env_preview_keys">
+	                                <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+	                                <button
+	                                    type="submit"
+	                                    class="inline-flex items-center px-4 py-2 border border-gray-200 text-sm font-semibold rounded-md shadow-sm text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+	                                >
+	                                    <i class="ph ph-eye mr-2 text-gray-600"></i> Preview .env keys
+	                                </button>
+	                            </form>
+	                            <form method="POST" action="{{ route('platform.control.run') }}">
+	                                @csrf
+	                                <input type="hidden" name="action_id" value="tenant_env_diff_secrets">
+	                                <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+	                                <button
+	                                    type="submit"
+	                                    class="inline-flex items-center px-4 py-2 border border-gray-200 text-sm font-semibold rounded-md shadow-sm text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+	                                >
+	                                    <i class="ph ph-git-diff mr-2 text-gray-600"></i> Dry-run diff
+	                                </button>
+	                            </form>
+	                            <button
+	                                type="button"
+	                                @click="exportKeys()"
+	                                class="inline-flex items-center px-4 py-2 border border-gray-200 text-sm font-semibold rounded-md shadow-sm text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+	                            >
+	                                <i class="ph ph-download-simple mr-2 text-gray-600"></i> Export keys
+	                            </button>
+	                            <button @click="$dispatch('open-secret-modal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+	                                <i class="ph ph-plus mr-2"></i> Add Secret
+	                            </button>
+	                        </div>
+		                </div>
+	                <div class="px-4 py-5 sm:p-6">
+	                        @php
+	                            $secretsRunbookIds = ['tenant_secrets_sync_all_to_env', 'tenant_env_preview_keys', 'tenant_env_diff_secrets'];
+	                        @endphp
+	                        @if(in_array(session('runbook_action_id'), $secretsRunbookIds, true))
+	                            <div class="mb-4 rounded-lg border {{ session('runbook_success') ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' }} p-4">
+	                                <div class="flex items-start justify-between gap-4">
+	                                    <div>
+	                                        <div class="text-sm font-semibold {{ session('runbook_success') ? 'text-green-900' : 'text-red-900' }}">
+	                                            {{ session('runbook_action') ?? 'Secrets action' }}
+	                                        </div>
+	                                        <div class="mt-1 text-xs text-gray-600">Output tail (redacted).</div>
+	                                    </div>
+	                                    <span class="shrink-0 px-2 py-1 rounded-full text-xs font-semibold {{ session('runbook_success') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+	                                        {{ session('runbook_success') ? 'success' : 'failed' }}
+	                                    </span>
+	                                </div>
+	                                @if(session('runbook_output'))
+	                                    <pre class="mt-3 text-xs whitespace-pre-wrap break-words rounded-md bg-white/70 border border-black/5 p-3 max-h-72 overflow-auto">{{ session('runbook_output') }}</pre>
+	                                @endif
+	                            </div>
+	                        @endif
+	                    <table class="min-w-full divide-y divide-gray-200">
+	                        <thead>
+	                            <tr>
+	                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                                 <th class="px-6 py-3 bg-gray-50"></th>
@@ -682,18 +771,27 @@
                             @forelse($tenant->secrets as $secret)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $secret->secret_key }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">••••••••••••</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $secret->updated_at->diffForHumans() }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <form action="{{ route('platform.tenants.secrets.destroy', [$tenant->id, $secret->id]) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure?')">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
+	                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">••••••••••••</td>
+	                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $secret->updated_at->diffForHumans() }}</td>
+	                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+	                                        <div class="inline-flex items-center gap-3">
+	                                            <button
+	                                                type="button"
+	                                                class="text-gray-700 hover:text-gray-900 underline"
+	                                                @click="$dispatch('open-rotate-modal', { key: @json((string) $secret->secret_key) })"
+	                                            >
+	                                                Rotate
+	                                            </button>
+	                                            <form action="{{ route('platform.tenants.secrets.destroy', [$tenant->id, $secret->id]) }}" method="POST" class="inline">
+	                                                @csrf
+	                                                @method('DELETE')
+	                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure?')">Delete</button>
+	                                            </form>
+	                                        </div>
+	                                    </td>
+	                                </tr>
+	                            @empty
+	                                <tr>
                                     <td colspan="4" class="px-6 py-12 text-center text-gray-500">
                                         No secrets defined for this tenant.
                                     </td>
@@ -701,8 +799,8 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-            </div>
+	            </div>
+	        </div>
         </div>
 
         <!-- Vhost Tab -->
@@ -880,10 +978,10 @@
             </div>
         </div>
 
-        <!-- Add Secret Modal -->
-        <div x-data="{ open: false }" 
-             @open-secret-modal.window="open = true" 
-             x-show="open" 
+	        <!-- Add Secret Modal -->
+	        <div x-data="{ open: false }" 
+	             @open-secret-modal.window="open = true" 
+	             x-show="open" 
              style="display: none;" 
              class="fixed inset-0 z-50 overflow-y-auto" 
              aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -913,6 +1011,158 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
-@endsection
+	        </div>
+
+	            <!-- Sync Secrets to .env Modal -->
+	            <div
+	                x-data="{ open: false, confirmText: '', phrase: 'tenant_secrets_sync_all_to_env' }"
+	                @open-env-sync-modal.window="open = true; confirmText = ''"
+	                x-show="open"
+                style="display: none;"
+                class="fixed inset-0 z-50 overflow-y-auto"
+                aria-labelledby="modal-title" role="dialog" aria-modal="true"
+            >
+                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div x-show="open" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="open = false"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                    <div x-show="open" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                        <form method="POST" action="{{ route('platform.control.run') }}">
+                            @csrf
+                            <input type="hidden" name="action_id" value="tenant_secrets_sync_all_to_env">
+                            <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Sync all secrets to .env</h3>
+                                <p class="text-sm text-gray-600">
+                                    This will upsert environment variables in the tenant <span class="font-mono">.env</span> for every stored secret.
+                                    Values are never displayed, but keys can overwrite existing env keys.
+                                </p>
+
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Type <span class="font-mono" x-text="phrase"></span> to confirm
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="confirm"
+                                        x-model="confirmText"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm font-mono"
+                                        :placeholder="phrase"
+                                        autocomplete="off"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button
+                                    type="submit"
+                                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                    :disabled="confirmText !== phrase"
+                                >
+                                    Run Sync
+                                </button>
+                                <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+	            </div>
+
+	            <!-- Rotate Secret Modal -->
+	            <div
+	                x-data="{
+	                    open: false,
+	                    secretKey: '',
+	                    secretValue: '',
+	                    confirmText: '',
+	                    phrase: 'rotate_secret',
+	                    gen(len = 48) {
+	                        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+	                        const out = [];
+	                        const bytes = new Uint8Array(len);
+	                        (window.crypto || window.msCrypto).getRandomValues(bytes);
+	                        for (let i = 0; i < bytes.length; i++) out.push(chars[bytes[i] % chars.length]);
+	                        return out.join('');
+	                    },
+	                    regenerate() { this.secretValue = this.gen(48); },
+	                    copy() {
+	                        if (!navigator.clipboard) return;
+	                        navigator.clipboard.writeText(this.secretValue || '');
+	                    },
+	                }"
+	                @open-rotate-modal.window="open = true; secretKey = ($event.detail && $event.detail.key) ? String($event.detail.key) : ''; secretValue = gen(48); confirmText = ''"
+	                x-show="open"
+	                style="display: none;"
+	                class="fixed inset-0 z-50 overflow-y-auto"
+	                aria-labelledby="modal-title" role="dialog" aria-modal="true"
+	            >
+	                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+	                    <div x-show="open" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="open = false"></div>
+	                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+	                    <div x-show="open" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+	                        <form action="{{ route('platform.tenants.secrets.store', $tenant->id) }}" method="POST">
+	                            @csrf
+	                            <input type="hidden" name="secret_key" :value="secretKey">
+	                            <input type="hidden" name="secret_value" :value="secretValue">
+
+	                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+	                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Rotate Secret</h3>
+	                                <p class="text-sm text-gray-600">
+	                                    This generates a new value for the selected secret key. Copy it now if you need it, then sync to <span class="font-mono">.env</span>.
+	                                </p>
+
+	                                <div class="mt-4">
+	                                    <div class="text-xs font-semibold text-gray-700">Key</div>
+	                                    <div class="mt-1 font-mono text-sm text-gray-900" x-text="secretKey"></div>
+	                                </div>
+
+	                                <div class="mt-4">
+	                                    <div class="flex items-center justify-between">
+	                                        <div class="text-xs font-semibold text-gray-700">New value</div>
+	                                        <div class="inline-flex items-center gap-2">
+	                                            <button type="button" class="text-xs font-semibold text-gray-700 hover:text-gray-900 underline" @click="regenerate()">Regenerate</button>
+	                                            <button type="button" class="text-xs font-semibold text-gray-700 hover:text-gray-900 underline" @click="copy()">Copy</button>
+	                                        </div>
+	                                    </div>
+	                                    <textarea
+	                                        rows="3"
+	                                        readonly
+	                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm font-mono bg-gray-50"
+	                                        x-text="secretValue"
+	                                    ></textarea>
+	                                </div>
+
+	                                <div class="mt-4">
+	                                    <label class="block text-sm font-medium text-gray-700">
+	                                        Type <span class="font-mono" x-text="phrase"></span> to confirm
+	                                    </label>
+	                                    <input
+	                                        type="text"
+	                                        x-model="confirmText"
+	                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm font-mono"
+	                                        :placeholder="phrase"
+	                                        autocomplete="off"
+	                                    >
+	                                </div>
+	                            </div>
+
+	                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+	                                <button
+	                                    type="submit"
+	                                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+	                                    :disabled="confirmText !== phrase || !secretKey"
+	                                >
+	                                    Rotate
+	                                </button>
+	                                <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+	                                    Cancel
+	                                </button>
+	                            </div>
+	                        </form>
+	                    </div>
+	                </div>
+	            </div>
+		    </div>
+		@endsection

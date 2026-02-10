@@ -14,14 +14,24 @@
     Overview
 </a>
 
+<a href="{{ route('platform.control') }}" class="{{ $navClass }} {{ request()->routeIs('platform.control*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-command text-lg mr-3 {{ request()->routeIs('platform.control*') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
+    Control Center
+</a>
+
+<a href="{{ route('platform.deploy') }}" class="{{ $navClass }} {{ request()->routeIs('platform.deploy') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-rocket-launch text-lg mr-3 {{ request()->routeIs('platform.deploy') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
+    Deploy Center
+</a>
+
 <a href="{{ route('platform.tenants') }}" class="{{ $navClass }} {{ request()->routeIs('platform.tenants*') ? $activeClass : $inactiveClass }}">
     <i class="ph ph-globe text-lg mr-3 {{ request()->routeIs('platform.tenants*') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
     Sites
 </a>
 
-<a href="{{ route('platform.revenue') }}" class="{{ $navClass }} {{ request()->routeIs('platform.revenue*') ? $activeClass : $inactiveClass }}">
-    <i class="ph ph-currency-dollar text-lg mr-3 {{ request()->routeIs('platform.revenue*') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
-    Revenue
+<a href="{{ route('platform.domains') }}" class="{{ $navClass }} {{ request()->routeIs('platform.domains') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-network text-lg mr-3 {{ request()->routeIs('platform.domains') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
+    Domain Center
 </a>
 
 <div class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -38,9 +48,24 @@
     Roles & Permissions
 </a>
 
+<a href="{{ route('platform.security') }}" class="{{ $navClass }} {{ request()->routeIs('platform.security*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-lock-key text-lg mr-3 {{ request()->routeIs('platform.security*') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
+    Security Center
+</a>
+
 <div class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
     Monitoring
 </div>
+
+<a href="{{ route('platform.monitoring') }}" class="{{ $navClass }} {{ request()->routeIs('platform.monitoring') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-waveform text-lg mr-3 {{ request()->routeIs('platform.monitoring') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
+    Monitoring Center
+</a>
+
+<a href="{{ route('platform.monitoring.rules') }}" class="{{ $navClass }} {{ request()->routeIs('platform.monitoring.rules') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-sliders text-lg mr-3 {{ request()->routeIs('platform.monitoring.rules') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>
+    Monitoring Rules
+</a>
 
 <a href="{{ route('platform.analytics') }}" class="{{ $navClass }} {{ request()->routeIs('platform.analytics') ? $activeClass : $inactiveClass }}">
     <i class="ph ph-chart-pie-slice text-lg mr-3 {{ request()->routeIs('platform.analytics') ? 'text-primary-400' : 'text-slate-400 group-hover:text-white' }}"></i>

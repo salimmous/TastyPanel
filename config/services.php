@@ -139,6 +139,21 @@ return [
         'use_sudo' => env('TENANT_QUEUE_USE_SUDO', false),
     ],
 
+    'tenant_artisan' => [
+        'script' => env('TENANT_ARTISAN_SCRIPT', base_path('infrastructure/tenant-artisan.sh')),
+        'use_sudo' => env('TENANT_ARTISAN_USE_SUDO', true),
+    ],
+
+    'tenant_deploy' => [
+        'script' => env('TENANT_DEPLOY_SCRIPT', base_path('infrastructure/tenant-deploy.sh')),
+        'use_sudo' => env('TENANT_DEPLOY_USE_SUDO', true),
+    ],
+
+    'tenant_env_preview' => [
+        'script' => env('TENANT_ENV_KEYS_SCRIPT', base_path('infrastructure/tenant-env-keys.sh')),
+        'use_sudo' => env('TENANT_ENV_KEYS_USE_SUDO', true),
+    ],
+
     'tenant_mode' => [
         'enabled' => env('TENANT_MODE', false),
         'locked_tenant_id' => env('TENANT_LOCK_ID'),

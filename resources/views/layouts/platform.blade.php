@@ -4,12 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Platform') - TastyPanel</title>
     
-    <!-- Fonts: Inter -->
+    <!-- Fonts: Inter + Sora -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- Icons: Phosphor -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -22,6 +23,7 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                        display: ['Sora', 'Inter', 'sans-serif'],
                     },
                     colors: {
                         primary: {
@@ -46,6 +48,139 @@
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #374151; border-radius: 4px; }
         .sidebar-scroll::-webkit-scrollbar-track { background-color: transparent; }
+
+        :root {
+            --tp-surface: #ffffff;
+            --tp-border: rgba(15, 23, 42, 0.10);
+            --tp-muted: #64748b;
+            --tp-ink: #0f172a;
+            --tp-primary: #2563eb;
+        }
+
+        body {
+            background:
+                radial-gradient(1000px circle at 18% 8%, rgba(37, 99, 235, 0.10), transparent 60%),
+                radial-gradient(900px circle at 78% 18%, rgba(16, 185, 129, 0.10), transparent 55%),
+                radial-gradient(1100px circle at 55% 95%, rgba(245, 158, 11, 0.08), transparent 55%),
+                linear-gradient(#f8fafc, #f3f4f6);
+        }
+
+        .fade-in-up {
+            animation: tpFadeInUp 220ms ease-out both;
+        }
+
+        @keyframes tpFadeInUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tp-kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 11px;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-bottom-width: 2px;
+            border-radius: 6px;
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.75);
+            color: rgba(15, 23, 42, 0.80);
+        }
+
+        /* Legacy utility classes used across some platform pages (staging/automation/roles). */
+        .card {
+            background: var(--tp-surface);
+            border: 1px solid var(--tp-border);
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: rgba(255, 255, 255, 0.9);
+            color: rgba(15, 23, 42, 0.92);
+            cursor: pointer;
+            transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+        }
+        .btn:hover {
+            background: #fff;
+            border-color: rgba(15, 23, 42, 0.18);
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+            transform: translateY(-1px);
+        }
+        .btn:active { transform: translateY(0); box-shadow: none; }
+
+        .btn-sm { padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 700; }
+
+        .btn-primary {
+            background: var(--tp-primary);
+            border-color: rgba(37, 99, 235, 0.35);
+            color: #fff;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.18);
+            border-color: rgba(148, 163, 184, 0.30);
+            color: rgba(15, 23, 42, 0.92);
+        }
+        .btn-secondary:hover { background: rgba(148, 163, 184, 0.24); }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: rgba(153, 27, 27, 0.95);
+        }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.16); }
+
+        .btn-success {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: rgba(6, 95, 70, 0.95);
+        }
+        .btn-success:hover { background: rgba(16, 185, 129, 0.16); }
+
+        .input {
+            width: 100%;
+            border: 1px solid rgba(15, 23, 42, 0.14);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.96);
+            color: rgba(15, 23, 42, 0.92);
+            outline: none;
+            transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+        }
+        .input:focus {
+            border-color: rgba(37, 99, 235, 0.55);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            background: #fff;
+        }
+
+        .table { width: 100%; border-collapse: collapse; }
+        .table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(100, 116, 139, 0.95);
+            background: rgba(248, 250, 252, 1);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            font-size: 14px;
+        }
     </style>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -53,7 +188,72 @@
 
 <body class="h-full font-sans antialiased text-gray-900">
     
-    <div class="min-h-full flex" x-data="{ sidebarOpen: false }">
+    @php
+        $paletteItems = [
+            ['label' => 'Dashboard', 'href' => route('platform.dashboard'), 'keywords' => 'home dashboard'],
+            ['label' => 'Overview', 'href' => route('platform.overview'), 'keywords' => 'overview system metrics'],
+            ['label' => 'Control Center', 'href' => route('platform.control'), 'keywords' => 'control ops runbook'],
+            ['label' => 'Deploy Center', 'href' => route('platform.deploy'), 'keywords' => 'deploy restart migrate'],
+            ['label' => 'Monitoring Center', 'href' => route('platform.monitoring'), 'keywords' => 'monitoring uptime ssl backups'],
+            ['label' => 'Monitoring Rules', 'href' => route('platform.monitoring.rules'), 'keywords' => 'monitoring rules alerts channels slack email'],
+            ['label' => 'Sites', 'href' => route('platform.tenants'), 'keywords' => 'tenants sites domains'],
+            ['label' => 'Domain Center', 'href' => route('platform.domains'), 'keywords' => 'domains dns ssl http3 nginx cloudflare'],
+            ['label' => 'Services', 'href' => route('platform.services'), 'keywords' => 'services systemd logs'],
+            ['label' => 'Queue', 'href' => route('platform.queue'), 'keywords' => 'queue jobs failed'],
+            ['label' => 'Backups', 'href' => route('platform.backups'), 'keywords' => 'backup restore'],
+            ['label' => 'System Status', 'href' => route('platform.system'), 'keywords' => 'system status mysql redis'],
+            ['label' => 'Audit Logs', 'href' => route('platform.audit_logs'), 'keywords' => 'audit logs activity'],
+            ['label' => 'Security Center', 'href' => route('platform.security'), 'keywords' => 'security ip allowlist 2fa sessions'],
+            ['label' => 'Themes', 'href' => route('platform.themes'), 'keywords' => 'themes templates'],
+            ['label' => 'Plugins', 'href' => route('platform.plugins'), 'keywords' => 'plugins'],
+            ['label' => 'Settings', 'href' => route('platform.settings'), 'keywords' => 'settings config'],
+        ];
+    @endphp
+
+    <div
+        class="min-h-full flex"
+        x-data="{
+            sidebarOpen: false,
+            paletteOpen: false,
+            paletteQuery: '',
+            paletteIndex: 0,
+            paletteItems: @json($paletteItems),
+            filteredPalette() {
+                const q = (this.paletteQuery || '').toLowerCase().trim();
+                const items = this.paletteItems || [];
+                if (!q) return items;
+                return items.filter(i => {
+                    const hay = ((i.label || '') + ' ' + (i.keywords || '')).toLowerCase();
+                    return hay.includes(q);
+                });
+            },
+            openPalette() {
+                this.paletteOpen = true;
+                this.paletteQuery = '';
+                this.paletteIndex = 0;
+                this.$nextTick(() => this.$refs.paletteInput && this.$refs.paletteInput.focus());
+            },
+            closePalette() {
+                this.paletteOpen = false;
+            },
+            paletteMove(delta) {
+                const items = this.filteredPalette();
+                if (!items.length) return;
+                this.paletteIndex = (this.paletteIndex + delta + items.length) % items.length;
+            },
+            paletteGo() {
+                const items = this.filteredPalette();
+                if (!items.length) return;
+                const item = items[this.paletteIndex] || items[0];
+                if (item && item.href) window.location.href = item.href;
+            },
+        }"
+        @keydown.window.prevent.ctrl.k="openPalette()"
+        @keydown.window.prevent.meta.k="openPalette()"
+        @keydown.window.escape="closePalette()"
+        @tp-open-palette.window="openPalette()"
+        @tp-close-palette.window="closePalette()"
+    >
 
         <!-- Mobile Sidebar Overlay -->
         <div x-show="sidebarOpen" class="fixed inset-0 z-40 flex lg:hidden" role="dialog" aria-modal="true">
@@ -68,7 +268,7 @@
                 </div>
                 <div class="flex-shrink-0 flex items-center px-4">
                     <div class="flex flex-col">
-                        <span class="text-xl font-bold text-white tracking-tight">TastyPanel</span>
+                        <span class="text-xl font-bold text-white tracking-tight font-display">TastyPanel</span>
                         <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Platform</span>
                     </div>
                 </div>
@@ -86,7 +286,7 @@
             <div class="flex-1 flex flex-col min-h-0">
                 <div class="flex items-center h-16 flex-shrink-0 px-6 bg-slate-900 border-b border-slate-800">
                      <div class="flex flex-col">
-                        <span class="text-xl font-bold text-white tracking-tight">TastyPanel</span>
+                        <span class="text-xl font-bold text-white tracking-tight font-display">TastyPanel</span>
                         <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Platform</span>
                     </div>
                 </div>
@@ -125,7 +325,7 @@
                 </button>
                 <div class="flex-1 px-4 flex justify-between">
                     <div class="flex-1 flex items-center">
-                        <h1 class="text-lg font-semibold text-gray-900">@yield('header')</h1>
+                        <h1 class="text-lg font-semibold text-gray-900 font-display">@yield('header')</h1>
                     </div>
                 </div>
             </div>
@@ -133,10 +333,22 @@
             <main class="flex-1 pb-8">
                 <!-- Page Header (Desktop) -->
                 <div class="hidden lg:flex bg-white border-b border-gray-200 px-8 py-5 justify-between items-center shadow-sm">
-                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">@yield('header')</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight font-display">@yield('header')</h1>
                     <div class="flex items-center space-x-4">
                          <!-- Header Actions Slot -->
-                         @yield('header_actions')
+                         @hasSection('header_actions')
+                            @yield('header_actions')
+                         @else
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50 shadow-sm"
+                                @click="openPalette()"
+                            >
+                                <i class="ph ph-magnifying-glass text-lg text-gray-500"></i>
+                                Command
+                                <span class="tp-kbd">Ctrl K</span>
+                            </button>
+                         @endif
                     </div>
                 </div>
 
@@ -192,5 +404,73 @@
             </main>
         </div>
     </div>
+
+    <!-- Command Palette -->
+    <div x-cloak x-show="paletteOpen" class="fixed inset-0 z-50" role="dialog" aria-modal="true">
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]" @click="closePalette()"></div>
+        <div class="absolute inset-0 flex items-start justify-center p-4 sm:p-8">
+            <div
+                class="w-full max-w-2xl rounded-2xl border border-white/40 shadow-2xl overflow-hidden bg-white/95"
+                @keydown.stop.prevent.arrow-down="paletteMove(1)"
+                @keydown.stop.prevent.arrow-up="paletteMove(-1)"
+                @keydown.stop.prevent.enter="paletteGo()"
+            >
+                <div class="px-4 sm:px-5 py-4 border-b border-gray-200 bg-white">
+                    <div class="flex items-center gap-3">
+                        <i class="ph ph-command text-xl text-gray-500"></i>
+                        <input
+                            x-ref="paletteInput"
+                            type="text"
+                            x-model="paletteQuery"
+                            class="w-full border-0 focus:ring-0 text-sm placeholder:text-gray-400"
+                            placeholder="Search: tenants, queue, services, backups..."
+                            autocomplete="off"
+                        />
+                        <button type="button" class="text-sm text-gray-500 hover:text-gray-800" @click="closePalette()">
+                            <span class="tp-kbd">Esc</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="max-h-[60vh] overflow-auto bg-white">
+                    <template x-if="filteredPalette().length === 0">
+                        <div class="p-6 text-sm text-gray-600">No results.</div>
+                    </template>
+                    <template x-for="(item, idx) in filteredPalette()" :key="item.href">
+                        <a
+                            :href="item.href"
+                            class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-100 hover:bg-gray-50"
+                            :class="idx === paletteIndex ? 'bg-gray-50' : ''"
+                            @mouseenter="paletteIndex = idx"
+                        >
+                            <div class="flex items-center gap-3">
+                                <div class="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-600">
+                                    <i class="ph ph-arrow-right text-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900" x-text="item.label"></div>
+                                    <div class="text-xs text-gray-600" x-text="item.keywords"></div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">Go</div>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fallback keyboard handler in case Alpine key modifiers differ across browsers.
+        document.addEventListener('keydown', function (e) {
+            const key = (e.key || '').toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && key === 'k') {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent('tp-open-palette'));
+            }
+            if (key === 'escape') {
+                window.dispatchEvent(new CustomEvent('tp-close-palette'));
+            }
+        });
+    </script>
 </body>
 </html>

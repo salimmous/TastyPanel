@@ -26,17 +26,24 @@ class RestrictAdminIps
             }
         }
 
-        return response()->json([
-            'message' => 'Access denied.',
-        ], 403);
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Access denied.',
+            ], 403);
+        }
+
+        abort(403);
     }
 
     private function allowedIps(): array
     {
         $raw = config('services.panel.allowed_ips', '');
-        $settings = \App\Models\PlatformSetting::getData();
-        if (!empty($settings['panel_allowed_ips'])) {
-            $raw = $settings['panel_allowed_ips'];
+        try {
+            $settings = \App\Models\PlatformSetting::getData();
+            if (!empty($settings['panel_allowed_ips'])) {
+                $raw = $settings['panel_allowed_ips'];
+            }
+        } catch (\Throwable $e) {
         }
         if (empty($raw)) {
             return [];

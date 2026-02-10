@@ -4,7 +4,6 @@
 @section('header', 'System Status')
 
 @section('content')
-@section('content')
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50">
