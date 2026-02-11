@@ -279,7 +279,10 @@ class PlatformController extends Controller
 
         $pmaUrl = $this->resolvePhpMyAdminUrl($tenant);
 
-        return view('platform.tenants.show', compact('tenant', 'access', 'mail', 'security', 'quota', 'logs', 'nginxLogs', 'vhostContent', 'phpSettings', 'cronJobs', 'pmaUrl'));
+        $installLogPath = storage_path("logs/tenant-install-{$tenant->id}.log");
+        $installLog = File::exists($installLogPath) ? array_slice(explode("\n", File::get($installLogPath)), -200) : [];
+
+        return view('platform.tenants.show', compact('tenant', 'access', 'mail', 'security', 'quota', 'logs', 'nginxLogs', 'vhostContent', 'phpSettings', 'cronJobs', 'pmaUrl', 'installLog'));
     }
 
     public function updateVhost(Request $request, $id, NginxProvisioningService $nginxService)

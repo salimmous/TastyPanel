@@ -101,6 +101,16 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                 'blocked' => $result['blocked'] ?? false,
                 'completed_steps' => $result['completed_steps'] ?? [],
             ]);
+
+            // Auto-install app after successful provisioning (create + install in one flow)
+            $meta = $job->meta ?? [];
+            $adminConfig = [
+                'admin_email' => $meta['admin_email'] ?? '',
+                'admin_user' => $meta['admin_user'] ?? 'admin',
+                'admin_password' => $meta['admin_password'] ?? '',
+                'url' => 'http://' . ($domain->hostname ?? 'localhost'),
+            ];
+            \App\Jobs\InstallTenantAppJob::dispatch($domain->tenant, 'laravel', null, $adminConfig);
         } catch (Throwable $e) {
             $this->markFailed($job, $e->getMessage(), ['step' => 'exception']);
             throw $e;

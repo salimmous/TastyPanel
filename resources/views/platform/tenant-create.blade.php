@@ -4,13 +4,13 @@
 @section('header', 'Create Site')
 
 @section('content')
-<div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
-    <div class="md:grid md:grid-cols-3 md:gap-8">
-        <div class="md:col-span-1">
-            <div class="px-4 sm:px-0 md:sticky md:top-24">
+<div class="w-full max-w-none py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 xl:col-span-3">
+            <div class="lg:sticky lg:top-24">
                 <h3 class="text-lg font-semibold text-stone-900">Site Configuration</h3>
                 <p class="mt-2 text-sm text-stone-600 leading-relaxed">
-                    Create a new manual site. No theme or provisioning is applied automatically. You can assign a theme and deploy later from the admin tools.
+                    Create a new manual site. Provisioning runs automatically and installs Laravel. For <strong>theme + dashboard</strong> instead of default Laravel, set <code class="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 font-medium">TENANT_APP_REPO</code> in platform <code class="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 font-medium">.env</code> (see <code class="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 font-medium">documentation/TENANT-APP-REPO.md</code>).
                 </p>
                 <p class="mt-3 text-xs text-stone-500">
                     Workflow: <code class="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 font-medium">TENANT-WORKFLOW.md</code>
@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        <div class="mt-6 md:mt-0 md:col-span-2">
+        <div class="lg:col-span-8 xl:col-span-9">
             <form action="{{ route('platform.tenants.store') }}" method="POST">
                 @csrf
                 <div class="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
@@ -62,7 +62,7 @@
 
                             <div class="col-span-6 border-t border-stone-200 pt-6">
                                 <h4 class="text-sm font-semibold text-stone-900">Database</h4>
-                                <p class="mt-1 text-sm text-stone-600">Created automatically during install (MySQL). Credentials are written to the site’s <code class="rounded bg-stone-100 px-1.5 py-0.5 text-stone-700 text-xs font-medium">.env</code>.</p>
+                                <p class="mt-1 text-sm text-stone-600">Fully automatic — no manual setup. A MySQL database is created for this site during provisioning; name, user, and password are generated and written to the site’s <code class="rounded bg-stone-100 px-1.5 py-0.5 text-stone-700 text-xs font-medium">.env</code>. You can view credentials on the site page after creation.</p>
                             </div>
 
                             <div class="col-span-6 border-t border-stone-200 pt-6">
@@ -92,13 +92,20 @@
                             </div>
 
                             <div class="col-span-6 border-t border-stone-200 pt-6">
+                                <h4 class="text-sm font-semibold text-stone-900">SSH / Admin access (site)</h4>
+                                <p class="mt-1 text-sm text-stone-600">
+                                    This site gets its own <strong>SSH/SFTP user</strong> (e.g. <code class="rounded bg-stone-100 px-1.5 py-0.5 text-stone-700 text-xs font-medium">tb_&lt;id&gt;</code>) created automatically during provisioning. That user is the one who has access to this site — files, terminal, SFTP. After creation, view and manage SSH credentials from the site page (Admin access section).
+                                </p>
+                            </div>
+
+                            <div class="col-span-6 border-t border-stone-200 pt-6">
                                 <div class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-4">
                                     <div class="flex items-center gap-2">
                                         <i class="ph ph-download-simple text-amber-600 text-lg"></i>
                                         <h4 class="text-sm font-semibold text-stone-900">Install after create</h4>
                                     </div>
                                     <p class="mt-2 text-sm text-stone-700">
-                                        After you click <strong>Create Site</strong>, provisioning runs automatically: clone app (Laravel patch), database, Nginx, SSL. You will be redirected to the new site page where you can follow the install status.
+                                        After you click <strong>Create Site</strong>, provisioning runs automatically: clone app (Laravel patch), database, Nginx, SSL, <strong>and SSH/SFTP access</strong>. You will be redirected to the new site page where you can follow the install status and get SSH credentials.
                                     </p>
                                     <p class="mt-1 text-xs text-stone-600">One click - site is created and install starts. Check the site page for progress.</p>
                                 </div>

@@ -184,6 +184,20 @@
                         <h3 class="text-sm font-semibold text-gray-800">Quick Actions</h3>
                     </div>
                     <div class="p-5 space-y-3">
+                        @php $primaryDomain = $tenant->domains->where('is_primary', true)->first(); @endphp
+                        @if($primaryDomain)
+                        <form action="{{ route('platform.control.run') }}" method="POST" class="w-full" onsubmit="return confirm('Apply Nginx config for {{ $primaryDomain->hostname }}?');">
+                            @csrf
+                            <input type="hidden" name="action_id" value="domain_nginx_apply">
+                            <input type="hidden" name="confirm" value="domain_nginx_apply">
+                            <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+                            <input type="hidden" name="domain_id" value="{{ $primaryDomain->id }}">
+                            <button type="submit" class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-amber-50 hover:text-amber-700 transition-colors rounded-lg text-sm font-medium text-gray-700">
+                                <span class="flex items-center"><i class="ph ph-file-arrow-down mr-3"></i> Apply Nginx</span>
+                                <i class="ph ph-caret-right"></i>
+                            </button>
+                        </form>
+                        @endif
                         <button @click="activeTab = 'apps'; $dispatch('open-install-modal')" class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-primary-50 hover:text-primary-700 transition-colors rounded-lg text-sm font-medium text-gray-700">
                             <span class="flex items-center"><i class="ph ph-download-simple mr-3"></i> Install App</span>
                             <i class="ph ph-caret-right"></i>
@@ -529,7 +543,7 @@
                                     <div class="mt-2 text-sm text-red-700 font-mono">
                                         {{ $tenant->instance_last_error }}
                                     </div>
-                                    <p class="mt-2 text-xs text-red-600">Check the Logs tab for more details on what went wrong.</p>
+                                    <p class="mt-2 text-xs text-red-600">Check the Install Log below or storage/logs/tenant-install-{{ $tenant->id }}.log</p>
                                 </div>
                             </div>
                         </div>
@@ -567,6 +581,13 @@
                             </div>
                         </div>
                     @endif
+
+                    @if(!empty($installLog))
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-900 mb-2">Install Log</h4>
+                            <pre class="p-4 bg-gray-900 text-gray-100 text-xs font-mono rounded-lg overflow-auto max-h-64">@foreach($installLog as $line){{ $line }}{{ "\n" }}@endforeach</pre>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -583,15 +604,15 @@
 
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
                     <form action="{{ route('platform.tenants.install-app', $tenant->id) }}" method="POST">
                         @csrf
-                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[85vh] overflow-y-auto">
                             <div class="sm:flex sm:items-start">
                                 <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
                                     <i class="ph ph-download-simple text-primary-600 text-lg"></i>
                                 </div>
-                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full min-w-0">
                                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Install Application</h3>
                                     <div class="mt-2">
                                         <p class="text-sm text-gray-500 mb-4">Select an application to install on this tenant. Any existing files in the root directory may be overwritten.</p>
@@ -662,16 +683,19 @@
         </div>
 
 		        <!-- Secrets Tab -->
+		        @php
+		            $secretsExportJson = json_encode(($tenant->secrets ?? collect())->map(fn($s) => [
+		                'id' => $s->id,
+		                'secret_key' => $s->secret_key,
+		                'updated_at' => optional($s->updated_at)->toDateTimeString(),
+		            ])->values());
+		        @endphp
 		        <div
 		            x-show="activeTab === 'secrets'"
 		            style="display: none;"
 		            class="space-y-6"
 		            x-data="{
-		                secretsExport: @json(($tenant->secrets ?? collect())->map(fn($s) => [
-		                    'id' => $s->id,
-		                    'secret_key' => $s->secret_key,
-		                    'updated_at' => optional($s->updated_at)->toDateTimeString(),
-		                ])->values()),
+		                secretsExport: {!! $secretsExportJson !!},
 		                exportKeys() {
 		                    const payload = {
 		                        tenant: { id: {{ (int) $tenant->id }}, name: @json((string) ($tenant->name ?? '')) },

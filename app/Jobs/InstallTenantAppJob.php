@@ -28,7 +28,10 @@ class InstallTenantAppJob implements ShouldQueue
     {
         $appType = $this->appType;
         $repoUrl = $this->repoUrl ?: '';
-        
+        if ($appType === 'laravel' && $repoUrl === '' && config('services.instances.repo')) {
+            $repoUrl = config('services.instances.repo');
+        }
+
         $tenantKey = $this->tenant->instance_key;
         $tenantRoot = $this->tenant->instance_root;
 
@@ -38,10 +41,10 @@ class InstallTenantAppJob implements ShouldQueue
         }
 
         $script = base_path('infrastructure/install-tenant-app.sh');
-        
-        Log::info("Starting app installation for Tenant {$this->tenant->id}: $appType");
+        $logPath = storage_path("logs/tenant-install-{$this->tenant->id}.log");
 
-        // Ensure script is executable
+        Log::info("Starting app installation for Tenant {$this->tenant->id}: $appType", ['repo' => $repoUrl ?: 'default']);
+
         chmod($script, 0755);
 
         $systemUser = $this->tenant->instance_system_user ?: 'www-data';
@@ -53,13 +56,14 @@ class InstallTenantAppJob implements ShouldQueue
         $adminPass = $this->adminConfig['admin_password'] ?? '';
         $appUrl = $this->adminConfig['url'] ?? "http://localhost";
 
-        $result = Process::run("sudo $script \"$tenantKey\" \"$tenantRoot\" \"$appType\" \"$repoUrl\" \"$systemUser\" \"www-data\" \"$dbName\" \"$dbUser\" \"$dbPass\" \"$adminEmail\" \"$adminUser\" \"$adminPass\" \"$appUrl\"");
+        $result = Process::run("sudo $script \"$tenantKey\" \"$tenantRoot\" \"$appType\" \"$repoUrl\" \"$systemUser\" \"www-data\" \"$dbName\" \"$dbUser\" \"$dbPass\" \"$adminEmail\" \"$adminUser\" \"$adminPass\" \"$appUrl\" \"$logPath\"");
+
+        $output = trim($result->output() . "\n" . $result->errorOutput());
+        file_put_contents($logPath, $output . "\n");
 
         if ($result->failed()) {
-            $error = $result->errorOutput();
-            Log::error("App installation failed for Tenant {$this->tenant->id}: " . $error);
-            
-            $this->tenant->instance_last_error = "App Install Failed: " . substr($error, 0, 200);
+            Log::error("App installation failed for Tenant {$this->tenant->id}: " . $result->errorOutput());
+            $this->tenant->instance_last_error = "App Install Failed. See storage/logs/tenant-install-{$this->tenant->id}.log";
             $this->tenant->save();
         } else {
             Log::info("App installation success for Tenant {$this->tenant->id}");
