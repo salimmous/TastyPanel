@@ -1340,23 +1340,18 @@ class PlatformController extends Controller
         return view('platform.drills', compact('drills'));
     }
 
-    public function runDrill(\App\Services\DisasterRecoveryDrillService $drillService)
+    public function runDrill()
     {
         if (!Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         try {
-            // Ideally queue this, but service seems fast enough for small backups or simple verification
-            $drill = $drillService->runPlatformDrill(Auth::id());
+            \App\Jobs\RunDisasterRecoveryDrillJob::dispatch('platform', null, Auth::id());
 
-            if ($drill->status === 'passed') {
-                return back()->with('success', 'Disaster recovery drill passed successfully.');
-            }
-
-            return back()->with('error', 'Disaster recovery drill failed: ' . $drill->message);
+            return back()->with('success', 'Disaster recovery drill has been queued and will run in the background.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Drill execution failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to queue disaster recovery drill: ' . $e->getMessage());
         }
     }
 
