@@ -181,6 +181,10 @@
             font-size: 14px;
         }
     </style>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -478,5 +482,7 @@
             }
         });
     </script>
+    <!-- Custom JS -->
+    <script src="{{ asset('js/script.js') }}"></script>
 </body>
 </html>
