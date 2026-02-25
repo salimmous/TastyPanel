@@ -205,4 +205,14 @@ class Tenant extends Model
     {
         return $this->hasOne(TenantAlertRule::class);
     }
+
+    public function databases()
+    {
+        return $this->hasMany(Database::class);
+    }
+
+    public function systemUsers()
+    {
+        return $this->hasMany(SystemUser::class);
+    }
 }
