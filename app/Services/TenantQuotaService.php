@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class TenantQuotaService
 {
@@ -358,19 +357,11 @@ class TenantQuotaService
 
     private function checkDatabaseLimit(Tenant $tenant, ?int $limitMb): array
     {
-        $usedMb = 0;
-        if (!empty($tenant->instance_db_name)) {
-            try {
-                $result = DB::select(
-                    'SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema = ?',
-                    [$tenant->instance_db_name]
-                );
-                $bytes = (int) ($result[0]->size ?? 0);
-                $usedMb = (int) ceil($bytes / 1024 / 1024);
-            } catch (\Throwable $e) {
-                $usedMb = 0;
-            }
-        }
+        $cacheKey = sprintf('tenant_quota:db_size_mb:%d', $tenant->id);
+        $usedMb = (int) Cache::remember($cacheKey, 300, function () use ($tenant): int {
+            $bytes = app(TenantDatabaseService::class)->size($tenant);
+            return (int) ceil($bytes / 1024 / 1024);
+        });
 
         if (!$limitMb || $limitMb <= 0) {
             return [
