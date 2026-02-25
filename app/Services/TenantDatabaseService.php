@@ -87,6 +87,26 @@ class TenantDatabaseService
         DB::purge($this->connectionName($tenant));
     }
 
+    /**
+     * Get database size in bytes
+     */
+    public function size(Tenant $tenant): int
+    {
+        if (empty($tenant->instance_db_name)) {
+            return 0;
+        }
+
+        try {
+            $result = DB::select(
+                'SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema = ?',
+                [$tenant->instance_db_name]
+            );
+            return (int) ($result[0]->size ?? 0);
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    }
+
     private function connectionName(Tenant $tenant): string
     {
         return 'tenant_' . $tenant->id;
