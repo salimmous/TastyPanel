@@ -24,6 +24,11 @@
     Deploy Center
 </a>
 
+<a href="{{ route('platform.databases') }}" class="{{ $navClass }} {{ request()->routeIs('platform.databases*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-database text-lg mr-3 {{ request()->routeIs('platform.databases*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
+    Databases
+</a>
+
 <a href="{{ route('platform.tenants') }}" class="{{ $navClass }} {{ request()->routeIs('platform.tenants*') ? $activeClass : $inactiveClass }}">
     <i class="ph ph-globe text-lg mr-3 {{ request()->routeIs('platform.tenants*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
     Sites
