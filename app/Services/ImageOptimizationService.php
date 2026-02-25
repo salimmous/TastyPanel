@@ -84,10 +84,13 @@ class ImageOptimizationService
         $tempPath = sys_get_temp_dir() . '/' . uniqid() . '.png';
         $image->toPng()->save($tempPath);
 
+        $escapedTempPath = escapeshellarg($tempPath);
+        $escapedOutputPath = escapeshellarg($outputPath);
+
         // Convert using avifenc if available
         if ($this->commandExists('avifenc')) {
             $qualityParam = (int) ($quality * 0.63); // AVIF uses 0-63 scale
-            exec("avifenc -s {$qualityParam} {$tempPath} {$outputPath} 2>&1", $output, $returnCode);
+            exec("avifenc -s {$qualityParam} {$escapedTempPath} {$escapedOutputPath} 2>&1", $output, $returnCode);
 
             if ($returnCode === 0 && file_exists($outputPath)) {
                 unlink($tempPath);
@@ -97,7 +100,8 @@ class ImageOptimizationService
 
         // Fallback: use ImageMagick if available
         if ($this->commandExists('convert')) {
-            exec("convert {$tempPath} -quality {$quality} {$outputPath} 2>&1");
+            $escapedQuality = (int) $quality;
+            exec("convert {$escapedTempPath} -quality {$escapedQuality} {$escapedOutputPath} 2>&1");
             if (file_exists($outputPath)) {
                 unlink($tempPath);
                 return;
@@ -122,7 +126,8 @@ class ImageOptimizationService
      */
     private function commandExists(string $command): bool
     {
-        $result = shell_exec("which {$command} 2>/dev/null");
+        $escapedCommand = escapeshellarg($command);
+        $result = shell_exec("which {$escapedCommand} 2>/dev/null");
         return !empty($result);
     }
 
