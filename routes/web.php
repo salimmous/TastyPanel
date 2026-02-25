@@ -120,6 +120,7 @@ Route::prefix('platform')->middleware(['admin.ip'])->group(function () {
         // Route::post('/ssl/{site_id}/issue', [SslController::class, 'issue'])->name('platform.ssl.issue');
 
         // PHP (Refactored to PhpController)
+Route::get('/php', [PhpController::class, 'index'])->name('platform.php.index');
         Route::post('/tenants/{id}/php', [PhpController::class, 'update'])->name('platform.tenants.php.update');
 
         // Logs (Refactored to LogController)

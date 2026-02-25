@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Process;
 
 class PhpController extends Controller
 {
+    public function index()
+    {
+        if (!Auth::check()) return redirect()->route('platform.login');
+        return view('platform.php.index');
+    }
+
     public function update(Request $request, $id)
     {
         if (!Auth::check()) return redirect()->route('platform.login');
