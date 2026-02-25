@@ -14,27 +14,51 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $password = 'Admin123!';
+        $email = 'admin@tastypanel.com';
+        $user = User::where('email', $email)->first();
         
-        $user = User::where('email', 'admin@tastypanel.com')->first();
-        
+        $configPassword = config('app.admin_password');
+        $password = $configPassword;
+        $shouldUpdatePassword = false;
+
         if (!$user) {
+            // Create new admin user
+            $password = $password ?: Str::random(16);
+            $shouldUpdatePassword = true;
+
             User::create([
                 'name' => 'Admin',
-                'email' => 'admin@tastypanel.com',
+                'email' => $email,
                 'password' => Hash::make($password),
                 'email_verified_at' => now(),
                 'role' => 'superadmin',
                 'is_superadmin' => true,
+                'force_password_reset' => true,
             ]);
-            $this->command->info("Admin user created successfully with password: {$password}");
+            $this->command->info("Admin user created successfully.");
         } else {
+            // Update existing admin user
+            if ($configPassword) {
+                $user->update([
+                    'password' => Hash::make($configPassword),
+                    'force_password_reset' => true,
+                ]);
+                $shouldUpdatePassword = true;
+                $this->command->info("Admin user password updated from configuration.");
+            }
+
             $user->update([
-                'password' => Hash::make($password),
                 'role' => 'superadmin',
                 'is_superadmin' => true,
             ]);
-            $this->command->info("Admin user updated successfully with password: {$password}");
+            $this->command->info("Admin user roles and superadmin status ensured.");
+        }
+
+        if ($shouldUpdatePassword) {
+            $this->command->warn("-----------------------------------------");
+            $this->command->warn("Admin Password: {$password}");
+            $this->command->warn("Please change this password after login!");
+            $this->command->warn("-----------------------------------------");
         }
     }
 }
