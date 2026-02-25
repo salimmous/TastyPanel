@@ -5,11 +5,18 @@ namespace App\Services;
 use App\Models\BackupRun;
 use App\Models\PlatformSetting;
 use App\Models\Tenant;
+use App\Services\Shell\ShellRunnerInterface;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
 class BackupService
 {
+    public function __construct(
+        protected ShellRunnerInterface $shell,
+        protected Filesystem $files
+    ) {}
+
     public function run(?int $userId = null): BackupRun
     {
         $run = BackupRun::create([
@@ -21,8 +28,8 @@ class BackupService
 
         $timestamp = now()->format('Ymd_His');
         $backupDir = storage_path('app/backups/' . $timestamp);
-        if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+        if (!$this->files->isDirectory($backupDir)) {
+            $this->files->makeDirectory($backupDir, 0755, true);
         }
 
         $output = [];
@@ -44,15 +51,15 @@ class BackupService
 
             $size = 0;
             foreach ([$dbPath, $filesPath, $zipPath] as $path) {
-                if (file_exists($path)) {
-                    $size += filesize($path);
+                if ($this->files->exists($path)) {
+                    $size += $this->files->size($path);
                 }
             }
 
             $run->path = $backupDir;
             $run->size_bytes = $size ?: null;
             $run->disk = 'local';
-            $run->checksum = file_exists($zipPath) ? hash_file('sha256', $zipPath) : null;
+            $run->checksum = $this->files->exists($zipPath) ? hash_file('sha256', $zipPath) : null;
 
             if ($uploadToS3) {
                 $remotePath = $s3Prefix . '/' . $timestamp . '/backup.zip';
@@ -66,8 +73,8 @@ class BackupService
                 $output[] = 'Backup uploaded to S3.';
             }
 
-            if (!$keepLocal && file_exists($backupDir)) {
-                $this->deleteDirectory($backupDir);
+            if (!$keepLocal && $this->files->exists($backupDir)) {
+                $this->files->deleteDirectory($backupDir);
                 $run->path = null;
                 $output[] = 'Local backup removed.';
             }
@@ -93,8 +100,8 @@ class BackupService
         $backupName = "tenant_{$tenant->id}_{$timestamp}";
         $backupDir = storage_path("app/backups/tenants/{$backupName}");
 
-        if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+        if (!$this->files->isDirectory($backupDir)) {
+            $this->files->makeDirectory($backupDir, 0755, true);
         }
 
         try {
@@ -111,11 +118,11 @@ class BackupService
             // Upload to cloud if enabled
             if (config('backup.cloud_enabled')) {
                 Storage::disk(config('backup.cloud_disk', 's3'))
-                    ->put("tenants/{$backupName}.zip", file_get_contents($zipPath));
+                    ->put("tenants/{$backupName}.zip", $this->files->get($zipPath));
             }
 
             // Cleanup temp dir
-            $this->deleteDirectory($backupDir);
+            $this->files->deleteDirectory($backupDir);
 
             Log::info("Tenant backup completed: {$tenant->id}");
 
@@ -147,10 +154,10 @@ class BackupService
             escapeshellarg($dbName)
         );
 
-        exec($cmd, $output, $returnCode);
+        $result = $this->shell->run($cmd);
 
-        if ($returnCode !== 0) {
-            throw new \RuntimeException("Tenant DB backup failed: " . implode("\n", $output));
+        if (!$result->isSuccessful()) {
+            throw new \RuntimeException("Tenant DB backup failed: " . implode("\n", $result->output));
         }
 
         return $outputFile;
@@ -164,8 +171,8 @@ class BackupService
         $filesRoot = storage_path("app/tenant-files/{$tenant->id}");
         $outputFile = "{$backupDir}/files.tar.gz";
 
-        if (!is_dir($filesRoot)) {
-            touch($outputFile); // Empty file
+        if (!$this->files->isDirectory($filesRoot)) {
+            $this->files->put($outputFile, ''); // Empty file
             return $outputFile;
         }
 
@@ -175,9 +182,9 @@ class BackupService
             escapeshellarg($filesRoot)
         );
 
-        exec($cmd, $output, $returnCode);
+        $result = $this->shell->run($cmd);
 
-        if ($returnCode !== 0) {
+        if (!$result->isSuccessful()) {
             throw new \RuntimeException("Tenant files backup failed");
         }
 
@@ -192,24 +199,28 @@ class BackupService
         $extractDir = storage_path("app/backups/restore_" . uniqid());
 
         try {
-            mkdir($extractDir, 0755, true);
+            $this->files->makeDirectory($extractDir, 0755, true);
 
             // Extract ZIP
             $cmd = sprintf('unzip -q %s -d %s', escapeshellarg($backupFile), escapeshellarg($extractDir));
-            exec($cmd);
+            $result = $this->shell->run($cmd);
+
+            if (!$result->isSuccessful()) {
+                throw new \RuntimeException("Failed to unzip backup file: " . implode("\n", $result->output));
+            }
 
             // Restore database
-            if (file_exists("{$extractDir}/database.sql")) {
+            if ($this->files->exists("{$extractDir}/database.sql")) {
                 $this->restoreTenantDatabase($tenant, "{$extractDir}/database.sql");
             }
 
             // Restore files
-            if (file_exists("{$extractDir}/files.tar.gz")) {
+            if ($this->files->exists("{$extractDir}/files.tar.gz")) {
                 $this->restoreTenantFiles($tenant, "{$extractDir}/files.tar.gz");
             }
 
             // Cleanup
-            $this->deleteDirectory($extractDir);
+            $this->files->deleteDirectory($extractDir);
 
             Log::info("Tenant restore completed: {$tenant->id}");
 
@@ -239,9 +250,9 @@ class BackupService
             escapeshellarg($sqlFile)
         );
 
-        exec($cmd, $output, $returnCode);
+        $result = $this->shell->run($cmd);
 
-        if ($returnCode !== 0) {
+        if (!$result->isSuccessful()) {
             throw new \RuntimeException("Database restore failed");
         }
     }
@@ -253,8 +264,8 @@ class BackupService
     {
         $filesRoot = storage_path("app/tenant-files/{$tenant->id}");
 
-        if (!is_dir($filesRoot)) {
-            mkdir($filesRoot, 0755, true);
+        if (!$this->files->isDirectory($filesRoot)) {
+            $this->files->makeDirectory($filesRoot, 0755, true);
         }
 
         $cmd = sprintf(
@@ -263,25 +274,11 @@ class BackupService
             escapeshellarg($filesRoot)
         );
 
-        exec($cmd, $output, $returnCode);
+        $result = $this->shell->run($cmd);
 
-        if ($returnCode !== 0) {
+        if (!$result->isSuccessful()) {
             throw new \RuntimeException("Files restore failed");
         }
-    }
-
-    private function deleteDirectory(string $path): void
-    {
-        $it = new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS);
-        $files = new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::CHILD_FIRST);
-        foreach ($files as $file) {
-            if ($file->isDir()) {
-                @rmdir($file->getRealPath());
-            } else {
-                @unlink($file->getRealPath());
-            }
-        }
-        @rmdir($path);
     }
 
     private function dumpDatabase(string $path, array &$output): void
@@ -291,10 +288,10 @@ class BackupService
 
         if (($config['driver'] ?? '') === 'sqlite') {
             $source = $config['database'] ?? '';
-            if (!$source || !file_exists($source)) {
+            if (!$source || !$this->files->exists($source)) {
                 throw new \RuntimeException('SQLite database not found.');
             }
-            copy($source, $path);
+            $this->files->copy($source, $path);
             $output[] = 'SQLite database copied.';
             return;
         }
@@ -319,12 +316,10 @@ class BackupService
             escapeshellarg($database)
         );
 
-        $lines = [];
-        $exitCode = 0;
-        exec($cmd, $lines, $exitCode);
-        $output = array_merge($output, $lines);
+        $result = $this->shell->run($cmd);
+        $output = array_merge($output, $result->output);
 
-        if ($exitCode !== 0) {
+        if (!$result->isSuccessful()) {
             throw new \RuntimeException('mysqldump failed.');
         }
     }
@@ -340,27 +335,23 @@ class BackupService
             escapeshellarg('app/nginx')
         );
 
-        $lines = [];
-        $exitCode = 0;
-        exec($cmd, $lines, $exitCode);
-        $output = array_merge($output, $lines);
+        $result = $this->shell->run($cmd);
+        $output = array_merge($output, $result->output);
 
-        if ($exitCode !== 0) {
+        if (!$result->isSuccessful()) {
             throw new \RuntimeException('Storage archive failed.');
         }
     }
 
     private function createZip(string $zipPath, array $files, array &$output): void
     {
-        if (file_exists($zipPath)) {
-            unlink($zipPath);
+        if ($this->files->exists($zipPath)) {
+            $this->files->delete($zipPath);
         }
 
         $args = array_map('escapeshellarg', $files);
         $cmd = sprintf('zip -j %s %s 2>&1', escapeshellarg($zipPath), implode(' ', $args));
-        $lines = [];
-        $exitCode = 0;
-        exec($cmd, $lines, $exitCode);
-        $output = array_merge($output, $lines);
+        $result = $this->shell->run($cmd);
+        $output = array_merge($output, $result->output);
     }
 }
