@@ -1,3 +1,5 @@
+import { ApiError } from './errors';
+
 const apiBase = process.env.PLATFORM_API_BASE || 'http://localhost:8000/api';
 const tenantHost = process.env.TENANT_HOST || 'localhost';
 const tenantEnv = process.env.TENANT_ENV || 'production';
@@ -14,7 +16,13 @@ async function fetchJson(path) {
     next: { revalidate: 60 },
   });
   if (!res.ok) {
-    throw new Error(`API ${url} failed: ${res.status}`);
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = { message: res.statusText };
+    }
+    throw new ApiError(url, res.status, data);
   }
   return res.json();
 }
