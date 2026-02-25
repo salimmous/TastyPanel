@@ -20,7 +20,7 @@ class BackupService
         ]);
 
         $timestamp = now()->format('Ymd_His');
-        $backupDir = storage_path('app/backups/' . $timestamp);
+        $backupDir = Storage::disk('backups')->path($timestamp);
         if (!is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
@@ -91,7 +91,7 @@ class BackupService
     {
         $timestamp = now()->format('Y-m-d_H-i-s');
         $backupName = "tenant_{$tenant->id}_{$timestamp}";
-        $backupDir = storage_path("app/backups/tenants/{$backupName}");
+        $backupDir = Storage::disk('backups')->path("tenants/{$backupName}");
 
         if (!is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
@@ -105,8 +105,8 @@ class BackupService
             $filesFile = $this->backupTenantFiles($tenant, $backupDir);
 
             // Create ZIP
-            $zipPath = storage_path("app/backups/tenants/{$backupName}.zip");
-            $this->createZip($zipPath, [$dbFile, $filesFile], $output = []);
+            $zipPath = Storage::disk('backups')->path("tenants/{$backupName}.zip");
+            $output = []; $this->createZip($zipPath, [$dbFile, $filesFile], $output);
 
             // Upload to cloud if enabled
             if (config('backup.cloud_enabled')) {
@@ -161,7 +161,7 @@ class BackupService
      */
     private function backupTenantFiles(Tenant $tenant, string $backupDir): string
     {
-        $filesRoot = storage_path("app/tenant-files/{$tenant->id}");
+        $filesRoot = Storage::disk('tenants')->path($tenant->id);
         $outputFile = "{$backupDir}/files.tar.gz";
 
         if (!is_dir($filesRoot)) {
@@ -189,7 +189,7 @@ class BackupService
      */
     public function restoreTenant(Tenant $tenant, string $backupFile): bool
     {
-        $extractDir = storage_path("app/backups/restore_" . uniqid());
+        $extractDir = Storage::disk('backups')->path("restore_" . uniqid());
 
         try {
             mkdir($extractDir, 0755, true);
@@ -251,7 +251,7 @@ class BackupService
      */
     private function restoreTenantFiles(Tenant $tenant, string $tarFile): void
     {
-        $filesRoot = storage_path("app/tenant-files/{$tenant->id}");
+        $filesRoot = Storage::disk('tenants')->path($tenant->id);
 
         if (!is_dir($filesRoot)) {
             mkdir($filesRoot, 0755, true);
@@ -286,7 +286,7 @@ class BackupService
 
     private function dumpDatabase(string $path, array &$output): void
     {
-        $connection = config('database.default');
+        $connection = config('backup.database_connection', config('database.default'));
         $config = config("database.connections.{$connection}");
 
         if (($config['driver'] ?? '') === 'sqlite') {
