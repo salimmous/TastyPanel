@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Password
+    |--------------------------------------------------------------------------
+    |
+    | This value is used by the AdminUserSeeder to set the initial password
+    | for the admin user. If not set, a random password will be generated.
+    |
+    */
+
+    'admin_password' => env('ADMIN_PASSWORD'),
+
 ];
