@@ -10,7 +10,7 @@ class SystemUser extends Model
 {
     use HasFactory;
 
-    protected  = [
+    protected $fillable = [
         'tenant_id',
         'username',
         'password',
@@ -20,13 +20,13 @@ class SystemUser extends Model
         'status',
     ];
 
-    protected  = [
+    protected $casts = [
         'ssh_keys' => 'array',
         'password' => 'encrypted',
     ];
 
     public function tenant(): BelongsTo
     {
-        return ->belongsTo(Tenant::class);
+        return $this->belongsTo(Tenant::class);
     }
 }

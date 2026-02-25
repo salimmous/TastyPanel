@@ -10,7 +10,7 @@ class Database extends Model
 {
     use HasFactory;
 
-    protected  = [
+    protected $fillable = [
         'tenant_id',
         'name',
         'username',
@@ -20,7 +20,7 @@ class Database extends Model
         'status',
     ];
 
-    protected  = [
+    protected $casts = [
         'last_backup_at' => 'datetime',
         'size_mb' => 'decimal:2',
         'password' => 'encrypted',
@@ -28,6 +28,6 @@ class Database extends Model
 
     public function tenant(): BelongsTo
     {
-        return ->belongsTo(Tenant::class);
+        return $this->belongsTo(Tenant::class);
     }
 }
