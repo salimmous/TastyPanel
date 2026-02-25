@@ -87,7 +87,9 @@ class ImageOptimizationService
         // Convert using avifenc if available
         if ($this->commandExists('avifenc')) {
             $qualityParam = (int) ($quality * 0.63); // AVIF uses 0-63 scale
-            exec("avifenc -s {$qualityParam} {$tempPath} {$outputPath} 2>&1", $output, $returnCode);
+            $safeTempPath = escapeshellarg($tempPath);
+            $safeOutputPath = escapeshellarg($outputPath);
+            exec("avifenc -s {$qualityParam} {$safeTempPath} {$safeOutputPath} 2>&1", $output, $returnCode);
 
             if ($returnCode === 0 && file_exists($outputPath)) {
                 unlink($tempPath);
@@ -97,7 +99,9 @@ class ImageOptimizationService
 
         // Fallback: use ImageMagick if available
         if ($this->commandExists('convert')) {
-            exec("convert {$tempPath} -quality {$quality} {$outputPath} 2>&1");
+            $safeTempPath = escapeshellarg($tempPath);
+            $safeOutputPath = escapeshellarg($outputPath);
+            exec("convert {$safeTempPath} -quality {$quality} {$safeOutputPath} 2>&1");
             if (file_exists($outputPath)) {
                 unlink($tempPath);
                 return;
@@ -122,7 +126,8 @@ class ImageOptimizationService
      */
     private function commandExists(string $command): bool
     {
-        $result = shell_exec("which {$command} 2>/dev/null");
+        $safeCommand = escapeshellarg($command);
+        $result = shell_exec("which {$safeCommand} 2>/dev/null");
         return !empty($result);
     }
 
