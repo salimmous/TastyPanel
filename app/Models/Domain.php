@@ -61,8 +61,9 @@ class Domain extends Model
 
     public function getHasCustomNginxAttribute(): bool
     {
-        return !empty($this->nginx_custom_config);
+        return ! empty($this->nginx_custom_config);
     }
+
     public function getIsActiveAttribute(): bool
     {
         return $this->status === 'active';

@@ -18,7 +18,7 @@ class SsoService
             'sso_auth_url' => '',
             'sso_token_url' => '',
             'sso_userinfo_url' => '',
-            'sso_redirect_url' => config('app.url') . '/admin/sso/callback',
+            'sso_redirect_url' => config('app.url').'/admin/sso/callback',
             'sso_scopes' => 'openid email profile',
             'sso_allowed_domains' => '',
             'sso_auto_create' => false,
@@ -43,7 +43,7 @@ class SsoService
         $authUrl = rtrim((string) ($settings['sso_auth_url'] ?? ''), '?');
         $separator = str_contains($authUrl, '?') ? '&' : '?';
 
-        return $authUrl . $separator . $params;
+        return $authUrl.$separator.$params;
     }
 
     public function exchangeCode(string $code): array
@@ -69,10 +69,11 @@ class SsoService
         if ($userInfoUrl && $accessToken) {
             $response = Http::withToken($accessToken)->get($userInfoUrl);
             $data = $response->json() ?? [];
+
             return $this->normalizeUser($data);
         }
 
-        if (!empty($tokenData['id_token'])) {
+        if (! empty($tokenData['id_token'])) {
             $payload = $this->decodeJwt($tokenData['id_token']);
             if ($payload) {
                 return $this->normalizeUser($payload);
@@ -85,6 +86,7 @@ class SsoService
     public function allowedDomains(): array
     {
         $domains = (string) ($this->settings()['sso_allowed_domains'] ?? '');
+
         return array_values(array_filter(array_map('trim', explode(',', $domains))));
     }
 
@@ -109,12 +111,12 @@ class SsoService
         }
 
         $payload = $this->base64UrlDecode($parts[1]);
-        if (!$payload) {
+        if (! $payload) {
             return null;
         }
 
         $data = json_decode($payload, true);
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             return null;
         }
 
@@ -128,6 +130,7 @@ class SsoService
         if ($padding) {
             $value .= str_repeat('=', 4 - $padding);
         }
+
         return base64_decode($value) ?: '';
     }
 }

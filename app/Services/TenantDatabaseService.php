@@ -28,7 +28,7 @@ class TenantDatabaseService
         DB::statement("GRANT ALL PRIVILEGES ON `{$dbName}`.* TO '{$dbUser}'@'localhost'");
 
         // Flush privileges
-        DB::statement("FLUSH PRIVILEGES");
+        DB::statement('FLUSH PRIVILEGES');
 
         return [
             'database' => $dbName,
@@ -49,9 +49,9 @@ class TenantDatabaseService
             try {
                 DB::statement("DROP DATABASE IF EXISTS `{$dbName}`");
                 DB::statement("DROP USER IF EXISTS '{$dbUser}'@'localhost'");
-                DB::statement("FLUSH PRIVILEGES");
+                DB::statement('FLUSH PRIVILEGES');
             } catch (\Exception $e) {
-                \Log::error("Failed to drop tenant database: " . $e->getMessage());
+                \Log::error('Failed to drop tenant database: '.$e->getMessage());
             }
         }
     }
@@ -89,16 +89,16 @@ class TenantDatabaseService
 
     private function connectionName(Tenant $tenant): string
     {
-        return 'tenant_' . $tenant->id;
+        return 'tenant_'.$tenant->id;
     }
 
     private function generateDatabaseName(Tenant $tenant): string
     {
-        return 'tastypanel_tenant_' . $tenant->id;
+        return 'tastypanel_tenant_'.$tenant->id;
     }
 
     private function generateDatabaseUser(Tenant $tenant): string
     {
-        return 'tenant_' . $tenant->id;
+        return 'tenant_'.$tenant->id;
     }
 }

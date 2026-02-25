@@ -21,7 +21,7 @@ class DisasterRecoveryDrillService
         ]);
 
         $backup = BackupRun::query()->where('status', 'completed')->latest('id')->first();
-        if (!$backup) {
+        if (! $backup) {
             return $this->finish($drill, false, 'No completed platform backup found.', [
                 'rto_seconds' => 0,
                 'rpo_hours' => null,
@@ -55,7 +55,7 @@ class DisasterRecoveryDrillService
             ->latest('id')
             ->first();
 
-        if (!$backup) {
+        if (! $backup) {
             return $this->finish($drill, false, 'No completed tenant backup found.', [
                 'tenant_id' => $tenant->id,
                 'rto_seconds' => 0,
@@ -95,11 +95,11 @@ class DisasterRecoveryDrillService
         bool $platform
     ): array {
         $zipPath = $this->resolveZipPath($localPath, $disk, $remotePath);
-        if (!$zipPath) {
+        if (! $zipPath) {
             return [false, 'Backup archive not reachable.', ['archive_found' => false]];
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $open = $zip->open($zipPath);
         if ($open !== true) {
             return [false, 'Backup archive is corrupted or unreadable.', [
@@ -128,7 +128,7 @@ class DisasterRecoveryDrillService
         $zip->close();
 
         $actualChecksum = @hash_file('sha256', $zipPath) ?: null;
-        $checksumOk = !$expectedChecksum || !$actualChecksum || hash_equals((string) $expectedChecksum, (string) $actualChecksum);
+        $checksumOk = ! $expectedChecksum || ! $actualChecksum || hash_equals((string) $expectedChecksum, (string) $actualChecksum);
 
         $tmpDownloaded = $disk === 's3' && is_file($zipPath) && str_contains($zipPath, sys_get_temp_dir());
         if ($tmpDownloaded) {
@@ -144,15 +144,15 @@ class DisasterRecoveryDrillService
             'checksum_ok' => $checksumOk,
         ];
 
-        if (!$checksumOk) {
+        if (! $checksumOk) {
             return [false, 'Backup checksum verification failed.', $details];
         }
 
-        if ($platform && (!$hasSql || !$hasStorage)) {
+        if ($platform && (! $hasSql || ! $hasStorage)) {
             return [false, 'Platform backup structure is incomplete.', $details];
         }
 
-        if (!$platform && !$hasSql) {
+        if (! $platform && ! $hasSql) {
             return [false, 'Tenant backup is missing SQL dump.', $details];
         }
 
@@ -162,7 +162,7 @@ class DisasterRecoveryDrillService
     private function resolveZipPath(?string $localPath, ?string $disk, ?string $remotePath): ?string
     {
         if ($localPath) {
-            $zipPath = rtrim($localPath, '/') . '/backup.zip';
+            $zipPath = rtrim($localPath, '/').'/backup.zip';
             if (is_file($zipPath)) {
                 return $zipPath;
             }
@@ -171,21 +171,23 @@ class DisasterRecoveryDrillService
         if ($disk === 's3' && $remotePath) {
             try {
                 $stream = Storage::disk('s3')->readStream($remotePath);
-                if (!$stream) {
+                if (! $stream) {
                     return null;
                 }
                 $tmp = tempnam(sys_get_temp_dir(), 'tb-drill-');
-                if (!$tmp) {
+                if (! $tmp) {
                     if (is_resource($stream)) {
                         fclose($stream);
                     }
+
                     return null;
                 }
                 $target = fopen($tmp, 'wb');
-                if (!$target) {
+                if (! $target) {
                     if (is_resource($stream)) {
                         fclose($stream);
                     }
+
                     return null;
                 }
                 stream_copy_to_stream($stream, $target);
@@ -193,6 +195,7 @@ class DisasterRecoveryDrillService
                 if (is_resource($stream)) {
                     fclose($stream);
                 }
+
                 return $tmp;
             } catch (\Throwable $e) {
                 return null;
@@ -213,4 +216,3 @@ class DisasterRecoveryDrillService
         return $drill->fresh();
     }
 }
-

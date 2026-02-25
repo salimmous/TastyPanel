@@ -8,14 +8,14 @@ class TenantOrchestrationService
 {
     public function runAction(Tenant $tenant, string $action): array
     {
-        if (!in_array($action, ['start', 'stop', 'restart'], true)) {
+        if (! in_array($action, ['start', 'stop', 'restart'], true)) {
             return [
                 'success' => false,
                 'message' => 'Unsupported action.',
             ];
         }
 
-        if (empty($tenant->instance_root) || !is_dir($tenant->instance_root)) {
+        if (empty($tenant->instance_root) || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'message' => 'Instance root is missing.',
@@ -23,7 +23,7 @@ class TenantOrchestrationService
         }
 
         $script = config('services.instances.orchestrate_script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'message' => 'Orchestration script not found.',
@@ -46,7 +46,7 @@ class TenantOrchestrationService
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -65,9 +65,10 @@ class TenantOrchestrationService
             'message' => null,
         ];
 
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             $status['state'] = 'missing';
             $status['message'] = 'Instance root not found.';
+
             return $status;
         }
 
@@ -76,7 +77,7 @@ class TenantOrchestrationService
             $status['message'] = $tenant->instance_last_error;
         }
 
-        $maintenanceFile = rtrim($tenant->instance_root, '/') . '/storage/framework/down';
+        $maintenanceFile = rtrim($tenant->instance_root, '/').'/storage/framework/down';
         $maintenance = file_exists($maintenanceFile);
         $status['maintenance'] = $maintenance;
 
@@ -84,7 +85,7 @@ class TenantOrchestrationService
             $status['socket'] = file_exists($tenant->instance_php_socket);
         }
 
-        $serviceName = 'tastypanel-' . ($tenant->instance_key ?: $tenant->id) . '-frontend.service';
+        $serviceName = 'tastypanel-'.($tenant->instance_key ?: $tenant->id).'-frontend.service';
         $serviceActive = $this->isServiceActive($serviceName);
         if ($serviceActive !== null) {
             $status['frontend_service'] = $serviceActive;
@@ -101,14 +102,14 @@ class TenantOrchestrationService
     {
         $output = [];
         $exitCode = 0;
-        exec('systemctl is-active ' . escapeshellarg($serviceName) . ' 2>/dev/null', $output, $exitCode);
+        exec('systemctl is-active '.escapeshellarg($serviceName).' 2>/dev/null', $output, $exitCode);
         if ($exitCode === 0) {
             return true;
         }
 
         $output = [];
         $exitCode = 0;
-        exec('systemctl status ' . escapeshellarg($serviceName) . ' >/dev/null 2>&1', $output, $exitCode);
+        exec('systemctl status '.escapeshellarg($serviceName).' >/dev/null 2>&1', $output, $exitCode);
         if ($exitCode === 0) {
             return true;
         }
@@ -116,7 +117,7 @@ class TenantOrchestrationService
         // service unknown or inactive; report false if unit exists, null otherwise
         $output = [];
         $exitCode = 0;
-        exec('systemctl list-unit-files ' . escapeshellarg($serviceName) . ' 2>/dev/null | grep -q ' . escapeshellarg($serviceName), $output, $exitCode);
+        exec('systemctl list-unit-files '.escapeshellarg($serviceName).' 2>/dev/null | grep -q '.escapeshellarg($serviceName), $output, $exitCode);
         if ($exitCode === 0) {
             return false;
         }

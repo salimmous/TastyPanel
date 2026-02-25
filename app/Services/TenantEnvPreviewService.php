@@ -8,7 +8,7 @@ class TenantEnvPreviewService
 {
     public function listKeys(Tenant $tenant): array
     {
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Instance root not found.',
@@ -19,7 +19,7 @@ class TenantEnvPreviewService
             ];
         }
 
-        if (!$this->isSafeInstanceRoot((string) $tenant->instance_root)) {
+        if (! $this->isSafeInstanceRoot((string) $tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Unsafe tenant root path. Aborting.',
@@ -31,7 +31,7 @@ class TenantEnvPreviewService
         }
 
         $script = (string) config('services.tenant_env_preview.script', base_path('infrastructure/tenant-env-keys.sh'));
-        if ($script === '' || !file_exists($script)) {
+        if ($script === '' || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant env preview script not found.',
@@ -53,7 +53,7 @@ class TenantEnvPreviewService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         $raw = implode("\n", $output);
 
@@ -68,11 +68,13 @@ class TenantEnvPreviewService
 
             if (str_starts_with($line, 'ENV_FILE=')) {
                 $envFile = substr($line, strlen('ENV_FILE='));
+
                 continue;
             }
 
             if (str_starts_with($line, 'STATUS=')) {
                 $status = substr($line, strlen('STATUS='));
+
                 continue;
             }
 
@@ -104,14 +106,14 @@ class TenantEnvPreviewService
             return false;
         }
 
-        return str_starts_with($root . '/', $base . '/');
+        return str_starts_with($root.'/', $base.'/');
     }
 
     private function normalizePath(string $path): string
     {
         $path = str_replace('\\', '/', trim($path));
         $path = preg_replace('#/+#', '/', $path) ?: '';
+
         return rtrim($path, '/');
     }
 }
-

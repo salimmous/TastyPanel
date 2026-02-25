@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class ContentSnapshotController extends Controller
 {
-    public function __construct(private ContentSnapshotService $snapshots)
-    {
-    }
+    public function __construct(private ContentSnapshotService $snapshots) {}
 
     public function index(Request $request)
     {
@@ -91,12 +89,12 @@ class ContentSnapshotController extends Controller
     private function resolveTenantId(Request $request): int
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
 

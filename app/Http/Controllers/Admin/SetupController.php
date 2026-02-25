@@ -20,7 +20,7 @@ class SetupController extends Controller
 
     public function store(Request $request)
     {
-        if (!$this->needsSetup()) {
+        if (! $this->needsSetup()) {
             return response()->json([
                 'message' => 'Setup already completed.',
             ], 409);
@@ -54,7 +54,7 @@ class SetupController extends Controller
 
     private function needsSetup(): bool
     {
-        return !User::where(function ($query) {
+        return ! User::where(function ($query) {
             $query->where('role', 'superadmin')
                 ->orWhere('is_superadmin', true);
         })->exists();
@@ -62,12 +62,12 @@ class SetupController extends Controller
 
     private function ensureTenantBootstrap(User $user): void
     {
-        if (!config('services.tenant_mode.enabled', false)) {
+        if (! config('services.tenant_mode.enabled', false)) {
             return;
         }
 
         $tenant = Tenant::query()->first();
-        if (!$tenant) {
+        if (! $tenant) {
             $name = config('app.name', 'Tenant Site');
             $slug = Str::slug($name) ?: 'tenant-site';
             $tenant = Tenant::create([
@@ -84,7 +84,7 @@ class SetupController extends Controller
             ]);
         }
 
-        if (!$user->tenant_id) {
+        if (! $user->tenant_id) {
             $user->tenant_id = $tenant->id;
             $user->save();
         }

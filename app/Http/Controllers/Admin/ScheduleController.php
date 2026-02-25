@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Recipe;
 use App\Models\ScheduledPublication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

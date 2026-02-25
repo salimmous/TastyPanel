@@ -15,15 +15,15 @@ class PlatformSecurityController extends Controller
 {
     public function index(Request $request): View|RedirectResponse
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return redirect()->route('platform.install');
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -55,10 +55,10 @@ class PlatformSecurityController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -83,10 +83,10 @@ class PlatformSecurityController extends Controller
 
     public function enableTwoFactor(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -101,10 +101,10 @@ class PlatformSecurityController extends Controller
 
     public function disableTwoFactor(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -128,10 +128,10 @@ class PlatformSecurityController extends Controller
 
     public function revokeOtherSessions(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -152,10 +152,10 @@ class PlatformSecurityController extends Controller
 
     public function emergencyLock(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -215,4 +215,3 @@ class PlatformSecurityController extends Controller
         }
     }
 }
-

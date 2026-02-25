@@ -56,7 +56,7 @@ class Rating extends Model
     {
         $recipe = $this->recipe;
 
-        if (!$recipe) {
+        if (! $recipe) {
             return;
         }
 

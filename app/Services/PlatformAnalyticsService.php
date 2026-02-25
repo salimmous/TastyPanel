@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\PlatformMetric;
-use App\Models\Tenant;
-use App\Models\Recipe;
 use App\Models\Article;
+use App\Models\PlatformMetric;
+use App\Models\Recipe;
+use App\Models\Tenant;
 use App\Models\TenantTrafficMetric;
 use Illuminate\Support\Facades\DB;
 

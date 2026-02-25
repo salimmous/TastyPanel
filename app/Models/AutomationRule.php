@@ -68,7 +68,7 @@ class AutomationRule extends Model
         $config = $this->trigger_config ?? [];
         $interval = $config['interval_minutes'] ?? 60;
 
-        if (!$this->last_run_at) {
+        if (! $this->last_run_at) {
             return true;
         }
 

@@ -14,8 +14,9 @@ class MySQLMigrationSeeder extends Seeder
     {
         $sqlitePath = database_path('recipesarticles.sqlite');
 
-        if (!file_exists($sqlitePath)) {
+        if (! file_exists($sqlitePath)) {
             $this->command->warn('SQLite database not found. Skipping migration.');
+
             return;
         }
 
@@ -26,7 +27,7 @@ class MySQLMigrationSeeder extends Seeder
             'database.connections.sqlite_old' => [
                 'driver' => 'sqlite',
                 'database' => $sqlitePath,
-            ]
+            ],
         ]);
 
         $tables = ['tenants', 'domains', 'users', 'categories', 'recipes', 'articles'];
@@ -38,6 +39,7 @@ class MySQLMigrationSeeder extends Seeder
 
                 if ($data->isEmpty()) {
                     $this->command->info("Table {$table}: No data to migrate");
+
                     continue;
                 }
 
@@ -50,7 +52,7 @@ class MySQLMigrationSeeder extends Seeder
                 $this->command->info("Migrated {$count} records from {$table}");
 
             } catch (\Exception $e) {
-                $this->command->error("Error migrating {$table}: " . $e->getMessage());
+                $this->command->error("Error migrating {$table}: ".$e->getMessage());
             }
         }
 

@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\ErrorLog;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ErrorTrackerService
 {
@@ -73,18 +73,18 @@ class ErrorTrackerService
         try {
             $adminEmail = config('mail.admin_email', config('mail.from.address'));
 
-            if (!$adminEmail) {
+            if (! $adminEmail) {
                 return;
             }
 
             Mail::raw(
-                "Critical Error Detected\n\n" .
-                "Type: {$errorLog->type}\n" .
-                "Message: {$errorLog->message}\n" .
-                "File: {$errorLog->file}:{$errorLog->line}\n" .
-                "URL: {$errorLog->url}\n" .
-                "Time: {$errorLog->created_at}\n\n" .
-                "Please check the error logs immediately.",
+                "Critical Error Detected\n\n".
+                "Type: {$errorLog->type}\n".
+                "Message: {$errorLog->message}\n".
+                "File: {$errorLog->file}:{$errorLog->line}\n".
+                "URL: {$errorLog->url}\n".
+                "Time: {$errorLog->created_at}\n\n".
+                'Please check the error logs immediately.',
                 function ($message) use ($adminEmail, $errorLog) {
                     $message->to($adminEmail)
                         ->subject("[TastyPanel] Critical Error Alert - {$errorLog->type}");
@@ -92,7 +92,7 @@ class ErrorTrackerService
             );
         } catch (\Exception $e) {
             // Don't let alert failure crash the app
-            Log::error('Failed to send error alert: ' . $e->getMessage());
+            Log::error('Failed to send error alert: '.$e->getMessage());
         }
     }
 
@@ -130,7 +130,7 @@ class ErrorTrackerService
     {
         $error = ErrorLog::find($errorId);
 
-        if (!$error) {
+        if (! $error) {
             return false;
         }
 

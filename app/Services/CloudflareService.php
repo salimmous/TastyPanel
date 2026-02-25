@@ -19,9 +19,9 @@ class CloudflareService
             ->get("https://api.cloudflare.com/client/v4/zones/{$zoneId}/dns_records", $params);
 
         $payload = $response->json();
-        if (!$response->ok() || !($payload['success'] ?? false)) {
+        if (! $response->ok() || ! ($payload['success'] ?? false)) {
             $message = 'Cloudflare DNS list failed';
-            if (!empty($payload['errors'][0]['message'])) {
+            if (! empty($payload['errors'][0]['message'])) {
                 $message = $payload['errors'][0]['message'];
             }
             throw new \RuntimeException($message);
@@ -41,9 +41,9 @@ class CloudflareService
         }
 
         $payload = $response->json();
-        if (!$response->ok() || !($payload['success'] ?? false)) {
+        if (! $response->ok() || ! ($payload['success'] ?? false)) {
             $message = 'Cloudflare DNS read failed';
-            if (!empty($payload['errors'][0]['message'])) {
+            if (! empty($payload['errors'][0]['message'])) {
                 $message = $payload['errors'][0]['message'];
             }
             throw new \RuntimeException($message);
@@ -66,9 +66,9 @@ class CloudflareService
 
         $payload = $response->json();
 
-        if (!$response->ok() || !($payload['success'] ?? false)) {
+        if (! $response->ok() || ! ($payload['success'] ?? false)) {
             $errorMessage = 'Cloudflare DNS creation failed';
-            if (!empty($payload['errors'][0]['message'])) {
+            if (! empty($payload['errors'][0]['message'])) {
                 $errorMessage = $payload['errors'][0]['message'];
             }
             throw new \RuntimeException($errorMessage);
@@ -86,9 +86,9 @@ class CloudflareService
             ->post("https://api.cloudflare.com/client/v4/zones/{$zoneId}/purge_cache", $payload);
 
         $data = $response->json();
-        if (!$response->ok() || !($data['success'] ?? false)) {
+        if (! $response->ok() || ! ($data['success'] ?? false)) {
             $message = 'Cloudflare cache purge failed';
-            if (!empty($data['errors'][0]['message'])) {
+            if (! empty($data['errors'][0]['message'])) {
                 $message = $data['errors'][0]['message'];
             }
             throw new \RuntimeException($message);
@@ -106,12 +106,13 @@ class CloudflareService
             $response = Http::withToken(config('services.cloudflare.token'))
                 ->acceptJson()
                 ->patch("https://api.cloudflare.com/client/v4/zones/{$zoneId}/settings/cache_level", [
-                    'value' => 'aggressive'
+                    'value' => 'aggressive',
                 ]);
 
             return $response->successful();
         } catch (\Exception $e) {
-            Log::error('CloudFlare cache level update failed: ' . $e->getMessage());
+            Log::error('CloudFlare cache level update failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -128,7 +129,8 @@ class CloudflareService
 
             return $response->successful();
         } catch (\Exception $e) {
-            Log::error('CloudFlare page rule creation failed: ' . $e->getMessage());
+            Log::error('CloudFlare page rule creation failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -142,6 +144,7 @@ class CloudflareService
             ]);
 
         $data = $response->json();
+
         return $response->ok() && ($data['success'] ?? false);
     }
 
@@ -156,9 +159,9 @@ class CloudflareService
         }
 
         $payload = $response->json();
-        if (!$response->ok() || !($payload['success'] ?? false)) {
+        if (! $response->ok() || ! ($payload['success'] ?? false)) {
             $message = 'Cloudflare DNS deletion failed';
-            if (!empty($payload['errors'][0]['message'])) {
+            if (! empty($payload['errors'][0]['message'])) {
                 $message = $payload['errors'][0]['message'];
             }
             throw new \RuntimeException($message);

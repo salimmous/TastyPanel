@@ -7,13 +7,16 @@ use App\Models\User;
 class AdminPermissions
 {
     public const ROLE_SUPERADMIN = 'superadmin';
+
     public const ROLE_TENANT_ADMIN = 'tenant-admin';
+
     public const ROLE_EDITOR = 'editor';
+
     public const ROLE_WRITER = 'writer';
 
     public static function role(?User $user): string
     {
-        if (!$user) {
+        if (! $user) {
             return self::ROLE_WRITER;
         }
 
@@ -31,6 +34,7 @@ class AdminPermissions
         if (self::isTenantMode()) {
             return false;
         }
+
         return self::role($user) === self::ROLE_SUPERADMIN;
     }
 
@@ -47,18 +51,21 @@ class AdminPermissions
     public static function canManageUsers(?User $user): bool
     {
         $role = self::role($user);
+
         return in_array($role, [self::ROLE_SUPERADMIN, self::ROLE_TENANT_ADMIN], true);
     }
 
     public static function canManageTenantInfrastructure(?User $user): bool
     {
         $role = self::role($user);
+
         return in_array($role, [self::ROLE_SUPERADMIN, self::ROLE_TENANT_ADMIN], true);
     }
 
     public static function canManageContent(?User $user): bool
     {
         $role = self::role($user);
+
         return in_array($role, [
             self::ROLE_SUPERADMIN,
             self::ROLE_TENANT_ADMIN,
@@ -70,6 +77,7 @@ class AdminPermissions
     public static function canReviewContent(?User $user): bool
     {
         $role = self::role($user);
+
         return in_array($role, [
             self::ROLE_SUPERADMIN,
             self::ROLE_TENANT_ADMIN,
@@ -80,6 +88,7 @@ class AdminPermissions
     public static function canPublishContent(?User $user): bool
     {
         $role = self::role($user);
+
         return in_array($role, [
             self::ROLE_SUPERADMIN,
             self::ROLE_TENANT_ADMIN,
@@ -89,6 +98,7 @@ class AdminPermissions
     public static function canDeleteContent(?User $user): bool
     {
         $role = self::role($user);
+
         return in_array($role, [
             self::ROLE_SUPERADMIN,
             self::ROLE_TENANT_ADMIN,

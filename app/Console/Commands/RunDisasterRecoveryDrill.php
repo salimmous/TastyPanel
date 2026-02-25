@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class RunDisasterRecoveryDrill extends Command
 {
     protected $signature = 'drill:run {--platform-only : Run only platform backup drill} {--tenant=* : Specific tenant IDs} {--all-tenants : Run all active tenant drills}';
+
     protected $description = 'Run disaster recovery drills and produce RPO/RTO snapshots.';
 
     public function handle(DisasterRecoveryDrillService $service): int
@@ -34,9 +35,10 @@ class RunDisasterRecoveryDrill extends Command
         if ($tenantIds) {
             foreach ($tenantIds as $tenantId) {
                 $tenant = Tenant::find($tenantId);
-                if (!$tenant) {
+                if (! $tenant) {
                     $this->warn("Tenant {$tenantId} not found.");
                     $hasFailure = true;
+
                     continue;
                 }
                 $drill = $service->runTenantDrill($tenant);
@@ -74,8 +76,9 @@ class RunDisasterRecoveryDrill extends Command
         }
 
         $tenant = Tenant::query()->where('status', 'active')->latest('id')->first();
-        if (!$tenant) {
+        if (! $tenant) {
             $this->warn('No active tenant found for sample tenant drill.');
+
             return $hasFailure ? self::FAILURE : self::SUCCESS;
         }
 
@@ -94,4 +97,3 @@ class RunDisasterRecoveryDrill extends Command
         return $hasFailure ? self::FAILURE : self::SUCCESS;
     }
 }
-

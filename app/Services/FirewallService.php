@@ -30,7 +30,8 @@ class FirewallService
 
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
-        exec($escaped . ' 2>&1', $output);
+        exec($escaped.' 2>&1', $output);
+
         return implode("\n", $output);
     }
 
@@ -39,7 +40,7 @@ class FirewallService
         $this->validateRule($rule);
 
         $script = config('services.firewall.script', base_path('infrastructure/firewall-apply.sh'));
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return ['success' => false, 'output' => 'Firewall script not found.'];
         }
 
@@ -58,7 +59,7 @@ class FirewallService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         if ($exitCode === 0) {
             $rule->applied_at = now();
@@ -74,16 +75,16 @@ class FirewallService
     private function validateRule(FirewallRule $rule): void
     {
         $action = strtolower($rule->action);
-        if (!in_array($action, ['allow', 'deny'], true)) {
+        if (! in_array($action, ['allow', 'deny'], true)) {
             throw new \InvalidArgumentException('Invalid firewall action.');
         }
 
         $protocol = strtolower($rule->protocol);
-        if (!in_array($protocol, ['tcp', 'udp'], true)) {
+        if (! in_array($protocol, ['tcp', 'udp'], true)) {
             throw new \InvalidArgumentException('Invalid firewall protocol.');
         }
 
-        if (!preg_match('/^[0-9]{1,5}(:[0-9]{1,5})?$/', $rule->port)) {
+        if (! preg_match('/^[0-9]{1,5}(:[0-9]{1,5})?$/', $rule->port)) {
             throw new \InvalidArgumentException('Invalid port format.');
         }
     }

@@ -16,20 +16,21 @@ class DispatchWebhookJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public array $backoff = [60, 300, 900];
+
     public int $timeout = 15;
 
     public function __construct(
         public int $webhookId,
         public string $event,
         public array $payload
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
         $webhook = Webhook::find($this->webhookId);
-        if (!$webhook || !$webhook->is_active) {
+        if (! $webhook || ! $webhook->is_active) {
             return;
         }
 
@@ -42,7 +43,7 @@ class DispatchWebhookJob implements ShouldQueue
 
         $signature = null;
         if ($webhook->secret) {
-            $signature = 'sha256=' . hash_hmac('sha256', $body, $webhook->secret);
+            $signature = 'sha256='.hash_hmac('sha256', $body, $webhook->secret);
         }
 
         $status = null;
@@ -82,7 +83,7 @@ class DispatchWebhookJob implements ShouldQueue
         $webhook->last_error = $error;
         $webhook->save();
 
-        if (!$success && $this->shouldRetry($status, $error)) {
+        if (! $success && $this->shouldRetry($status, $error)) {
             throw new \RuntimeException('Webhook delivery failed');
         }
     }
@@ -95,6 +96,7 @@ class DispatchWebhookJob implements ShouldQueue
         if ($status === null) {
             return true;
         }
+
         return $status >= 500;
     }
 }

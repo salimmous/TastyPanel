@@ -16,7 +16,7 @@ class UptimeMonitorService
             foreach ($checks as $check) {
                 $summary['checks']++;
                 $result = $this->check($check);
-                if (!$result['success']) {
+                if (! $result['success']) {
                     $summary['failures']++;
                 }
             }
@@ -38,8 +38,8 @@ class UptimeMonitorService
             $status = $response->status();
             $responseMs = (int) round((microtime(true) - $start) * 1000);
             $success = $status === (int) $check->expected_status;
-            if (!$success) {
-                $error = 'Unexpected status: ' . $status;
+            if (! $success) {
+                $error = 'Unexpected status: '.$status;
             }
         } catch (\Throwable $e) {
             $error = $e->getMessage();

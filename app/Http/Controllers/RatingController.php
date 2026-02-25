@@ -6,7 +6,6 @@ use App\Models\Rating;
 use App\Models\Recipe;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class RatingController extends Controller
 {
@@ -85,7 +84,7 @@ class RatingController extends Controller
             ->where('recipe_id', $recipe->id)
             ->first();
 
-        if (!$rating) {
+        if (! $rating) {
             return response()->json([
                 'message' => 'Rating not found',
             ], 404);

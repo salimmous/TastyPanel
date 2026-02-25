@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 class IpRestrictionService
 {
     protected int $maxFailedAttempts = 5;
+
     protected int $banDurationMinutes = 30;
 
     /**
@@ -153,7 +154,7 @@ class IpRestrictionService
      */
     public function trackFailedAttempt(string $ip, ?Tenant $tenant = null): void
     {
-        $key = "failed_attempts:{$ip}" . ($tenant ? ":{$tenant->id}" : '');
+        $key = "failed_attempts:{$ip}".($tenant ? ":{$tenant->id}" : '');
         $attempts = Cache::get($key, 0) + 1;
 
         Cache::put($key, $attempts, now()->addHour());
@@ -181,6 +182,7 @@ class IpRestrictionService
 
         if ($existing) {
             $existing->increment('failed_attempts');
+
             return $existing;
         }
 
@@ -200,7 +202,7 @@ class IpRestrictionService
      */
     public function clearFailedAttempts(string $ip, ?Tenant $tenant = null): void
     {
-        $key = "failed_attempts:{$ip}" . ($tenant ? ":{$tenant->id}" : '');
+        $key = "failed_attempts:{$ip}".($tenant ? ":{$tenant->id}" : '');
         Cache::forget($key);
     }
 
@@ -232,6 +234,7 @@ class IpRestrictionService
         // Wildcard (e.g., 192.168.1.*)
         if (strpos($pattern, '*') !== false) {
             $regex = str_replace(['*', '.'], ['.*', '\\.'], $pattern);
+
             return preg_match("/^{$regex}$/", $ip) === 1;
         }
 
@@ -243,7 +246,7 @@ class IpRestrictionService
      */
     protected function ipInRange(string $ip, string $range): bool
     {
-        list($subnet, $mask) = explode('/', $range);
+        [$subnet, $mask] = explode('/', $range);
 
         $ipLong = ip2long($ip);
         $subnetLong = ip2long($subnet);

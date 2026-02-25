@@ -38,4 +38,3 @@ class TenantAlertRule extends Model
         return $this->belongsTo(Tenant::class);
     }
 }
-

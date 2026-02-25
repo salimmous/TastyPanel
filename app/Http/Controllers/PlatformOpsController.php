@@ -2,43 +2,43 @@
 
 namespace App\Http\Controllers;
 
-	use App\Models\AuditLog;
-	use App\Models\BackupRun;
-	use App\Models\Domain;
-	use App\Models\FirewallRule;
-    use App\Models\PlatformSetting;
-	use App\Models\SecurityBaseline;
-	use App\Models\SecurityScan;
-	use App\Models\SslCertificate;
-	use App\Models\Tenant;
-	use App\Models\UptimeCheck;
-	use App\Services\AlertService;
+use App\Models\AuditLog;
+use App\Models\BackupRun;
+use App\Models\Domain;
+use App\Models\FirewallRule;
+use App\Models\PlatformSetting;
+use App\Models\SecurityBaseline;
+use App\Models\SecurityScan;
+use App\Models\SslCertificate;
+use App\Models\Tenant;
+use App\Models\UptimeCheck;
+use App\Services\AlertService;
 use App\Services\BackupService;
 use App\Services\CloudflareService;
 use App\Services\ContentSnapshotService;
 use App\Services\FileIntegrityService;
 use App\Services\FirewallService;
 use App\Services\Http3HealthService;
-use App\Services\ProvisioningService;
-use App\Services\LogReaderService;
 use App\Services\InstanceProvisioningService;
+use App\Services\LogReaderService;
 use App\Services\NginxProvisioningService;
 use App\Services\NginxSafeDeployService;
 use App\Services\PlatformServiceManagerService;
+use App\Services\ProvisioningService;
 use App\Services\SearchService;
 use App\Services\SecurityScanService;
 use App\Services\SslHealthService;
 use App\Services\SslProvisioningService;
-	use App\Services\TenantArtisanService;
-	use App\Services\TenantBackupService;
-	use App\Services\TenantCacheService;
-	use App\Services\TenantDeployService;
-	use App\Services\TenantEnvSyncService;
-	use App\Services\TenantEnvPreviewService;
-	use App\Services\TenantOrchestrationService;
-	use App\Services\TenantQueueService;
-	use App\Services\TenantSecretService;
-	use App\Services\UptimeMonitorService;
+use App\Services\TenantArtisanService;
+use App\Services\TenantBackupService;
+use App\Services\TenantCacheService;
+use App\Services\TenantDeployService;
+use App\Services\TenantEnvPreviewService;
+use App\Services\TenantEnvSyncService;
+use App\Services\TenantOrchestrationService;
+use App\Services\TenantQueueService;
+use App\Services\TenantSecretService;
+use App\Services\UptimeMonitorService;
 use App\Support\AdminPermissions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -680,7 +680,7 @@ class PlatformOpsController extends Controller
         ]);
 
         $actionId = $data['action_id'];
-        if (!array_key_exists($actionId, self::ACTIONS)) {
+        if (! array_key_exists($actionId, self::ACTIONS)) {
             abort(404);
         }
 
@@ -688,25 +688,25 @@ class PlatformOpsController extends Controller
         $requires = array_values($meta['requires'] ?? []);
 
         $tenant = null;
-        if (!empty($data['tenant_id'])) {
+        if (! empty($data['tenant_id'])) {
             $tenant = Tenant::query()->find((int) $data['tenant_id']);
         }
 
         $domain = null;
-        if (!empty($data['domain_id'])) {
+        if (! empty($data['domain_id'])) {
             $domain = Domain::query()
                 ->with(['tenant', 'sslCertificate'])
                 ->find((int) $data['domain_id']);
         }
 
-        if ($domain && !$tenant) {
+        if ($domain && ! $tenant) {
             $tenant = $domain->tenant;
         }
 
-        if (in_array('tenant', $requires, true) && !$tenant) {
+        if (in_array('tenant', $requires, true) && ! $tenant) {
             return back()->with('error', 'This action requires a tenant.');
         }
-        if (in_array('domain', $requires, true) && !$domain) {
+        if (in_array('domain', $requires, true) && ! $domain) {
             return back()->with('error', 'This action requires a domain.');
         }
         if ($tenant && $domain && (int) $domain->tenant_id !== (int) $tenant->id) {
@@ -756,13 +756,13 @@ class PlatformOpsController extends Controller
         ]);
 
         $actionId = (string) $data['action_id'];
-        if (!array_key_exists($actionId, self::ACTIONS)) {
+        if (! array_key_exists($actionId, self::ACTIONS)) {
             abort(404);
         }
 
         $meta = self::ACTIONS[$actionId];
         $requires = array_values($meta['requires'] ?? []);
-        if (!in_array('tenant', $requires, true)) {
+        if (! in_array('tenant', $requires, true)) {
             return back()->with('error', 'This bulk action must target tenants.');
         }
 
@@ -785,7 +785,7 @@ class PlatformOpsController extends Controller
 
         foreach ($tenantIds as $tenantId) {
             $tenant = $tenants->get($tenantId);
-            if (!$tenant) {
+            if (! $tenant) {
                 $ok = false;
                 $results[] = [
                     'tenant_id' => $tenantId,
@@ -793,6 +793,7 @@ class PlatformOpsController extends Controller
                     'message' => 'Tenant not found.',
                     'output_tail' => null,
                 ];
+
                 continue;
             }
 
@@ -801,7 +802,7 @@ class PlatformOpsController extends Controller
                 $result['output'] = $this->redactOutput((string) ($result['output'] ?? ''));
             }
 
-            $this->logRunbook(($meta['label'] ?? $actionId) . ' (bulk)', $actionId, (int) $tenant->id, null, $result);
+            $this->logRunbook(($meta['label'] ?? $actionId).' (bulk)', $actionId, (int) $tenant->id, null, $result);
 
             $success = (bool) ($result['success'] ?? false);
             $ok = $ok && $success;
@@ -826,7 +827,7 @@ class PlatformOpsController extends Controller
 
         return back()
             ->with($ok ? 'success' : 'error', $ok ? 'Bulk action completed.' : 'Bulk action completed with failures.')
-            ->with('runbook_action', ($meta['label'] ?? $actionId) . ' (bulk)')
+            ->with('runbook_action', ($meta['label'] ?? $actionId).' (bulk)')
             ->with('runbook_action_id', $actionId)
             ->with('runbook_output', $this->tail((string) (json_encode($payload, JSON_PRETTY_PRINT) ?: ''), 6000))
             ->with('runbook_success', $ok)
@@ -956,7 +957,7 @@ class PlatformOpsController extends Controller
             return [
                 'success' => false,
                 'output' => $e->getMessage(),
-                'message' => 'Action failed: ' . $e->getMessage(),
+                'message' => 'Action failed: '.$e->getMessage(),
             ];
         }
     }
@@ -968,10 +969,10 @@ class PlatformOpsController extends Controller
 
         $output = trim((string) ($run->output ?? ''));
         if ($run->path) {
-            $output .= ($output !== '' ? "\n\n" : '') . 'PATH=' . $run->path;
+            $output .= ($output !== '' ? "\n\n" : '').'PATH='.$run->path;
         }
         if ($run->checksum) {
-            $output .= ($output !== '' ? "\n" : '') . 'SHA256=' . $run->checksum;
+            $output .= ($output !== '' ? "\n" : '').'SHA256='.$run->checksum;
         }
 
         return [
@@ -1002,7 +1003,7 @@ class PlatformOpsController extends Controller
         }
 
         $tail = $logs->tail($path, 200);
-        $out = "PATH={$path}\n\n" . ($tail !== '' ? $tail : '[empty or missing]');
+        $out = "PATH={$path}\n\n".($tail !== '' ? $tail : '[empty or missing]');
 
         return [
             'success' => true,
@@ -1013,7 +1014,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainLogTail(LogReaderService $logs, ?Domain $domain, string $type): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1028,30 +1029,31 @@ class PlatformOpsController extends Controller
 
     private function actionTenantLaravelLogTail(LogReaderService $logs, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
         $path = $this->resolveTenantLaravelLog($tenant);
+
         return $this->actionTailLog($logs, $path);
     }
 
     private function resolveTenantLaravelLog(Tenant $tenant): string
     {
-        if (!$tenant->instance_root) {
+        if (! $tenant->instance_root) {
             return '';
         }
-        $logDir = rtrim($tenant->instance_root, '/') . '/storage/logs';
-        $default = $logDir . '/laravel.log';
+        $logDir = rtrim($tenant->instance_root, '/').'/storage/logs';
+        $default = $logDir.'/laravel.log';
         if (file_exists($default)) {
             return $default;
         }
 
-        if (!is_dir($logDir)) {
+        if (! is_dir($logDir)) {
             return $default;
         }
 
-        $files = glob($logDir . '/laravel*.log') ?: [];
+        $files = glob($logDir.'/laravel*.log') ?: [];
         if ($files === []) {
             return $default;
         }
@@ -1065,15 +1067,16 @@ class PlatformOpsController extends Controller
 
     private function resolveTenantPhpFpmLog(?Tenant $tenant): string
     {
-        if (!$tenant || !$tenant->instance_root) {
+        if (! $tenant || ! $tenant->instance_root) {
             return '';
         }
-        return rtrim($tenant->instance_root, '/') . '/storage/logs/php-fpm.log';
+
+        return rtrim($tenant->instance_root, '/').'/storage/logs/php-fpm.log';
     }
 
     private function actionTenantBackup(TenantBackupService $tenantBackups, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1082,10 +1085,10 @@ class PlatformOpsController extends Controller
 
         $output = trim((string) ($run->output ?? ''));
         if ($run->path) {
-            $output .= ($output !== '' ? "\n\n" : '') . 'PATH=' . $run->path;
+            $output .= ($output !== '' ? "\n\n" : '').'PATH='.$run->path;
         }
         if ($run->checksum) {
-            $output .= ($output !== '' ? "\n" : '') . 'SHA256=' . $run->checksum;
+            $output .= ($output !== '' ? "\n" : '').'SHA256='.$run->checksum;
         }
 
         return [
@@ -1097,7 +1100,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantCacheClear(TenantCacheService $tenantCache, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1113,7 +1116,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantCacheWarmup(TenantCacheService $tenantCache, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1128,7 +1131,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantQueue(TenantQueueService $tenantQueue, ?Tenant $tenant, string $mode): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1148,7 +1151,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantProvision(InstanceProvisioningService $instances, ?Tenant $tenant, ?Domain $domain): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1165,7 +1168,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantDeprovision(InstanceProvisioningService $instances, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1181,7 +1184,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantStagingEnable(?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1195,7 +1198,7 @@ class PlatformOpsController extends Controller
         }
 
         $tenant->staging_enabled = true;
-        if (!$tenant->staging_theme_id) {
+        if (! $tenant->staging_theme_id) {
             $tenant->staging_theme_id = $tenant->theme_id;
         }
         $tenant->save();
@@ -1215,11 +1218,11 @@ class PlatformOpsController extends Controller
 
     private function actionTenantStagingDisable(?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
-        if (!$tenant->staging_enabled) {
+        if (! $tenant->staging_enabled) {
             return [
                 'success' => true,
                 'output' => "Staging already disabled for tenant #{$tenant->id} ({$tenant->name}).",
@@ -1239,11 +1242,11 @@ class PlatformOpsController extends Controller
 
     private function actionTenantStagingSyncProdToStaging(?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
-        if (!$tenant->staging_enabled) {
+        if (! $tenant->staging_enabled) {
             return [
                 'success' => false,
                 'output' => 'Staging is disabled. Enable staging first.',
@@ -1269,11 +1272,11 @@ class PlatformOpsController extends Controller
 
     private function actionTenantStagingPromoteToProd(?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
-        if (!$tenant->staging_enabled) {
+        if (! $tenant->staging_enabled) {
             return [
                 'success' => false,
                 'output' => 'Staging is disabled. Enable staging first.',
@@ -1282,7 +1285,7 @@ class PlatformOpsController extends Controller
         }
 
         $tenant->load(['settings', 'stagingSettings']);
-        if (!$tenant->staging_theme_id) {
+        if (! $tenant->staging_theme_id) {
             return [
                 'success' => false,
                 'output' => 'Staging theme is not set. Sync prod -> staging first.',
@@ -1307,7 +1310,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantPreviewEnable(ContentSnapshotService $snapshots, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1321,7 +1324,7 @@ class PlatformOpsController extends Controller
         }
 
         $tenant->preview_enabled = true;
-        if (!$tenant->preview_theme_id) {
+        if (! $tenant->preview_theme_id) {
             $tenant->preview_theme_id = $tenant->theme_id;
         }
         $tenant->save();
@@ -1360,11 +1363,11 @@ class PlatformOpsController extends Controller
 
     private function actionTenantPreviewDisable(?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
-        if (!$tenant->preview_enabled) {
+        if (! $tenant->preview_enabled) {
             return [
                 'success' => true,
                 'output' => "Preview already disabled for tenant #{$tenant->id} ({$tenant->name}).",
@@ -1384,7 +1387,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantPreviewSyncProdToPreview(ContentSnapshotService $snapshots, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1427,12 +1430,12 @@ class PlatformOpsController extends Controller
 
     private function actionTenantPreviewPromoteToProd(ContentSnapshotService $snapshots, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
         $tenant->load(['settings', 'previewSettings']);
-        if (!$tenant->preview_theme_id) {
+        if (! $tenant->preview_theme_id) {
             return [
                 'success' => false,
                 'output' => 'Preview theme is not set. Sync prod -> preview first.',
@@ -1476,7 +1479,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantEnvPreviewKeys(TenantEnvPreviewService $envPreview, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1507,7 +1510,7 @@ class PlatformOpsController extends Controller
         TenantEnvPreviewService $envPreview,
         ?Tenant $tenant
     ): array {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1563,7 +1566,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantSecretsSyncAllToEnv(TenantSecretService $secrets, TenantEnvSyncService $envSync, ?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1606,6 +1609,7 @@ class PlatformOpsController extends Controller
                     'exit_code' => null,
                     'error' => 'Secret value could not be decrypted.',
                 ];
+
                 continue;
             }
 
@@ -1651,7 +1655,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantDeploy(TenantDeployService $deploy, ?Tenant $tenant, string $mode): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1668,7 +1672,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantOrchestrate(TenantOrchestrationService $orchestration, ?Tenant $tenant, string $action): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1684,7 +1688,7 @@ class PlatformOpsController extends Controller
 
     private function actionTenantArtisan(TenantArtisanService $artisan, ?Tenant $tenant, string $action): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return ['success' => false, 'output' => 'Tenant missing.', 'message' => 'Tenant missing.'];
         }
 
@@ -1701,11 +1705,12 @@ class PlatformOpsController extends Controller
 
     private function actionDomainNginxWrite(NginxProvisioningService $nginxProvisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $path = $nginxProvisioning->writeConfig($domain);
+
         return [
             'success' => true,
             'output' => "Wrote config: {$path}",
@@ -1715,7 +1720,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainNginxTest(NginxProvisioningService $nginxProvisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1731,7 +1736,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainNginxApply(NginxProvisioningService $nginxProvisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1739,7 +1744,7 @@ class PlatformOpsController extends Controller
         $result = $nginxProvisioning->applyConfig($domain, $path);
 
         $out = trim((string) ($result['output'] ?? ''));
-        $out = "CONFIG={$path}\n" . $out;
+        $out = "CONFIG={$path}\n".$out;
 
         return [
             'success' => (bool) ($result['success'] ?? false),
@@ -1750,7 +1755,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainNginxRemove(NginxProvisioningService $nginxProvisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1765,11 +1770,12 @@ class PlatformOpsController extends Controller
 
     private function actionDomainSslRequest(SslProvisioningService $sslProvisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $cert = $sslProvisioning->requestCertificate($domain);
+
         return [
             'success' => true,
             'output' => "SSL request status: {$cert->status}",
@@ -1779,7 +1785,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainSslProvision(SslProvisioningService $sslProvisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1802,14 +1808,14 @@ class PlatformOpsController extends Controller
 
     private function actionDomainProvisionFull(ProvisioningService $provisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $lines = [];
         $progress = function (string $message, array $meta = []) use (&$lines) {
             $stamp = now()->format('H:i:s');
-            $suffix = $meta !== [] ? (' ' . (json_encode($meta, JSON_UNESCAPED_SLASHES) ?: '')) : '';
+            $suffix = $meta !== [] ? (' '.(json_encode($meta, JSON_UNESCAPED_SLASHES) ?: '')) : '';
             $lines[] = "[{$stamp}] {$message}{$suffix}";
 
             // Keep progress logs bounded.
@@ -1852,8 +1858,8 @@ class PlatformOpsController extends Controller
             ],
         ];
 
-        $output = ($lines !== [] ? implode("\n", $lines) . "\n\n" : '')
-            . (json_encode($summary, JSON_PRETTY_PRINT) ?: '');
+        $output = ($lines !== [] ? implode("\n", $lines)."\n\n" : '')
+            .(json_encode($summary, JSON_PRETTY_PRINT) ?: '');
 
         $success = (bool) ($state['success'] ?? false);
         $message = $success ? 'Domain provisioning completed.' : 'Domain provisioning failed.';
@@ -1874,7 +1880,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainProvisionRollback(ProvisioningService $provisioning, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1890,12 +1896,12 @@ class PlatformOpsController extends Controller
 
     private function actionDomainCloudflarePurgeHost(CloudflareService $cloudflare, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $zoneId = $domain->cf_zone_id ?: (string) config('services.cloudflare.zone_id');
-        if (!$zoneId) {
+        if (! $zoneId) {
             return ['success' => false, 'output' => 'Cloudflare zone id is missing.', 'message' => 'Cloudflare zone id is missing.'];
         }
 
@@ -1910,12 +1916,12 @@ class PlatformOpsController extends Controller
 
     private function actionDomainCloudflarePurgeZone(CloudflareService $cloudflare, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $zoneId = $domain->cf_zone_id ?: (string) config('services.cloudflare.zone_id');
-        if (!$zoneId) {
+        if (! $zoneId) {
             return ['success' => false, 'output' => 'Cloudflare zone id is missing.', 'message' => 'Cloudflare zone id is missing.'];
         }
 
@@ -1930,16 +1936,16 @@ class PlatformOpsController extends Controller
 
     private function actionDomainCloudflareDeleteDns(CloudflareService $cloudflare, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $zoneId = $domain->cf_zone_id ?: (string) config('services.cloudflare.zone_id');
-        if (!$zoneId) {
+        if (! $zoneId) {
             return ['success' => false, 'output' => 'Cloudflare zone id is missing.', 'message' => 'Cloudflare zone id is missing.'];
         }
 
-        if (!$domain->cf_record_id) {
+        if (! $domain->cf_record_id) {
             return [
                 'success' => true,
                 'output' => "No cf_record_id stored for {$domain->hostname}. Nothing to delete.",
@@ -1960,7 +1966,7 @@ class PlatformOpsController extends Controller
 
     private function actionDomainHttp3Check(Http3HealthService $http3, ?Domain $domain): array
     {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
@@ -1994,12 +2000,12 @@ class PlatformOpsController extends Controller
         ?Domain $domain,
         bool $enabled
     ): array {
-        if (!$domain) {
+        if (! $domain) {
             return ['success' => false, 'output' => 'Domain missing.', 'message' => 'Domain missing.'];
         }
 
         $domain = $domain->fresh(['sslCertificate']) ?? $domain;
-        if (!empty($domain->nginx_custom_config)) {
+        if (! empty($domain->nginx_custom_config)) {
             return [
                 'success' => false,
                 'output' => 'HTTP/3 toggle is disabled when using a custom Nginx config.',
@@ -2049,13 +2055,14 @@ class PlatformOpsController extends Controller
         $results = [];
         foreach ($targets as $cert) {
             $domain = $cert->domain;
-            if (!$domain) {
+            if (! $domain) {
                 $results[] = [
                     'domain' => null,
                     'success' => false,
                     'status' => null,
                     'error' => 'Domain missing for certificate.',
                 ];
+
                 continue;
             }
 
@@ -2100,7 +2107,7 @@ class PlatformOpsController extends Controller
 
         $display = $command;
         if ($parameters !== []) {
-            $display .= ' ' . (json_encode($parameters, JSON_UNESCAPED_SLASHES) ?: '');
+            $display .= ' '.(json_encode($parameters, JSON_UNESCAPED_SLASHES) ?: '');
         }
 
         return [
@@ -2112,7 +2119,7 @@ class PlatformOpsController extends Controller
 
     private function actionIntegrityBaselineCreate(FileIntegrityService $integrity): array
     {
-        $name = 'platform-' . now()->format('Ymd-His');
+        $name = 'platform-'.now()->format('Ymd-His');
         $baseline = $integrity->createBaseline($name, base_path(), [], Auth::id());
 
         $payload = [
@@ -2138,9 +2145,9 @@ class PlatformOpsController extends Controller
         $baseline = SecurityBaseline::query()->orderByDesc('id')->first();
         $createdBaseline = false;
 
-        if (!$baseline) {
+        if (! $baseline) {
             $createdBaseline = true;
-            $name = 'platform-' . now()->format('Ymd-His');
+            $name = 'platform-'.now()->format('Ymd-His');
             $baseline = $integrity->createBaseline($name, base_path(), [], Auth::id());
         }
 
@@ -2218,6 +2225,7 @@ class PlatformOpsController extends Controller
     private function actionUptimeRun(UptimeMonitorService $uptime): array
     {
         $result = $uptime->run();
+
         return [
             'success' => true,
             'output' => json_encode($result, JSON_PRETTY_PRINT) ?: '',
@@ -2236,7 +2244,7 @@ class PlatformOpsController extends Controller
             $ok = $ok && $success;
             $prefix = $success ? 'OK' : 'FAIL';
             $output = trim((string) ($item['output'] ?? ''));
-            $lines[] = "#{$idx} {$prefix}" . ($output !== '' ? "\n{$output}\n" : '');
+            $lines[] = "#{$idx} {$prefix}".($output !== '' ? "\n{$output}\n" : '');
         }
 
         return [
@@ -2279,15 +2287,15 @@ class PlatformOpsController extends Controller
 
     private function guard(): RedirectResponse|bool
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return redirect()->route('platform.install');
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -2347,6 +2355,7 @@ class PlatformOpsController extends Controller
         if (strlen($text) <= $maxBytes) {
             return $text;
         }
+
         return substr($text, -$maxBytes);
     }
 

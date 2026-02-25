@@ -16,15 +16,15 @@ class PlatformDomainController extends Controller
 {
     public function index(Request $request): View|RedirectResponse
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return redirect()->route('platform.install');
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -34,7 +34,7 @@ class PlatformDomainController extends Controller
         $q = trim((string) $request->query('q', ''));
         $env = trim((string) $request->query('env', ''));
         $allowedEnvs = ['production', 'staging', 'preview'];
-        if (!in_array($env, $allowedEnvs, true)) {
+        if (! in_array($env, $allowedEnvs, true)) {
             $env = '';
         }
 
@@ -46,10 +46,10 @@ class PlatformDomainController extends Controller
 
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
-                $sub->where('hostname', 'like', '%' . $q . '%')
+                $sub->where('hostname', 'like', '%'.$q.'%')
                     ->orWhereHas('tenant', function ($tenantQ) use ($q) {
-                        $tenantQ->where('name', 'like', '%' . $q . '%')
-                            ->orWhere('slug', 'like', '%' . $q . '%');
+                        $tenantQ->where('name', 'like', '%'.$q.'%')
+                            ->orWhere('slug', 'like', '%'.$q.'%');
                     });
             });
         }
@@ -148,20 +148,20 @@ class PlatformDomainController extends Controller
 
     public function dns(Request $request, Domain $domain, CloudflareService $cloudflare)
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return response()->json(['message' => 'Not installed'], 409);
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
         $zoneId = $domain->cf_zone_id ?: (string) config('services.cloudflare.zone_id');
-        if (!$zoneId) {
+        if (! $zoneId) {
             return response()->json([
                 'message' => 'Cloudflare zone id is missing for this domain (cf_zone_id).',
             ], 422);
@@ -169,7 +169,7 @@ class PlatformDomainController extends Controller
 
         try {
             $recordById = null;
-            if (!empty($domain->cf_record_id)) {
+            if (! empty($domain->cf_record_id)) {
                 $recordById = $cloudflare->getDnsRecord($zoneId, (string) $domain->cf_record_id);
             }
 

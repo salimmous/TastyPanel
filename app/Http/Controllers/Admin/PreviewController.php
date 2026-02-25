@@ -25,7 +25,7 @@ class PreviewController extends Controller
         $tenant = $this->resolveTenant($request);
 
         $tenant->preview_enabled = true;
-        if (!$tenant->preview_theme_id) {
+        if (! $tenant->preview_theme_id) {
             $tenant->preview_theme_id = $tenant->theme_id;
         }
         $tenant->save();
@@ -123,12 +123,12 @@ class PreviewController extends Controller
     private function resolveTenant(Request $request): Tenant
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
 
@@ -141,7 +141,7 @@ class PreviewController extends Controller
             'primaryDomain',
         ])->findOrFail($tenantId);
 
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
             abort(403);
         }
 

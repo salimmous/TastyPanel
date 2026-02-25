@@ -13,8 +13,7 @@ class NotificationController extends Controller
 {
     public function __construct(
         protected AdminNotificationService $notificationService
-    ) {
-    }
+    ) {}
 
     /**
      * Get user's notifications

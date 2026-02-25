@@ -17,7 +17,7 @@ class SamlController extends Controller
 {
     public function login(Request $request, SamlService $saml)
     {
-        if (!$saml->enabled()) {
+        if (! $saml->enabled()) {
             abort(404);
         }
 
@@ -33,7 +33,7 @@ class SamlController extends Controller
 
     public function acs(Request $request, SamlService $saml)
     {
-        if (!$saml->enabled()) {
+        if (! $saml->enabled()) {
             abort(404);
         }
 
@@ -45,11 +45,11 @@ class SamlController extends Controller
         $auth->processResponse();
         $errors = $auth->getErrors();
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return redirect('/login?error=saml_response');
         }
 
-        if (!$auth->isAuthenticated()) {
+        if (! $auth->isAuthenticated()) {
             return redirect('/login?error=saml_auth');
         }
 
@@ -57,14 +57,14 @@ class SamlController extends Controller
         $email = $profile['email'] ?? null;
         $name = $profile['name'] ?? 'SAML User';
 
-        if (!$email) {
+        if (! $email) {
             return redirect('/login?error=saml_email');
         }
 
         $allowed = $saml->allowedDomains();
-        if (!empty($allowed)) {
+        if (! empty($allowed)) {
             $domain = substr(strrchr($email, '@') ?: '', 1);
-            if (!in_array($domain, $allowed, true)) {
+            if (! in_array($domain, $allowed, true)) {
                 return redirect('/login?error=saml_domain');
             }
         }
@@ -72,12 +72,12 @@ class SamlController extends Controller
         $settings = PlatformSetting::getData();
 
         $user = User::where('email', $email)->first();
-        if (!$user) {
-            if (!($settings['saml_auto_create'] ?? false)) {
+        if (! $user) {
+            if (! ($settings['saml_auto_create'] ?? false)) {
                 return redirect('/login?error=saml_user');
             }
 
-            $user = new User();
+            $user = new User;
             $user->name = $name;
             $user->email = $email;
             $user->password = Hash::make(bin2hex(random_bytes(16)));
@@ -93,7 +93,7 @@ class SamlController extends Controller
             $user->save();
         }
 
-        if (($settings['force_2fa'] ?? false) && AdminPermissions::isSuperadmin($user) && !$user->two_factor_enabled) {
+        if (($settings['force_2fa'] ?? false) && AdminPermissions::isSuperadmin($user) && ! $user->two_factor_enabled) {
             return redirect('/login?error=saml_2fa');
         }
 
@@ -122,12 +122,12 @@ class SamlController extends Controller
 
     public function metadata(SamlService $saml)
     {
-        if (!$saml->enabled()) {
+        if (! $saml->enabled()) {
             abort(404);
         }
 
         $metadata = $saml->buildMetadata();
-        if (!empty($metadata['errors'])) {
+        if (! empty($metadata['errors'])) {
             return response(implode(', ', $metadata['errors']), 500);
         }
 

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Theme;
 use App\Models\Tenant;
+use App\Models\Theme;
 use App\Support\AdminPermissions;
 use App\Support\AdminTenantResolver;
 use Illuminate\Http\Request;
@@ -25,9 +25,9 @@ class ThemeMarketplaceController extends Controller
 
         if ($search = $request->query('search')) {
             $query->where(function ($builder) use ($search) {
-                $builder->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%')
-                    ->orWhere('key', 'like', '%' . $search . '%');
+                $builder->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%')
+                    ->orWhere('key', 'like', '%'.$search.'%');
             });
         }
 
@@ -41,21 +41,21 @@ class ThemeMarketplaceController extends Controller
     public function install(Request $request, Theme $theme)
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
 
-        if (!$theme->is_active || !$theme->is_marketplace) {
+        if (! $theme->is_active || ! $theme->is_marketplace) {
             return response()->json(['message' => 'Theme not available.'], 409);
         }
 
         $tenant = Tenant::findOrFail($tenantId);
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
             abort(403);
         }
 

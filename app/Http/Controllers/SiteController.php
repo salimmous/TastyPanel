@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Domain;
-use App\Models\Category;
-use App\Models\Recipe;
 use App\Models\Article;
+use App\Models\Category;
+use App\Models\Domain;
+use App\Models\Recipe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +16,7 @@ class SiteController extends Controller
     {
         $domain = $request->attributes->get('resolved_domain') ?? $this->resolveDomain($request->getHost());
 
-        if (!$domain) {
+        if (! $domain) {
             return response()->view('platform.site-not-configured', [
                 'host' => $request->getHost(),
                 'reason' => 'No site is configured for this domain yet.',
@@ -29,7 +29,7 @@ class SiteController extends Controller
             ? ($tenant?->stagingTheme ?? $tenant?->theme)
             : $tenant?->theme;
 
-        if (!$tenant || !$theme || !$theme->is_active || !view()->exists($theme->view)) {
+        if (! $tenant || ! $theme || ! $theme->is_active || ! view()->exists($theme->view)) {
             return response()->view('platform.site-not-configured', [
                 'host' => $request->getHost(),
                 'reason' => 'This site exists, but no active theme is assigned yet.',
@@ -81,11 +81,11 @@ class SiteController extends Controller
     public function sitemap(Request $request): Response
     {
         $domain = $request->attributes->get('resolved_domain') ?? $this->resolveDomain($request->getHost());
-        if (!$domain) {
+        if (! $domain) {
             abort(404);
         }
 
-        $cacheKey = 'sitemap:' . $request->getHost();
+        $cacheKey = 'sitemap:'.$request->getHost();
         $xml = Cache::remember($cacheKey, 600, function () use ($domain, $request) {
             $host = $request->getSchemeAndHttpHost();
             $tenantId = $domain->tenant_id;
@@ -93,7 +93,7 @@ class SiteController extends Controller
 
             $urls = [];
             $now = now()->toAtomString();
-            $urls[] = ['loc' => $host . '/', 'lastmod' => $now];
+            $urls[] = ['loc' => $host.'/', 'lastmod' => $now];
 
             $articles = Article::select('slug', 'updated_at')
                 ->where('tenant_id', $tenantId)
@@ -105,7 +105,7 @@ class SiteController extends Controller
 
             foreach ($articles as $article) {
                 $urls[] = [
-                    'loc' => $host . '/articles/' . $article->slug,
+                    'loc' => $host.'/articles/'.$article->slug,
                     'lastmod' => optional($article->updated_at)->toAtomString() ?? $now,
                 ];
             }
@@ -120,7 +120,7 @@ class SiteController extends Controller
 
             foreach ($recipes as $recipe) {
                 $urls[] = [
-                    'loc' => $host . '/recipes/' . $recipe->slug,
+                    'loc' => $host.'/recipes/'.$recipe->slug,
                     'lastmod' => optional($recipe->updated_at)->toAtomString() ?? $now,
                 ];
             }
@@ -134,14 +134,14 @@ class SiteController extends Controller
     public function robots(Request $request): Response
     {
         $domain = $request->attributes->get('resolved_domain') ?? $this->resolveDomain($request->getHost());
-        if (!$domain) {
+        if (! $domain) {
             abort(404);
         }
 
         $content = "User-agent: *\n"
-            . "Allow: /\n"
-            . "Disallow: /admin\n"
-            . "Sitemap: " . $request->getSchemeAndHttpHost() . "/sitemap.xml\n";
+            ."Allow: /\n"
+            ."Disallow: /admin\n"
+            .'Sitemap: '.$request->getSchemeAndHttpHost()."/sitemap.xml\n";
 
         return response($content, 200, ['Content-Type' => 'text/plain']);
     }
@@ -158,6 +158,7 @@ class SiteController extends Controller
 
         if (str_starts_with($host, 'www.')) {
             $host = substr($host, 4);
+
             return Domain::with(['tenant.theme', 'tenant.stagingTheme', 'tenant.settings', 'tenant.stagingSettings'])
                 ->where('hostname', $host)
                 ->first();
@@ -168,15 +169,16 @@ class SiteController extends Controller
 
     private function buildSitemapXml(array $urls): string
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
         foreach ($urls as $url) {
             $xml .= "  <url>\n";
-            $xml .= '    <loc>' . htmlspecialchars($url['loc'], ENT_XML1) . "</loc>\n";
-            $xml .= '    <lastmod>' . htmlspecialchars($url['lastmod'], ENT_XML1) . "</lastmod>\n";
+            $xml .= '    <loc>'.htmlspecialchars($url['loc'], ENT_XML1)."</loc>\n";
+            $xml .= '    <lastmod>'.htmlspecialchars($url['lastmod'], ENT_XML1)."</lastmod>\n";
             $xml .= "  </url>\n";
         }
         $xml .= '</urlset>';
+
         return $xml;
     }
 }

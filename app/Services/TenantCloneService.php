@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
-use App\Models\Recipe;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Recipe;
+use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -16,7 +16,7 @@ class TenantCloneService
      */
     public function clone(Tenant $source, array $options = []): Tenant
     {
-        $newName = $options['name'] ?? $source->name . ' (Copy)';
+        $newName = $options['name'] ?? $source->name.' (Copy)';
         $newDomain = $options['domain'] ?? null;
         $cloneContent = $options['clone_content'] ?? true;
         $cloneSettings = $options['clone_settings'] ?? true;
@@ -53,7 +53,7 @@ class TenantCloneService
 
         // Update name and domain
         $data['name'] = $name;
-        $data['domain'] = $domain ?? Str::slug($name) . '.localhost';
+        $data['domain'] = $domain ?? Str::slug($name).'.localhost';
         $data['status'] = 'pending'; // Start as pending
 
         // Clear instance-specific data
@@ -169,7 +169,7 @@ class TenantCloneService
     {
         $errors = [];
 
-        if (!empty($options['domain'])) {
+        if (! empty($options['domain'])) {
             $exists = Tenant::where('domain', $options['domain'])
                 ->where('id', '!=', $source->id)
                 ->exists();

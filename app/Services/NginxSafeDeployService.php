@@ -6,8 +6,6 @@ class NginxSafeDeployService
 {
     /**
      * Test Nginx configuration.
-     *
-     * @return array
      */
     public function testConfig(): array
     {
@@ -24,18 +22,16 @@ class NginxSafeDeployService
 
     /**
      * Safely deploy Nginx configuration (Test -> Reload).
-     *
-     * @return array
      */
     public function deploy(): array
     {
         // 1. Test Configuration
         $test = $this->testConfig();
 
-        if (!$test['success']) {
+        if (! $test['success']) {
             return [
                 'success' => false,
-                'message' => "Configuration test failed:\n" . $test['message'],
+                'message' => "Configuration test failed:\n".$test['message'],
             ];
         }
 
@@ -47,13 +43,13 @@ class NginxSafeDeployService
         if ($exit !== 0) {
             return [
                 'success' => false,
-                'message' => "Failed to reload Nginx:\n" . implode("\n", $output),
+                'message' => "Failed to reload Nginx:\n".implode("\n", $output),
             ];
         }
 
         return [
             'success' => true,
-            'message' => "Configuration passed and Nginx reloaded successfully.",
+            'message' => 'Configuration passed and Nginx reloaded successfully.',
         ];
     }
 }

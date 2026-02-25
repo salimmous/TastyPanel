@@ -8,9 +8,7 @@ use Illuminate\Support\Str;
 
 class InstanceProvisioningService
 {
-    public function __construct(private TenantAccessService $tenantAccess)
-    {
-    }
+    public function __construct(private TenantAccessService $tenantAccess) {}
 
     public function provisionTenant(Tenant $tenant, ?Domain $domain = null): Tenant
     {
@@ -19,10 +17,10 @@ class InstanceProvisioningService
 
     public function provisionTenantWithResult(Tenant $tenant, ?Domain $domain = null): array
     {
-        $wasReady = $tenant->instance_status === 'ready' && !empty($tenant->instance_root);
+        $wasReady = $tenant->instance_status === 'ready' && ! empty($tenant->instance_root);
 
         if ($tenant->instance_status === 'ready' && $tenant->instance_root) {
-            if (!$this->isSafeInstanceRoot((string) $tenant->instance_root)) {
+            if (! $this->isSafeInstanceRoot((string) $tenant->instance_root)) {
                 $tenant->instance_status = 'error';
                 $tenant->instance_last_error = 'Unsafe tenant root detected. Provisioning aborted.';
                 $tenant->save();
@@ -37,13 +35,13 @@ class InstanceProvisioningService
             }
 
             $frontendResult = $this->provisionFrontendIfEnabled($tenant, $domain);
-            if (!$frontendResult['success']) {
+            if (! $frontendResult['success']) {
                 $tenant->instance_status = 'error';
                 $tenant->instance_last_error = $frontendResult['output'];
                 $tenant->save();
             }
             $accessResult = $this->ensureTenantAccessIfEnabled($tenant);
-            if (!$accessResult['success']) {
+            if (! $accessResult['success']) {
                 $tenant->instance_status = 'error';
                 $tenant->instance_last_error = $accessResult['output'];
                 $tenant->save();
@@ -60,7 +58,7 @@ class InstanceProvisioningService
 
         $settings = config('services.instances', []);
         $repo = $settings['repo'] ?? '';
-        if (!$repo) {
+        if (! $repo) {
             $repo = 'default';
         }
 
@@ -70,16 +68,16 @@ class InstanceProvisioningService
 
         $instanceKey = $tenant->instance_key ?: $this->buildInstanceKey($tenant);
         $root = rtrim((string) ($settings['root'] ?? '/var/www/tastypanel-sites'), '/')
-            . '/' . $instanceKey;
-        $publicRoot = $root . '/public';
+            .'/'.$instanceKey;
+        $publicRoot = $root.'/public';
         $phpVersion = (string) ($settings['php_version'] ?? '8.3');
         $phpSocket = "/run/php/php{$phpVersion}-fpm-{$instanceKey}.sock";
-        $dbName = $tenant->instance_db_name ?: 'tb_' . $tenant->id;
-        $dbUser = $tenant->instance_db_user ?: 'tb_' . $tenant->id;
+        $dbName = $tenant->instance_db_name ?: 'tb_'.$tenant->id;
+        $dbUser = $tenant->instance_db_user ?: 'tb_'.$tenant->id;
         $dbPass = $tenant->instance_db_password ?: Str::random(24);
         $systemUser = $tenant->instance_system_user ?: $this->resolveSystemUser($tenant);
 
-        if (!$this->isSafeInstanceRoot($root)) {
+        if (! $this->isSafeInstanceRoot($root)) {
             $tenant->instance_status = 'error';
             $tenant->instance_last_error = 'Unsafe tenant root path. Provisioning aborted.';
             $tenant->save();
@@ -129,10 +127,11 @@ class InstanceProvisioningService
             'FPM_MEMORY_LIMIT_MB' => (string) $fpmMemoryLimit,
         ]);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $tenant->instance_status = 'error';
             $tenant->instance_last_error = $result['output'];
             $tenant->save();
+
             return [
                 'tenant' => $tenant,
                 'was_ready' => $wasReady,
@@ -148,10 +147,11 @@ class InstanceProvisioningService
         $tenant->save();
 
         $frontendResult = $this->provisionFrontendIfEnabled($tenant, $domain);
-        if (!$frontendResult['success']) {
+        if (! $frontendResult['success']) {
             $tenant->instance_status = 'error';
             $tenant->instance_last_error = $frontendResult['output'];
             $tenant->save();
+
             return [
                 'tenant' => $tenant,
                 'was_ready' => $wasReady,
@@ -162,10 +162,11 @@ class InstanceProvisioningService
         }
 
         $accessResult = $this->ensureTenantAccessIfEnabled($tenant);
-        if (!$accessResult['success']) {
+        if (! $accessResult['success']) {
             $tenant->instance_status = 'error';
             $tenant->instance_last_error = $accessResult['output'];
             $tenant->save();
+
             return [
                 'tenant' => $tenant,
                 'was_ready' => $wasReady,
@@ -178,7 +179,7 @@ class InstanceProvisioningService
         return [
             'tenant' => $tenant->fresh(),
             'was_ready' => $wasReady,
-            'fresh_provisioned' => !$wasReady,
+            'fresh_provisioned' => ! $wasReady,
             'success' => true,
             'output' => '',
         ];
@@ -188,21 +189,22 @@ class InstanceProvisioningService
     {
         $base = Str::slug($tenant->slug ?: $tenant->name ?: 'tenant');
         $base = substr($base, 0, 16);
-        if (!$base) {
+        if (! $base) {
             $base = 'tenant';
         }
-        return $base . '-' . $tenant->id;
+
+        return $base.'-'.$tenant->id;
     }
 
     private function resolveAppUrl(Tenant $tenant, ?Domain $domain): string
     {
         $hostname = $domain?->hostname;
-        if (!$hostname) {
+        if (! $hostname) {
             $primary = $tenant->primaryDomain()->first();
             $hostname = $primary?->hostname;
         }
         if ($hostname) {
-            return 'https://' . $hostname;
+            return 'https://'.$hostname;
         }
 
         return 'http://localhost';
@@ -212,7 +214,8 @@ class InstanceProvisioningService
     {
         $prefix = (string) config('services.instances.system_user_prefix', 'tbapp');
         $prefix = preg_replace('/[^a-z0-9]/', '', strtolower($prefix)) ?: 'tbapp';
-        return $prefix . $tenant->id;
+
+        return $prefix.$tenant->id;
     }
 
     private function isSafeInstanceRoot(string $root): bool
@@ -225,20 +228,21 @@ class InstanceProvisioningService
             return false;
         }
 
-        return str_starts_with($root . '/', $base . '/');
+        return str_starts_with($root.'/', $base.'/');
     }
 
     private function normalizePath(string $path): string
     {
         $path = str_replace('\\', '/', trim($path));
         $path = preg_replace('#/+#', '/', $path) ?: '';
+
         return rtrim($path, '/');
     }
 
     private function runScript(array $args, array $env = []): array
     {
         $script = config('services.instances.script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Instance provision script not found.',
@@ -254,7 +258,7 @@ class InstanceProvisioningService
         if ($env !== []) {
             $commandParts[] = 'env';
             foreach ($env as $key => $value) {
-                $commandParts[] = $key . '=' . $value;
+                $commandParts[] = $key.'='.$value;
             }
         }
         $commandParts[] = $script;
@@ -266,7 +270,7 @@ class InstanceProvisioningService
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -277,26 +281,26 @@ class InstanceProvisioningService
 
     private function provisionFrontendIfEnabled(Tenant $tenant, ?Domain $domain): array
     {
-        if (!config('services.instances.frontend_auto', false)) {
+        if (! config('services.instances.frontend_auto', false)) {
             return ['success' => true, 'output' => '', 'exit_code' => 0];
         }
 
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return ['success' => false, 'output' => 'Instance root missing for frontend provisioning.', 'exit_code' => 1];
         }
 
-        $frontendDir = rtrim($tenant->instance_root, '/') . '/frontend';
-        if (is_dir($frontendDir) && file_exists($frontendDir . '/.next/BUILD_ID')) {
+        $frontendDir = rtrim($tenant->instance_root, '/').'/frontend';
+        if (is_dir($frontendDir) && file_exists($frontendDir.'/.next/BUILD_ID')) {
             return ['success' => true, 'output' => 'Frontend already provisioned.', 'exit_code' => 0];
         }
 
         $hostname = $domain?->hostname ?: $tenant->domains()->where('is_primary', true)->value('hostname');
-        if (!$hostname) {
+        if (! $hostname) {
             return ['success' => false, 'output' => 'Primary domain is missing for frontend provisioning.', 'exit_code' => 1];
         }
 
         $script = config('services.instances.frontend_script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return ['success' => false, 'output' => 'Frontend provision script not found.', 'exit_code' => 1];
         }
 
@@ -314,19 +318,19 @@ class InstanceProvisioningService
             $commandParts[] = '-n';
         }
         $commandParts[] = 'env';
-        $commandParts[] = 'TENANT_KEY=' . ($tenant->instance_key ?: ('tenant-' . $tenant->id));
-        $commandParts[] = 'TENANT_ID=' . $tenant->id;
-        $commandParts[] = 'TENANT_HOST=' . $hostname;
-        $commandParts[] = 'PLATFORM_API_BASE=' . $apiBase;
-        $commandParts[] = 'TENANT_ENV=' . $tenantEnv;
-        $commandParts[] = 'BASE_DIR=' . $baseRoot;
+        $commandParts[] = 'TENANT_KEY='.($tenant->instance_key ?: ('tenant-'.$tenant->id));
+        $commandParts[] = 'TENANT_ID='.$tenant->id;
+        $commandParts[] = 'TENANT_HOST='.$hostname;
+        $commandParts[] = 'PLATFORM_API_BASE='.$apiBase;
+        $commandParts[] = 'TENANT_ENV='.$tenantEnv;
+        $commandParts[] = 'BASE_DIR='.$baseRoot;
         $commandParts[] = $script;
 
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -338,7 +342,7 @@ class InstanceProvisioningService
     public function deprovisionFrontend(Tenant $tenant): array
     {
         $script = config('services.instances.frontend_deprovision_script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return ['success' => false, 'output' => 'Frontend deprovision script not found.', 'exit_code' => 1];
         }
 
@@ -349,15 +353,15 @@ class InstanceProvisioningService
             $commandParts[] = '-n';
         }
         $commandParts[] = 'env';
-        $commandParts[] = 'TENANT_KEY=' . ($tenant->instance_key ?: ('tenant-' . $tenant->id));
-        $commandParts[] = 'BASE_DIR=' . $baseRoot;
+        $commandParts[] = 'TENANT_KEY='.($tenant->instance_key ?: ('tenant-'.$tenant->id));
+        $commandParts[] = 'BASE_DIR='.$baseRoot;
         $commandParts[] = $script;
 
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -377,20 +381,20 @@ class InstanceProvisioningService
 
         $frontend = $this->deprovisionFrontend($tenant);
         $result['frontend'] = $frontend;
-        if (!($frontend['success'] ?? false)) {
+        if (! ($frontend['success'] ?? false)) {
             $result['success'] = false;
         }
 
         $instance = $this->runDeprovisionScript($tenant);
         $result['instance'] = $instance;
-        if (!($instance['success'] ?? false)) {
+        if (! ($instance['success'] ?? false)) {
             $result['success'] = false;
         }
 
         if ($removeAccess) {
             $access = $this->tenantAccess->removeAccess($tenant);
             $result['access'] = $access;
-            if (!($access['success'] ?? false)) {
+            if (! ($access['success'] ?? false)) {
                 $result['success'] = false;
             }
         }
@@ -408,7 +412,7 @@ class InstanceProvisioningService
     private function runDeprovisionScript(Tenant $tenant): array
     {
         $script = (string) config('services.instances.deprovision_script');
-        if ($script === '' || !file_exists($script)) {
+        if ($script === '' || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Instance deprovision script not found.',
@@ -422,7 +426,7 @@ class InstanceProvisioningService
             $commandParts[] = '-n';
         }
         $commandParts[] = $script;
-        $commandParts[] = (string) ($tenant->instance_key ?: ('tenant-' . $tenant->id));
+        $commandParts[] = (string) ($tenant->instance_key ?: ('tenant-'.$tenant->id));
         $commandParts[] = (string) ($tenant->instance_root ?: '');
         $commandParts[] = (string) ($tenant->instance_db_name ?: '');
         $commandParts[] = (string) ($tenant->instance_db_user ?: '');
@@ -432,7 +436,7 @@ class InstanceProvisioningService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -444,7 +448,7 @@ class InstanceProvisioningService
     private function ensureTenantAccessIfEnabled(Tenant $tenant): array
     {
         $script = (string) config('services.instances.access_script');
-        if ($script === '' || !file_exists($script)) {
+        if ($script === '' || ! file_exists($script)) {
             return ['success' => true, 'output' => 'Tenant access provisioning disabled.'];
         }
 

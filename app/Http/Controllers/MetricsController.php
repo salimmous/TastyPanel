@@ -16,11 +16,11 @@ class MetricsController extends Controller
 {
     public function index(Request $request, MetricsCollector $collector): Response
     {
-        if (!config('monitoring.prometheus.enabled', true)) {
+        if (! config('monitoring.prometheus.enabled', true)) {
             return response('not found', 404, ['Content-Type' => 'text/plain; charset=UTF-8']);
         }
 
-        if (!$this->isAuthorized($request)) {
+        if (! $this->isAuthorized($request)) {
             return response('forbidden', 403, ['Content-Type' => 'text/plain; charset=UTF-8']);
         }
 
@@ -71,7 +71,7 @@ class MetricsController extends Controller
         $this->metric($lines, 'tastypanel_drill_passed_total', 'counter', (float) $drillPassed);
         $this->metric($lines, 'tastypanel_drill_failed_total', 'counter', (float) $drillFailed);
 
-        return response(implode("\n", $lines) . "\n", 200, [
+        return response(implode("\n", $lines)."\n", 200, [
             'Content-Type' => 'text/plain; version=0.0.4; charset=UTF-8',
         ]);
     }
@@ -94,6 +94,6 @@ class MetricsController extends Controller
     private function metric(array &$lines, string $name, string $type, float $value): void
     {
         $lines[] = "# TYPE {$name} {$type}";
-        $lines[] = "{$name} " . sprintf('%.4f', $value);
+        $lines[] = "{$name} ".sprintf('%.4f', $value);
     }
 }

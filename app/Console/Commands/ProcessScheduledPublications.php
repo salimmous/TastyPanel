@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class ProcessScheduledPublications extends Command
 {
     protected $signature = 'schedule:publish';
+
     protected $description = 'Process scheduled publications';
 
     public function handle(AdminNotificationService $notificationService): int
@@ -17,6 +18,7 @@ class ProcessScheduledPublications extends Command
 
         if ($schedules->isEmpty()) {
             $this->info('No scheduled publications to process');
+
             return self::SUCCESS;
         }
 

@@ -9,8 +9,8 @@ class TenantStorageService
     public function usage(Tenant $tenant): array
     {
         $paths = [
-            storage_path('app/tenants/' . $tenant->id),
-            storage_path('app/public/tenants/' . $tenant->id),
+            storage_path('app/tenants/'.$tenant->id),
+            storage_path('app/public/tenants/'.$tenant->id),
         ];
 
         $bytes = 0;
@@ -35,6 +35,7 @@ class TenantStorageService
         foreach ($iterator as $file) {
             $size += $file->getSize();
         }
+
         return $size;
     }
 }

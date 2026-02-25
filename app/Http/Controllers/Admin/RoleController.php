@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
 use App\Models\Permission;
-use App\Models\User;
+use App\Models\Role;
 use App\Services\RoleService;
 use Illuminate\Http\Request;
 
@@ -13,8 +12,7 @@ class RoleController extends Controller
 {
     public function __construct(
         protected RoleService $roleService
-    ) {
-    }
+    ) {}
 
     /**
      * List all roles
@@ -34,6 +32,7 @@ class RoleController extends Controller
     public function create()
     {
         $permissions = Permission::getGrouped();
+
         return view('platform.roles.form', compact('permissions'));
     }
 
@@ -44,6 +43,7 @@ class RoleController extends Controller
     {
         $role->load('permissions');
         $permissions = Permission::getGrouped();
+
         return view('platform.roles.form', compact('role', 'permissions'));
     }
 
@@ -69,7 +69,7 @@ class RoleController extends Controller
             'is_system' => false,
         ]);
 
-        if (!empty($validated['permissions'])) {
+        if (! empty($validated['permissions'])) {
             $role->permissions()->sync($validated['permissions']);
         }
 
@@ -112,7 +112,7 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         if ($role->is_system) {
-             return back()->with('error', 'Cannot delete system role.');
+            return back()->with('error', 'Cannot delete system role.');
         }
 
         if ($role->users()->count() > 0) {

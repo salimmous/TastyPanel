@@ -86,7 +86,7 @@ class ScheduledPublication extends Model
 
             $model = $this->schedulable;
 
-            if (!$model) {
+            if (! $model) {
                 throw new \Exception('Schedulable model not found');
             }
 
@@ -98,10 +98,12 @@ class ScheduledPublication extends Model
             };
 
             $this->markAsCompleted();
+
             return true;
 
         } catch (\Exception $e) {
             $this->markAsFailed($e->getMessage());
+
             return false;
         }
     }

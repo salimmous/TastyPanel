@@ -11,16 +11,16 @@ class AuditExportService
     public function export(?int $days = null, ?int $userId = null): AuditExport
     {
         $dir = storage_path('app/audit-exports');
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
         $timestamp = now()->format('Ymd_His');
-        $relativePath = 'audit-exports/audit_' . $timestamp . '.csv';
-        $fullPath = storage_path('app/' . $relativePath);
+        $relativePath = 'audit-exports/audit_'.$timestamp.'.csv';
+        $fullPath = storage_path('app/'.$relativePath);
 
         $handle = fopen($fullPath, 'w');
-        if (!$handle) {
+        if (! $handle) {
             throw new \RuntimeException('Unable to create audit export file.');
         }
 
@@ -70,7 +70,7 @@ class AuditExportService
 
     public function cleanup(?int $days = null): int
     {
-        if (!$days || $days < 1) {
+        if (! $days || $days < 1) {
             return 0;
         }
 

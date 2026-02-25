@@ -24,7 +24,7 @@ class FeatureFlagService
         }
 
         $flag = $query->orderByDesc('tenant_id')->first();
-        if (!$flag || !$flag->enabled) {
+        if (! $flag || ! $flag->enabled) {
             return false;
         }
 
@@ -36,8 +36,9 @@ class FeatureFlagService
             return false;
         }
 
-        $hashBase = $key . ($tenant?->id ?? 'global');
+        $hashBase = $key.($tenant?->id ?? 'global');
         $bucket = crc32($hashBase) % 100;
+
         return $bucket < $rollout;
     }
 }

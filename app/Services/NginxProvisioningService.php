@@ -28,12 +28,12 @@ class NginxProvisioningService
     public function writeConfig(Domain $domain): string
     {
         $configDir = storage_path('app/nginx/sites-available');
-        if (!is_dir($configDir)) {
+        if (! is_dir($configDir)) {
             mkdir($configDir, 0755, true);
         }
 
         $config = $this->renderConfig($domain);
-        $configPath = $configDir . '/' . $domain->hostname . '.conf';
+        $configPath = $configDir.'/'.$domain->hostname.'.conf';
         file_put_contents($configPath, $config);
 
         return $configPath;
@@ -41,7 +41,7 @@ class NginxProvisioningService
 
     public function renderConfig(Domain $domain): string
     {
-        if (!empty($domain->nginx_custom_config)) {
+        if (! empty($domain->nginx_custom_config)) {
             return $domain->nginx_custom_config;
         }
 
@@ -62,7 +62,7 @@ class NginxProvisioningService
         $certificate = $domain->sslCertificate;
         $meta = $certificate?->meta ?? [];
         $http3Enabled = (bool) $domain->http3_enabled;
-        if ($certificate && $certificate->status === 'issued' && !empty($meta['cert_path']) && !empty($meta['key_path'])) {
+        if ($certificate && $certificate->status === 'issued' && ! empty($meta['cert_path']) && ! empty($meta['key_path'])) {
             $sslBlock = $this->renderSslBlock(
                 $domain,
                 $meta['cert_path'],
@@ -76,8 +76,8 @@ class NginxProvisioningService
         $tenant = $domain->tenant;
         $webRoot = $tenant?->instance_public_root ?: config('services.infrastructure.web_root', '/var/www/tastypanel/public');
         $phpFpm = $tenant?->instance_php_socket ?: config('services.infrastructure.php_fpm_socket', '/run/php/php8.2-fpm.sock');
-        if (str_starts_with($phpFpm, '/') && !str_starts_with($phpFpm, 'unix:')) {
-            $phpFpm = 'unix:' . $phpFpm;
+        if (str_starts_with($phpFpm, '/') && ! str_starts_with($phpFpm, 'unix:')) {
+            $phpFpm = 'unix:'.$phpFpm;
         }
         $accessLog = $this->accessLogPath($serverName);
         $errorLog = $this->errorLogPath($serverName);
@@ -111,17 +111,17 @@ class NginxProvisioningService
         $certificate = $domain->sslCertificate;
         $meta = $certificate?->meta ?? [];
         $http3Enabled = (bool) $domain->http3_enabled;
-        if (!$certificate || $certificate->status !== 'issued' || empty($meta['cert_path']) || empty($meta['key_path'])) {
+        if (! $certificate || $certificate->status !== 'issued' || empty($meta['cert_path']) || empty($meta['key_path'])) {
             return '';
         }
 
-        $chainDirective = !empty($meta['chain_path']) ? "ssl_trusted_certificate {$meta['chain_path']};" : '';
+        $chainDirective = ! empty($meta['chain_path']) ? "ssl_trusted_certificate {$meta['chain_path']};" : '';
         $http3Block = '';
         if ($http3Enabled) {
-            $http3Block = <<<HTTP3
+            $http3Block = <<<'HTTP3'
     listen 443 quic reuseport;
     add_header Alt-Svc 'h3=":443"; ma=86400';
-    add_header QUIC-Status \$quic;
+    add_header QUIC-Status $quic;
 HTTP3;
         }
 
@@ -155,31 +155,32 @@ SSL;
 
     private function frontendUpstream(Domain $domain): ?string
     {
-        if (!config('services.instances.frontend_auto', false)) {
+        if (! config('services.instances.frontend_auto', false)) {
             return null;
         }
 
         $tenant = $domain->tenant;
         $instanceRoot = $tenant?->instance_root;
-        if (!$tenant || !$instanceRoot) {
+        if (! $tenant || ! $instanceRoot) {
             return null;
         }
-        $frontendPath = $instanceRoot . '/frontend';
-        if (!is_dir($frontendPath)) {
+        $frontendPath = $instanceRoot.'/frontend';
+        if (! is_dir($frontendPath)) {
             return null;
         }
         $port = 32000 + (int) $tenant->id;
+
         return "127.0.0.1:{$port}";
     }
 
     public function writeCustomConfig(Domain $domain, string $config): string
     {
         $configDir = storage_path('app/nginx/sites-available');
-        if (!is_dir($configDir)) {
+        if (! is_dir($configDir)) {
             mkdir($configDir, 0755, true);
         }
 
-        $configPath = $configDir . '/' . $domain->hostname . '.conf';
+        $configPath = $configDir.'/'.$domain->hostname.'.conf';
         file_put_contents($configPath, $config);
 
         return $configPath;
@@ -188,6 +189,7 @@ SSL;
     public function testConfig(Domain $domain, string $config): array
     {
         $configPath = $this->writeCustomConfig($domain, $config);
+
         return $this->runScript($domain, $configPath, 'test');
     }
 
@@ -197,8 +199,7 @@ SSL;
         string $keyPath,
         ?string $chainPath,
         bool $http3Enabled
-    ): string
-    {
+    ): string {
         $tenant = $domain->tenant;
         $webRoot = $tenant?->instance_public_root ?: config('services.infrastructure.web_root', '/var/www/tastypanel/public');
         $phpFpm = $tenant?->instance_php_socket ?: config('services.infrastructure.php_fpm_socket', '/run/php/php8.2-fpm.sock');
@@ -208,10 +209,10 @@ SSL;
         $chainDirective = $chainPath ? "ssl_trusted_certificate {$chainPath};" : '';
         $http3Block = '';
         if ($http3Enabled) {
-            $http3Block = <<<HTTP3
+            $http3Block = <<<'HTTP3'
     listen 443 quic reuseport;
     add_header Alt-Svc 'h3=":443"; ma=86400';
-    add_header QUIC-Status \$quic;
+    add_header QUIC-Status $quic;
 HTTP3;
         }
 
@@ -251,18 +252,20 @@ SSL;
     private function accessLogPath(string $hostname): string
     {
         $template = config('services.logs.nginx_access_template', '/var/log/nginx/%s-access.log');
-        if (!str_contains($template, '%s')) {
+        if (! str_contains($template, '%s')) {
             return 'access_log /var/log/nginx/access.log;';
         }
+
         return sprintf('access_log %s;', sprintf($template, $hostname));
     }
 
     private function errorLogPath(string $hostname): string
     {
         $template = config('services.logs.nginx_error_template', '/var/log/nginx/%s-error.log');
-        if (!str_contains($template, '%s')) {
+        if (! str_contains($template, '%s')) {
             return 'error_log /var/log/nginx/error.log;';
         }
+
         return sprintf('error_log %s;', sprintf($template, $hostname));
     }
 
@@ -270,7 +273,7 @@ SSL;
     {
         $result = $this->runScript($domain, $configPath, 'apply');
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $domain->nginx_status = 'error';
             $domain->nginx_error = $result['output'];
         } else {
@@ -286,10 +289,10 @@ SSL;
 
     public function deprovisionDomain(Domain $domain): array
     {
-        $configPath = storage_path('app/nginx/sites-available/' . $domain->hostname . '.conf');
+        $configPath = storage_path('app/nginx/sites-available/'.$domain->hostname.'.conf');
         $result = $this->runScript($domain, $configPath, 'remove');
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $domain->nginx_status = 'error';
             $domain->nginx_error = $result['output'];
         } else {
@@ -306,7 +309,7 @@ SSL;
     private function runScript(Domain $domain, string $configPath, string $mode): array
     {
         $script = config('services.infrastructure.nginx_script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Nginx provision script not found.',
@@ -330,7 +333,7 @@ SSL;
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,

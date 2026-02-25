@@ -11,7 +11,7 @@ class EnsureTwoFactorVerified
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user || !$user->two_factor_enabled) {
+        if (! $user || ! $user->two_factor_enabled) {
             return $next($request);
         }
 
@@ -24,7 +24,7 @@ class EnsureTwoFactorVerified
         }
 
         $verified = $request->session()->get('two_factor_verified', false);
-        if (!$verified) {
+        if (! $verified) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'message' => 'Two-factor authentication required.',

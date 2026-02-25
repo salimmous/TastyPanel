@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
+use App\Models\Category;
 use App\Models\Import;
 use App\Models\Recipe;
-use App\Models\Category;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use App\Models\Tenant;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use League\Csv\Reader;
 use SimpleXMLElement;
 
@@ -138,7 +138,7 @@ class ImportService
         }
 
         // Generate slug if not provided
-        if (!isset($data['slug']) && isset($data['title'])) {
+        if (! isset($data['slug']) && isset($data['title'])) {
             $data['slug'] = \Str::slug($data['title']);
         }
 
@@ -157,6 +157,7 @@ class ImportService
 
             if ($existing) {
                 $existing->update($data);
+
                 return;
             }
         }
@@ -260,7 +261,7 @@ class ImportService
         try {
             $json = json_decode(Storage::get($import->file_path), true);
 
-            if (!isset($json['recipes']) && !is_array($json)) {
+            if (! isset($json['recipes']) && ! is_array($json)) {
                 throw new \Exception('Invalid JSON format. Expected {"recipes": [...]}');
             }
 
@@ -330,7 +331,7 @@ class ImportService
         $data['tenant_id'] = $import->tenant_id;
         $data['environment'] = 'production';
 
-        if (!isset($data['slug']) && isset($data['title'])) {
+        if (! isset($data['slug']) && isset($data['title'])) {
             $data['slug'] = \Str::slug($data['title']);
         }
 

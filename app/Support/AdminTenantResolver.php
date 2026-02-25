@@ -6,7 +6,6 @@ use App\Models\Domain;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Support\AdminPermissions;
 
 class AdminTenantResolver
 {
@@ -18,7 +17,7 @@ class AdminTenantResolver
         }
         $user = $request->user();
 
-        if ($user && !AdminPermissions::isSuperadmin($user)) {
+        if ($user && ! AdminPermissions::isSuperadmin($user)) {
             return $user->tenant_id;
         }
 
@@ -36,6 +35,7 @@ class AdminTenantResolver
             if ($header === 'all' || $header === '0') {
                 return null;
             }
+
             return (int) $header;
         }
 
@@ -54,7 +54,7 @@ class AdminTenantResolver
             return $tenantModeId;
         }
         $user = $request->user();
-        if ($user && !AdminPermissions::isSuperadmin($user)) {
+        if ($user && ! AdminPermissions::isSuperadmin($user)) {
             return $user->tenant_id;
         }
 
@@ -63,7 +63,7 @@ class AdminTenantResolver
 
     private static function lockedTenantId(): ?int
     {
-        if (!config('services.tenant_mode.enabled', false)) {
+        if (! config('services.tenant_mode.enabled', false)) {
             return null;
         }
 
@@ -78,7 +78,7 @@ class AdminTenantResolver
     private static function resolveFromRoute(Request $request): ?int
     {
         $route = $request->route();
-        if (!$route) {
+        if (! $route) {
             return null;
         }
 

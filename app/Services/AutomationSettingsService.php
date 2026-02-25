@@ -141,7 +141,7 @@ class AutomationSettingsService
         return [
             'openai' => $this->hasEnabledSecret($data['openai'] ?? [], 'api_key'),
             'midjourney' => $this->hasEnabledSecret($data['midjourney'] ?? [], 'bot_token')
-                && !empty($data['midjourney']['channel_id']),
+                && ! empty($data['midjourney']['channel_id']),
             'canva' => $this->hasCanvaToken($data['canva'] ?? []),
             'pinterest' => $this->hasEnabledSecret($data['pinterest'] ?? [], 'access_token'),
         ];
@@ -158,37 +158,40 @@ class AutomationSettingsService
         if ($next === '') {
             return true;
         }
+
         return false;
     }
 
     private function hasEnabledSecret(array $config, string $key): bool
     {
-        return !empty($config['enabled']) && !empty($config[$key]);
+        return ! empty($config['enabled']) && ! empty($config[$key]);
     }
 
     private function hasCanvaToken(array $config): bool
     {
         $oauth = $config['oauth'] ?? [];
-        return !empty($config['enabled']) && !empty($oauth['access_token']);
+
+        return ! empty($config['enabled']) && ! empty($oauth['access_token']);
     }
 
     private function encryptSecret(?string $value): ?string
     {
-        if (!$value) {
+        if (! $value) {
             return $value;
         }
         if (str_starts_with($value, 'enc:')) {
             return $value;
         }
-        return 'enc:' . Crypt::encryptString($value);
+
+        return 'enc:'.Crypt::encryptString($value);
     }
 
     private function decryptSecret(?string $value): ?string
     {
-        if (!$value) {
+        if (! $value) {
             return $value;
         }
-        if (!str_starts_with($value, 'enc:')) {
+        if (! str_starts_with($value, 'enc:')) {
             return $value;
         }
         $payload = substr($value, 4);

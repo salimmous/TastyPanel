@@ -13,7 +13,7 @@ class TenantQuotaService
         $limits = $this->limitsFor($tenant);
 
         $requests = $this->checkAndTrackMonthlyRequests($tenant, $limits['max_monthly_requests']);
-        if (!($requests['allowed'] ?? true)) {
+        if (! ($requests['allowed'] ?? true)) {
             return [
                 'allowed' => false,
                 'status' => 429,
@@ -24,7 +24,7 @@ class TenantQuotaService
         }
 
         $storage = $this->checkStorageLimit($tenant, $limits['max_storage_mb']);
-        if (!($storage['allowed'] ?? true)) {
+        if (! ($storage['allowed'] ?? true)) {
             return [
                 'allowed' => false,
                 'status' => 507,
@@ -35,7 +35,7 @@ class TenantQuotaService
         }
 
         $database = $this->checkDatabaseLimit($tenant, $limits['max_db_size_mb']);
-        if (!($database['allowed'] ?? true)) {
+        if (! ($database['allowed'] ?? true)) {
             return [
                 'allowed' => false,
                 'status' => 507,
@@ -51,7 +51,7 @@ class TenantQuotaService
             $limits['max_memory_mb'],
             $limits['max_worker_processes']
         );
-        if (!($runtime['allowed'] ?? true)) {
+        if (! ($runtime['allowed'] ?? true)) {
             return [
                 'allowed' => false,
                 'status' => (int) ($runtime['status'] ?? 429),
@@ -160,7 +160,7 @@ class TenantQuotaService
         foreach ($checks as $key => $check) {
             $limit = $check['limit'] ?? null;
             $used = $check['used'] ?? null;
-            if (!is_numeric($limit) || (int) $limit <= 0 || !is_numeric($used)) {
+            if (! is_numeric($limit) || (int) $limit <= 0 || ! is_numeric($used)) {
                 continue;
             }
 
@@ -224,7 +224,7 @@ class TenantQuotaService
         foreach ($checks as $reason => $check) {
             $limit = $check['limit'];
             $used = $check['used'];
-            if (!is_numeric($limit) || (int) $limit <= 0 || !is_numeric($used)) {
+            if (! is_numeric($limit) || (int) $limit <= 0 || ! is_numeric($used)) {
                 continue;
             }
             if ((float) $used > (float) $limit) {
@@ -258,11 +258,12 @@ class TenantQuotaService
         }
 
         $cacheKey = sprintf('tenant_quota:runtime:%d', $tenant->id);
+
         return Cache::remember($cacheKey, 60, function () use ($systemUser): array {
             $output = [];
             $exitCode = 0;
-            $command = 'ps -u ' . escapeshellarg($systemUser) . ' -o pcpu=,rss=';
-            exec($command . ' 2>/dev/null', $output, $exitCode);
+            $command = 'ps -u '.escapeshellarg($systemUser).' -o pcpu=,rss=';
+            exec($command.' 2>/dev/null', $output, $exitCode);
             if ($exitCode !== 0 || $output === []) {
                 return [
                     'cpu_percent' => 0.0,
@@ -282,7 +283,7 @@ class TenantQuotaService
                 }
 
                 $parts = preg_split('/\s+/', $line);
-                if (!is_array($parts) || count($parts) < 2) {
+                if (! is_array($parts) || count($parts) < 2) {
                     continue;
                 }
 
@@ -306,7 +307,7 @@ class TenantQuotaService
         $key = sprintf('tenant_quota:requests:%d:%s', $tenant->id, $bucket);
         $expiresAt = now()->endOfMonth()->addDays(2);
 
-        if (!Cache::has($key)) {
+        if (! Cache::has($key)) {
             Cache::put($key, 0, $expiresAt);
         }
 
@@ -315,7 +316,7 @@ class TenantQuotaService
         }
 
         $used = (int) Cache::get($key, 0);
-        if (!$limit || $limit <= 0) {
+        if (! $limit || $limit <= 0) {
             return [
                 'allowed' => true,
                 'used' => $used,
@@ -338,10 +339,11 @@ class TenantQuotaService
         $usedMb = (int) Cache::remember($cacheKey, 300, function () use ($tenant): int {
             $usage = app(TenantStorageService::class)->usage($tenant);
             $bytes = (int) ($usage['bytes'] ?? 0);
+
             return (int) ceil($bytes / 1024 / 1024);
         });
 
-        if (!$limitMb || $limitMb <= 0) {
+        if (! $limitMb || $limitMb <= 0) {
             return [
                 'allowed' => true,
                 'used_mb' => $usedMb,
@@ -359,7 +361,7 @@ class TenantQuotaService
     private function checkDatabaseLimit(Tenant $tenant, ?int $limitMb): array
     {
         $usedMb = 0;
-        if (!empty($tenant->instance_db_name)) {
+        if (! empty($tenant->instance_db_name)) {
             try {
                 $result = DB::select(
                     'SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema = ?',
@@ -372,7 +374,7 @@ class TenantQuotaService
             }
         }
 
-        if (!$limitMb || $limitMb <= 0) {
+        if (! $limitMb || $limitMb <= 0) {
             return [
                 'allowed' => true,
                 'used_mb' => $usedMb,

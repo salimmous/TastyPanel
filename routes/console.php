@@ -1,33 +1,33 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Models\Article;
 use App\Models\Domain;
 use App\Models\PlatformSetting;
+use App\Models\Recipe;
+use App\Models\SecurityBaseline;
+use App\Models\SiteSetting;
 use App\Models\Tenant;
-use App\Services\SslProvisioningService;
-use App\Services\NginxProvisioningService;
-use App\Services\Http3HealthService;
-use App\Services\BackupService;
-use App\Services\BackupCleanupService;
-use App\Services\TenantBackupService;
-use App\Services\TenantBackupCleanupService;
-use App\Services\SslHealthService;
+use App\Models\TenantBackupRun;
 use App\Services\AlertService;
-use App\Services\TrafficAnalyticsService;
-use App\Services\SecurityScanService;
-use App\Services\FirewallService;
-use App\Services\UptimeMonitorService;
-use App\Services\FileIntegrityService;
 use App\Services\AuditExportService;
 use App\Services\AutomationRunnerService;
 use App\Services\AutomationSettingsService;
+use App\Services\BackupCleanupService;
+use App\Services\BackupService;
 use App\Services\ContentScoringService;
-use App\Models\SecurityBaseline;
-use App\Models\TenantBackupRun;
-use App\Models\SiteSetting;
-use App\Models\Article;
-use App\Models\Recipe;
+use App\Services\FileIntegrityService;
+use App\Services\FirewallService;
+use App\Services\Http3HealthService;
+use App\Services\NginxProvisioningService;
+use App\Services\SecurityScanService;
+use App\Services\SslHealthService;
+use App\Services\SslProvisioningService;
+use App\Services\TenantBackupCleanupService;
+use App\Services\TenantBackupService;
+use App\Services\TrafficAnalyticsService;
+use App\Services\UptimeMonitorService;
+use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Facades\Artisan;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -35,22 +35,24 @@ Artisan::command('inspire', function () {
 
 Artisan::command('ssl:provision {domain}', function (SslProvisioningService $ssl, $domain) {
     $domainModel = Domain::find($domain);
-    if (!$domainModel) {
+    if (! $domainModel) {
         $this->error('Domain not found.');
+
         return;
     }
     $ssl->provisionCertificate($domainModel, true);
-    $this->info('SSL provisioning triggered for ' . $domainModel->hostname);
+    $this->info('SSL provisioning triggered for '.$domainModel->hostname);
 })->purpose('Provision SSL certificates via certbot and Cloudflare DNS-01');
 
 Artisan::command('nginx:provision {domain}', function (NginxProvisioningService $nginx, $domain) {
     $domainModel = Domain::find($domain);
-    if (!$domainModel) {
+    if (! $domainModel) {
         $this->error('Domain not found.');
+
         return;
     }
     $nginx->provisionDomain($domainModel, true);
-    $this->info('Nginx provisioning triggered for ' . $domainModel->hostname);
+    $this->info('Nginx provisioning triggered for '.$domainModel->hostname);
 })->purpose('Provision Nginx vhost config for a domain');
 
 Artisan::command('http3:check', function (Http3HealthService $health) {
@@ -66,7 +68,7 @@ Artisan::command('http3:check', function (Http3HealthService $health) {
 
 Artisan::command('backups:run', function (BackupService $backupService) {
     $run = $backupService->run();
-    $this->info('Backup completed with status: ' . $run->status);
+    $this->info('Backup completed with status: '.$run->status);
 })->purpose('Run platform backup (DB + storage)');
 
 Artisan::command('backups:cleanup {--days=}', function (BackupCleanupService $cleanup) {
@@ -93,14 +95,17 @@ Artisan::command('tenant:backups', function (TenantBackupService $backupService)
             $interval = (int) $interval;
             if ($interval <= 0) {
                 $skipped++;
+
                 continue;
             }
             if ($tenant->instance_status && $tenant->instance_status !== 'ready') {
                 $skipped++;
+
                 continue;
             }
-            if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+            if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
                 $skipped++;
+
                 continue;
             }
 
@@ -111,6 +116,7 @@ Artisan::command('tenant:backups', function (TenantBackupService $backupService)
 
             if ($last && $last->finished_at && $last->finished_at->diffInHours($now) < $interval) {
                 $skipped++;
+
                 continue;
             }
 
@@ -139,6 +145,7 @@ Artisan::command('automation:run', function (AutomationRunnerService $runner, Au
             $settingsList = SiteSetting::where('tenant_id', $tenant->id)->get();
             if ($settingsList->isEmpty()) {
                 $skipped++;
+
                 continue;
             }
 
@@ -147,6 +154,7 @@ Artisan::command('automation:run', function (AutomationRunnerService $runner, Au
                 $schedule = $automation['schedule'] ?? [];
                 if (empty($schedule['enabled'])) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -163,20 +171,23 @@ Artisan::command('automation:run', function (AutomationRunnerService $runner, Au
                     ? $current->between($windowStart, $windowEnd)
                     : ($current->gte($windowStart) || $current->lte($windowEnd));
 
-                if (!$inWindow) {
+                if (! $inWindow) {
                     $skipped++;
+
                     continue;
                 }
 
                 $postsPerDay = (int) ($schedule['posts_per_day'] ?? 0);
                 if ($postsPerDay <= 0) {
                     $skipped++;
+
                     continue;
                 }
 
                 $runsToday = $runner->runsToday($tenant, $environment);
                 if ($runsToday >= $postsPerDay) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -201,7 +212,7 @@ Artisan::command('content:score {--tenant=} {--type=}', function (ContentScoring
 
     $scoreRecipe = function (Recipe $recipe) use ($scoring) {
         $parts = [];
-        if (!empty($recipe->description)) {
+        if (! empty($recipe->description)) {
             $parts[] = $recipe->description;
         }
         if (is_array($recipe->ingredients)) {
@@ -215,6 +226,7 @@ Artisan::command('content:score {--tenant=} {--type=}', function (ContentScoring
                 if (is_array($item)) {
                     return implode(' ', $item);
                 }
+
                 return '';
             }, $recipe->instructions));
         }
@@ -231,7 +243,7 @@ Artisan::command('content:score {--tenant=} {--type=}', function (ContentScoring
     }
 
     $count = 0;
-    if (!$type || $type === 'articles') {
+    if (! $type || $type === 'articles') {
         $articleQuery->chunkById(100, function ($articles) use (&$count, $scoreArticle) {
             foreach ($articles as $article) {
                 $scoreArticle($article);
@@ -239,7 +251,7 @@ Artisan::command('content:score {--tenant=} {--type=}', function (ContentScoring
             }
         });
     }
-    if (!$type || $type === 'recipes') {
+    if (! $type || $type === 'recipes') {
         $recipeQuery->chunkById(100, function ($recipes) use (&$count, $scoreRecipe) {
             foreach ($recipes as $recipe) {
                 $scoreRecipe($recipe);
@@ -252,8 +264,9 @@ Artisan::command('content:score {--tenant=} {--type=}', function (ContentScoring
 })->purpose('Recalculate content scores for articles/recipes');
 
 Artisan::command('ssl:renew {--days=}', function (SslHealthService $sslHealth, SslProvisioningService $ssl) {
-    if (!config('services.ssl.auto')) {
+    if (! config('services.ssl.auto')) {
         $this->info('SSL_AUTO is disabled. Skipping renewals.');
+
         return;
     }
 
@@ -268,10 +281,10 @@ Artisan::command('ssl:renew {--days=}', function (SslHealthService $sslHealth, S
     })->chunkById(50, function ($domains) use ($sslHealth, $ssl, $cutoff, &$count) {
         foreach ($domains as $domain) {
             $cert = $domain->sslCertificate;
-            if (!$cert) {
+            if (! $cert) {
                 continue;
             }
-            if (!$cert->expires_at) {
+            if (! $cert->expires_at) {
                 $sslHealth->updateExpiry($cert);
             }
             if ($cert->expires_at && $cert->expires_at->lessThanOrEqualTo($cutoff)) {
@@ -286,46 +299,48 @@ Artisan::command('ssl:renew {--days=}', function (SslHealthService $sslHealth, S
 
 Artisan::command('alerts:dispatch', function (AlertService $alerts) {
     $result = $alerts->dispatch();
-    if (!empty($result['skipped'])) {
-        $this->info('Alerts skipped: ' . ($result['reason'] ?? 'unknown'));
+    if (! empty($result['skipped'])) {
+        $this->info('Alerts skipped: '.($result['reason'] ?? 'unknown'));
+
         return;
     }
-    $this->info('Alerts sent: ' . ($result['sent'] ? 'yes' : 'no'));
+    $this->info('Alerts sent: '.($result['sent'] ? 'yes' : 'no'));
 })->purpose('Send platform alert notifications (SSL, HTTP/3, backups)');
 
 Artisan::command('analytics:collect', function (TrafficAnalyticsService $analytics) {
     $summary = $analytics->collect();
-    $this->info('Analytics collected for ' . $summary['domains'] . ' domains.');
-    $this->info('Lines processed: ' . $summary['lines']);
+    $this->info('Analytics collected for '.$summary['domains'].' domains.');
+    $this->info('Lines processed: '.$summary['lines']);
 })->purpose('Collect traffic analytics from Nginx access logs');
 
 Artisan::command('security:scan {--path=} {--type=}', function (SecurityScanService $scan) {
     $path = $this->option('path') ?: base_path();
     $type = $this->option('type') ?: 'malware';
     $run = $scan->run($path, null, $type);
-    $this->info('Security scan status: ' . $run->status);
+    $this->info('Security scan status: '.$run->status);
 })->purpose('Run malware/security scan on a path');
 
 Artisan::command('firewall:apply', function (FirewallService $firewall) {
     $results = $firewall->applyAll();
     $success = collect($results)->every(fn ($item) => $item['success']);
-    $this->info('Firewall rules applied: ' . ($success ? 'yes' : 'with errors'));
+    $this->info('Firewall rules applied: '.($success ? 'yes' : 'with errors'));
 })->purpose('Apply firewall rules (UFW)');
 
 Artisan::command('uptime:check', function (UptimeMonitorService $monitor) {
     $summary = $monitor->run();
-    $this->info('Uptime checks: ' . $summary['checks']);
-    $this->info('Failures: ' . $summary['failures']);
+    $this->info('Uptime checks: '.$summary['checks']);
+    $this->info('Failures: '.$summary['failures']);
 })->purpose('Run uptime checks for configured URLs');
 
 Artisan::command('integrity:check', function (FileIntegrityService $integrity) {
     $baseline = SecurityBaseline::orderByDesc('id')->first();
-    if (!$baseline) {
+    if (! $baseline) {
         $this->info('No integrity baseline found.');
+
         return;
     }
     $check = $integrity->check($baseline, null);
-    $this->info('Integrity check status: ' . $check->status);
+    $this->info('Integrity check status: '.$check->status);
 })->purpose('Run file integrity check against latest baseline');
 
 Artisan::command('audit:cleanup {--days=}', function (AuditExportService $exports) {

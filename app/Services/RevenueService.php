@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Subscription;
 use App\Models\Invoice;
-use App\Models\Tenant;
+use App\Models\Subscription;
 use Illuminate\Support\Facades\DB;
 
 class RevenueService
@@ -35,7 +34,7 @@ class RevenueService
         $yearlyAsMonthly = Subscription::active()
             ->where('plan_interval', 'yearly')
             ->get()
-            ->sum(fn($sub) => $sub->monthlyPrice());
+            ->sum(fn ($sub) => $sub->monthlyPrice());
 
         return round($monthlyRevenue + $yearlyAsMonthly, 2);
     }

@@ -7,28 +7,26 @@ use App\Jobs\ProcessTenantProvisioningJob;
 use App\Models\Domain;
 use App\Models\ProvisioningJob;
 use App\Models\Tenant;
-use App\Services\ProvisioningService;
-use App\Services\InstanceProvisioningService;
-use App\Services\TenantOrchestrationService;
-use App\Services\TenantCloneService;
-use App\Services\TenantAccessService;
 use App\Services\BlueprintService;
-use App\Support\AdminTenantResolver;
+use App\Services\InstanceProvisioningService;
+use App\Services\ProvisioningService;
+use App\Services\TenantAccessService;
+use App\Services\TenantCloneService;
+use App\Services\TenantOrchestrationService;
 use App\Support\AdminPermissions;
+use App\Support\AdminTenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class TenantController extends Controller
 {
-    public function __construct(private ProvisioningService $provisioning)
-    {
-    }
+    public function __construct(private ProvisioningService $provisioning) {}
 
     public function provisionInstance(Request $request, Tenant $tenant, InstanceProvisioningService $instances)
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
 
@@ -37,7 +35,7 @@ class TenantController extends Controller
         if ($domainId) {
             $domain = $tenant->domains()->whereKey($domainId)->first();
         }
-        if (!$domain) {
+        if (! $domain) {
             $domain = $tenant->domains()->where('is_primary', true)->where('environment', 'production')->first();
         }
 
@@ -51,7 +49,7 @@ class TenantController extends Controller
     public function orchestrationStatus(Request $request, Tenant $tenant, TenantOrchestrationService $orchestration)
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
 
@@ -63,7 +61,7 @@ class TenantController extends Controller
     public function orchestrate(Request $request, Tenant $tenant, TenantOrchestrationService $orchestration)
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
 
@@ -73,7 +71,7 @@ class TenantController extends Controller
 
         $result = $orchestration->runAction($tenant, $data['action']);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'success' => false,
                 'message' => $result['output'] ?: 'Orchestration failed.',
@@ -94,7 +92,7 @@ class TenantController extends Controller
             ->orderByDesc('created_at');
         $query->with('latestProvisioningJob');
 
-        if ($user && !AdminPermissions::isSuperadmin($user)) {
+        if ($user && ! AdminPermissions::isSuperadmin($user)) {
             $query->where('id', $user->tenant_id);
         }
 
@@ -135,7 +133,7 @@ class TenantController extends Controller
             $blueprintSettings = $blueprint['settings'] ?? [];
             $settings = array_replace_recursive($blueprintSettings, $settings);
 
-            if (!empty($blueprint['automation'])) {
+            if (! empty($blueprint['automation'])) {
                 $settings['automation'] = array_replace_recursive(
                     $blueprint['automation'],
                     $settings['automation'] ?? []
@@ -324,7 +322,7 @@ class TenantController extends Controller
 
         $this->provisioning->provisionDomain($domain);
 
-        if (!empty($data['full_clone'])) {
+        if (! empty($data['full_clone'])) {
             if ($tenant->instance_status !== 'ready') {
                 return response()->json([
                     'message' => 'Source instance must be ready before cloning.',
@@ -344,10 +342,11 @@ class TenantController extends Controller
             }
 
             $result = $cloner->cloneInstance($tenant, $newTenant, $domain);
-            if (!$result['success']) {
+            if (! $result['success']) {
                 $newTenant->instance_status = 'error';
                 $newTenant->instance_last_error = $result['output'] ?: 'Clone failed.';
                 $newTenant->save();
+
                 return response()->json([
                     'message' => 'Clone failed.',
                     'data' => $newTenant->load(['theme', 'stagingTheme', 'previewTheme', 'domains', 'settings', 'stagingSettings', 'previewSettings']),
@@ -394,7 +393,7 @@ class TenantController extends Controller
         }
 
         $domain = $this->resolveProvisioningDomain($tenant, $request->input('domain_id'));
-        if (!$domain) {
+        if (! $domain) {
             return response()->json([
                 'message' => 'No domain found for provisioning.',
             ], 422);
@@ -415,7 +414,7 @@ class TenantController extends Controller
         $this->authorizeProvisioningAccess($request, $tenant);
 
         $domain = $this->resolveProvisioningDomain($tenant, $request->input('domain_id'));
-        if (!$domain) {
+        if (! $domain) {
             return response()->json([
                 'message' => 'No domain found for rollback.',
             ], 422);
@@ -466,7 +465,7 @@ class TenantController extends Controller
         $this->authorizeProvisioningAccess($request, $tenant);
 
         $result = $tenantAccess->ensureAccess($tenant);
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'message' => $result['output'] ?: 'Tenant access provisioning failed.',
             ], 422);
@@ -474,6 +473,7 @@ class TenantController extends Controller
 
         $meta = $result['meta'] ?? [];
         $connectionInfo = $tenantAccess->connectionInfo($tenant->fresh());
+
         return response()->json([
             'data' => [
                 'user' => $meta['SSH_USER'] ?? $tenant->instance_ssh_user,
@@ -491,7 +491,7 @@ class TenantController extends Controller
         $this->authorizeProvisioningAccess($request, $tenant);
 
         $result = $tenantAccess->rotatePassword($tenant);
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'message' => $result['output'] ?: 'Password rotation failed.',
             ], 422);
@@ -499,6 +499,7 @@ class TenantController extends Controller
 
         $meta = $result['meta'] ?? [];
         $connectionInfo = $tenantAccess->connectionInfo($tenant->fresh());
+
         return response()->json([
             'data' => [
                 'user' => $meta['SSH_USER'] ?? $tenant->instance_ssh_user,
@@ -519,7 +520,7 @@ class TenantController extends Controller
         ]);
 
         $result = $tenantAccess->installPublicKey($tenant, trim($data['public_key']));
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'message' => $result['output'] ?: 'Failed to install SSH public key.',
             ], 422);
@@ -546,6 +547,7 @@ class TenantController extends Controller
     {
         $host = strtolower(trim($host));
         $host = preg_replace('#^https?://#', '', $host);
+
         return rtrim($host, '/');
     }
 
@@ -566,14 +568,14 @@ class TenantController extends Controller
     private function authorizeProvisioningAccess(Request $request, Tenant $tenant): void
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
     }
 
     private function resolveProvisioningDomain(Tenant $tenant, mixed $domainId): ?Domain
     {
-        if (!empty($domainId)) {
+        if (! empty($domainId)) {
             $domain = $tenant->domains()->whereKey($domainId)->first();
             if ($domain) {
                 return $domain;

@@ -30,7 +30,7 @@ class AdminNotificationService
                 ->first();
 
             // Create in-app notification if enabled
-            if (!$setting || $setting->in_app_enabled) {
+            if (! $setting || $setting->in_app_enabled) {
                 AdminNotification::create([
                     'user_id' => $admin->id,
                     'type' => $type,
@@ -173,16 +173,16 @@ class AdminNotificationService
     {
         try {
             Mail::raw(
-                "{$title}\n\n{$message}" .
+                "{$title}\n\n{$message}".
                 ($actionUrl ? "\n\nView: {$actionUrl}" : ''),
-                function ($mail) use ($user, $title, $type) {
+                function ($mail) use ($user, $title) {
                     $mail->to($user->email)
                         ->subject("[TastyPanel] {$title}");
                 }
             );
         } catch (\Exception $e) {
             // Don't let email failure break the notification
-            \Log::error('Failed to send notification email: ' . $e->getMessage());
+            \Log::error('Failed to send notification email: '.$e->getMessage());
         }
     }
 }

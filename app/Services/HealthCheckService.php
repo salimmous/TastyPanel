@@ -47,7 +47,7 @@ class HealthCheckService
         } catch (\Exception $e) {
             return [
                 'status' => 'down',
-                'message' => 'Database connection failed: ' . $e->getMessage(),
+                'message' => 'Database connection failed: '.$e->getMessage(),
             ];
         }
     }
@@ -70,7 +70,7 @@ class HealthCheckService
         } catch (\Exception $e) {
             return [
                 'status' => 'down',
-                'message' => 'Redis connection failed: ' . $e->getMessage(),
+                'message' => 'Redis connection failed: '.$e->getMessage(),
             ];
         }
     }
@@ -98,7 +98,7 @@ class HealthCheckService
         } catch (\Exception $e) {
             return [
                 'status' => 'down',
-                'message' => 'Storage check failed: ' . $e->getMessage(),
+                'message' => 'Storage check failed: '.$e->getMessage(),
             ];
         }
     }
@@ -124,7 +124,7 @@ class HealthCheckService
         } catch (\Exception $e) {
             return [
                 'status' => 'down',
-                'message' => 'Queue check failed: ' . $e->getMessage(),
+                'message' => 'Queue check failed: '.$e->getMessage(),
             ];
         }
     }
@@ -158,6 +158,6 @@ class HealthCheckService
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 }

@@ -53,7 +53,7 @@ class TenantSecretController extends Controller
                 'updated_at' => $secret->updated_at,
                 'sync' => $sync,
             ],
-        ], ($sync && !$sync['success']) ? 422 : 201);
+        ], ($sync && ! $sync['success']) ? 422 : 201);
     }
 
     public function destroy(Request $request, Tenant $tenant, string $secretKey, TenantSecretService $secrets)
@@ -65,7 +65,7 @@ class TenantSecretController extends Controller
         ]);
 
         $deleted = $secrets->deleteSecret($tenant, $secretKey);
-        if (!$deleted) {
+        if (! $deleted) {
             return response()->json([
                 'message' => 'Secret not found.',
             ], 404);
@@ -122,7 +122,7 @@ class TenantSecretController extends Controller
     private function authorizeAccess(Request $request, Tenant $tenant): void
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
     }

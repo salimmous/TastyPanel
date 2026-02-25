@@ -23,7 +23,7 @@ class SecurityScanService
             $script = $type === 'audit'
                 ? config('services.security.audit_script', base_path('infrastructure/security-audit.sh'))
                 : config('services.security.scan_script', base_path('infrastructure/security-scan.sh'));
-            if (!$script || !file_exists($script)) {
+            if (! $script || ! file_exists($script)) {
                 throw new \RuntimeException('Security scan script not found.');
             }
 
@@ -36,7 +36,7 @@ class SecurityScanService
             $commandParts[] = $targetPath;
 
             $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
-            exec($escaped . ' 2>&1', $output, $exitCode);
+            exec($escaped.' 2>&1', $output, $exitCode);
         } catch (\Throwable $e) {
             $output[] = $e->getMessage();
             $exitCode = 1;

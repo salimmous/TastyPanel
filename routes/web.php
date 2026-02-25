@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    if (!PlatformInstallController::isInstalled()) {
+    if (! PlatformInstallController::isInstalled()) {
         return redirect()->route('platform.install');
     }
 
@@ -34,7 +34,7 @@ Route::get('/', function () {
 
 // Keep the default "login" route name for auth redirects.
 Route::get('/login', function () {
-    if (!PlatformInstallController::isInstalled()) {
+    if (! PlatformInstallController::isInstalled()) {
         return redirect()->route('platform.install');
     }
 
@@ -177,7 +177,7 @@ Route::get('/download/project', function () {
     $legacyPath = public_path('tastybox-site.zip');
     $path = File::exists($newPath) ? $newPath : $legacyPath;
 
-    if (!File::exists($path)) {
+    if (! File::exists($path)) {
         abort(404);
     }
 
@@ -189,7 +189,7 @@ Route::get('/tastypanel-site.zip', function () {
     $legacyPath = public_path('tastybox-site.zip');
     $path = File::exists($newPath) ? $newPath : $legacyPath;
 
-    if (!File::exists($path)) {
+    if (! File::exists($path)) {
         abort(404);
     }
 

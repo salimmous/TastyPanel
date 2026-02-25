@@ -9,8 +9,6 @@ use App\Models\Tenant;
 use App\Models\TenantAlertRule;
 use App\Models\TenantBackupRun;
 use App\Models\UptimeCheck;
-use App\Services\TenantStorageService;
-use App\Services\TenantLimitService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
@@ -35,7 +33,7 @@ class AlertService
 
         $maxSslDays = $platformSslDays;
         foreach ($rules as $rule) {
-            if (!empty($rule->ssl_days) && (int) $rule->ssl_days > $maxSslDays) {
+            if (! empty($rule->ssl_days) && (int) $rule->ssl_days > $maxSslDays) {
                 $maxSslDays = (int) $rule->ssl_days;
             }
         }
@@ -135,10 +133,11 @@ class AlertService
         $platformSlackWebhook = $settings['alerts_slack_webhook'] ?? null;
 
         $sslExpiringPlatform = array_values(array_filter($sslExpiringMax->all(), function ($cert) use ($platformSslDays) {
-            if (!$cert?->expires_at) {
+            if (! $cert?->expires_at) {
                 return false;
             }
             $daysLeft = now()->diffInDays($cert->expires_at, false);
+
             return $daysLeft <= $platformSslDays;
         }));
 
@@ -182,25 +181,27 @@ class AlertService
         $tenantSkippedNoIssues = 0;
 
         foreach ($rules as $tenantId => $rule) {
-            if (!$rule->enabled) {
+            if (! $rule->enabled) {
                 continue;
             }
 
             $interval = (int) ($rule->interval_hours ?? $platformInterval);
-            if (!$this->isDue($rule->last_sent_at, $interval)) {
+            if (! $this->isDue($rule->last_sent_at, $interval)) {
                 $tenantSkippedInterval++;
+
                 continue;
             }
 
             $tenant = $tenantMap->get((int) $tenantId) ?? $rule->tenant;
-            if (!$tenant) {
+            if (! $tenant) {
                 continue;
             }
 
             $emails = $this->parseEmails((string) ($rule->emails ?? ''));
             $slackWebhook = $rule->slack_webhook ?: null;
-            if (!$emails && !$slackWebhook) {
+            if (! $emails && ! $slackWebhook) {
                 $tenantSkippedNoChannels++;
+
                 continue;
             }
 
@@ -209,10 +210,11 @@ class AlertService
 
             $sslItems = $rule->notify_ssl
                 ? array_values(array_filter($tenantIssues['ssl'] ?? [], function ($cert) use ($sslDays) {
-                    if (!$cert?->expires_at) {
+                    if (! $cert?->expires_at) {
                         return false;
                     }
                     $daysLeft = now()->diffInDays($cert->expires_at, false);
+
                     return $daysLeft <= $sslDays;
                 }))
                 : [];
@@ -223,13 +225,14 @@ class AlertService
             $storageItems = $rule->notify_storage ? ($tenantIssues['storage'] ?? []) : [];
 
             $hasIssues = count($sslItems) || count($http3Items) || count($backupItems) || count($uptimeItems) || count($storageItems);
-            if (!$hasIssues) {
+            if (! $hasIssues) {
                 $tenantSkippedNoIssues++;
+
                 continue;
             }
 
             $message = $this->buildTenantMessage(
-                (string) ($tenant->name ?? ('tenant#' . $tenantId)),
+                (string) ($tenant->name ?? ('tenant#'.$tenantId)),
                 $sslDays,
                 $sslItems,
                 $http3Items,
@@ -240,7 +243,7 @@ class AlertService
 
             $sent = false;
             if ($emails) {
-                $sent = $this->sendEmail($emails, $message, 'TastyPanel Tenant Alerts: ' . (string) ($tenant->name ?? 'Tenant')) || $sent;
+                $sent = $this->sendEmail($emails, $message, 'TastyPanel Tenant Alerts: '.(string) ($tenant->name ?? 'Tenant')) || $sent;
             }
             if ($slackWebhook) {
                 $sent = $this->sendSlack($slackWebhook, $message) || $sent;
@@ -254,11 +257,11 @@ class AlertService
         }
 
         $sentAnything = $platformSent || $tenantSent > 0;
-        if (!$sentAnything) {
-            if (!$platformDue && $tenantSkippedInterval > 0) {
+        if (! $sentAnything) {
+            if (! $platformDue && $tenantSkippedInterval > 0) {
                 return ['skipped' => true, 'reason' => 'interval_not_reached'];
             }
-            if (!$platformHasIssues && !$sendEmpty && $tenantSkippedNoIssues > 0) {
+            if (! $platformHasIssues && ! $sendEmpty && $tenantSkippedNoIssues > 0) {
                 return ['skipped' => true, 'reason' => 'no_issues'];
             }
         }
@@ -287,46 +290,45 @@ class AlertService
         array $uptimeFailures,
         array $storageOverages,
         $tenantMap
-    ): string
-    {
+    ): string {
         $lines = [];
         $lines[] = 'TastyPanel Platform Alerts';
-        $lines[] = 'Generated at: ' . now()->toDateTimeString();
+        $lines[] = 'Generated at: '.now()->toDateTimeString();
         $lines[] = '-----------------------';
 
-        $lines[] = 'SSL expiring (<= ' . $sslDays . 'd): ' . count($sslExpiring);
+        $lines[] = 'SSL expiring (<= '.$sslDays.'d): '.count($sslExpiring);
         foreach ($sslExpiring as $cert) {
             $tenantName = $tenantMap->get((int) ($cert->domain?->tenant_id ?? 0))?->name ?? 'unknown-tenant';
             $daysLeft = $cert->expires_at ? now()->diffInDays($cert->expires_at, false) : null;
-            $lines[] = '- [' . $tenantName . '] ' . ($cert->domain?->hostname ?? 'unknown') . ' expires at ' . ($cert->expires_at?->toDateTimeString() ?? 'unknown') . ($daysLeft !== null ? " ({$daysLeft}d)" : '');
+            $lines[] = '- ['.$tenantName.'] '.($cert->domain?->hostname ?? 'unknown').' expires at '.($cert->expires_at?->toDateTimeString() ?? 'unknown').($daysLeft !== null ? " ({$daysLeft}d)" : '');
         }
-        $lines[] = 'HTTP/3 issues: ' . count($http3Issues);
+        $lines[] = 'HTTP/3 issues: '.count($http3Issues);
         foreach ($http3Issues as $domain) {
             $tenantName = $tenantMap->get((int) ($domain->tenant_id ?? 0))?->name ?? 'unknown-tenant';
-            $lines[] = '- [' . $tenantName . '] ' . ($domain->hostname ?? 'unknown') . ' (' . ($domain->http3_status ?? 'unknown') . ')';
+            $lines[] = '- ['.$tenantName.'] '.($domain->hostname ?? 'unknown').' ('.($domain->http3_status ?? 'unknown').')';
         }
-        $lines[] = 'Uptime failures (recent): ' . count($uptimeFailures);
+        $lines[] = 'Uptime failures (recent): '.count($uptimeFailures);
         foreach ($uptimeFailures as $check) {
             $tenantName = $tenantMap->get((int) ($check->tenant_id ?? 0))?->name ?? 'unknown-tenant';
             $status = $check->last_status ?? '—';
             $expected = $check->expected_status ?? '—';
-            $error = $check->last_error ? (' error=' . $check->last_error) : '';
-            $lines[] = '- [' . $tenantName . '] ' . ($check->name ?? 'check') . ' ' . ($check->url ?? '') . " status={$status} expected={$expected}{$error}";
+            $error = $check->last_error ? (' error='.$check->last_error) : '';
+            $lines[] = '- ['.$tenantName.'] '.($check->name ?? 'check').' '.($check->url ?? '')." status={$status} expected={$expected}{$error}";
         }
 
-        $lines[] = 'Tenant backup failures (24h): ' . count($tenantBackupFailures);
+        $lines[] = 'Tenant backup failures (24h): '.count($tenantBackupFailures);
         foreach ($tenantBackupFailures as $backup) {
             $tenantName = $tenantMap->get((int) ($backup->tenant_id ?? 0))?->name ?? 'unknown-tenant';
-            $lines[] = '- [' . $tenantName . '] Backup #' . ($backup->id ?? '—') . ' at ' . ($backup->created_at ?? '—') . ' (type=' . ($backup->type ?? '—') . ')';
+            $lines[] = '- ['.$tenantName.'] Backup #'.($backup->id ?? '—').' at '.($backup->created_at ?? '—').' (type='.($backup->type ?? '—').')';
         }
 
-        $lines[] = 'Platform backup failures (24h): ' . count($platformBackupFailures);
+        $lines[] = 'Platform backup failures (24h): '.count($platformBackupFailures);
         foreach ($platformBackupFailures as $backup) {
-            $lines[] = '- Backup #' . ($backup->id ?? '—') . ' at ' . ($backup->created_at ?? '—') . ' (type=' . ($backup->type ?? '—') . ')';
+            $lines[] = '- Backup #'.($backup->id ?? '—').' at '.($backup->created_at ?? '—').' (type='.($backup->type ?? '—').')';
         }
-        $lines[] = 'Storage overages: ' . count($storageOverages);
+        $lines[] = 'Storage overages: '.count($storageOverages);
         foreach ($storageOverages as $overage) {
-            $lines[] = '- ' . ($overage['tenant'] ?? 'unknown') . ' ' . ($overage['usage_mb'] ?? '—') . 'MB / ' . ($overage['limit_mb'] ?? '—') . 'MB';
+            $lines[] = '- '.($overage['tenant'] ?? 'unknown').' '.($overage['usage_mb'] ?? '—').'MB / '.($overage['limit_mb'] ?? '—').'MB';
         }
 
         return implode("\n", $lines);
@@ -343,37 +345,37 @@ class AlertService
     ): string {
         $lines = [];
         $lines[] = 'TastyPanel Tenant Alerts';
-        $lines[] = 'Tenant: ' . $tenantName;
-        $lines[] = 'Generated at: ' . now()->toDateTimeString();
+        $lines[] = 'Tenant: '.$tenantName;
+        $lines[] = 'Generated at: '.now()->toDateTimeString();
         $lines[] = '-----------------------';
 
-        $lines[] = 'SSL expiring (<= ' . $sslDays . 'd): ' . count($sslExpiring);
+        $lines[] = 'SSL expiring (<= '.$sslDays.'d): '.count($sslExpiring);
         foreach ($sslExpiring as $cert) {
             $daysLeft = $cert->expires_at ? now()->diffInDays($cert->expires_at, false) : null;
-            $lines[] = '- ' . ($cert->domain?->hostname ?? 'unknown') . ' expires at ' . ($cert->expires_at?->toDateTimeString() ?? 'unknown') . ($daysLeft !== null ? " ({$daysLeft}d)" : '');
+            $lines[] = '- '.($cert->domain?->hostname ?? 'unknown').' expires at '.($cert->expires_at?->toDateTimeString() ?? 'unknown').($daysLeft !== null ? " ({$daysLeft}d)" : '');
         }
 
-        $lines[] = 'HTTP/3 issues: ' . count($http3Issues);
+        $lines[] = 'HTTP/3 issues: '.count($http3Issues);
         foreach ($http3Issues as $domain) {
-            $lines[] = '- ' . ($domain->hostname ?? 'unknown') . ' (' . ($domain->http3_status ?? 'unknown') . ')';
+            $lines[] = '- '.($domain->hostname ?? 'unknown').' ('.($domain->http3_status ?? 'unknown').')';
         }
 
-        $lines[] = 'Uptime failures (recent): ' . count($uptimeFailures);
+        $lines[] = 'Uptime failures (recent): '.count($uptimeFailures);
         foreach ($uptimeFailures as $check) {
             $status = $check->last_status ?? '—';
             $expected = $check->expected_status ?? '—';
-            $error = $check->last_error ? (' error=' . $check->last_error) : '';
-            $lines[] = '- ' . ($check->name ?? 'check') . ' ' . ($check->url ?? '') . " status={$status} expected={$expected}{$error}";
+            $error = $check->last_error ? (' error='.$check->last_error) : '';
+            $lines[] = '- '.($check->name ?? 'check').' '.($check->url ?? '')." status={$status} expected={$expected}{$error}";
         }
 
-        $lines[] = 'Backup failures (24h): ' . count($backupFailures);
+        $lines[] = 'Backup failures (24h): '.count($backupFailures);
         foreach ($backupFailures as $backup) {
-            $lines[] = '- Backup #' . ($backup->id ?? '—') . ' at ' . ($backup->created_at ?? '—') . ' (type=' . ($backup->type ?? '—') . ')';
+            $lines[] = '- Backup #'.($backup->id ?? '—').' at '.($backup->created_at ?? '—').' (type='.($backup->type ?? '—').')';
         }
 
-        $lines[] = 'Storage overages: ' . count($storageOverages);
+        $lines[] = 'Storage overages: '.count($storageOverages);
         foreach ($storageOverages as $overage) {
-            $lines[] = '- ' . ($overage['usage_mb'] ?? '—') . 'MB / ' . ($overage['limit_mb'] ?? '—') . 'MB';
+            $lines[] = '- '.($overage['usage_mb'] ?? '—').'MB / '.($overage['limit_mb'] ?? '—').'MB';
         }
 
         return implode("\n", $lines);
@@ -387,7 +389,7 @@ class AlertService
 
         foreach (Tenant::all(['id', 'name']) as $tenant) {
             $limitBytes = $limits->storageLimitBytes($tenant);
-            if (!$limitBytes) {
+            if (! $limitBytes) {
                 continue;
             }
             $usage = $storage->usage($tenant);
@@ -407,6 +409,7 @@ class AlertService
     private function parseEmails(string $emails): array
     {
         $items = array_map('trim', explode(',', $emails));
+
         return array_values(array_filter($items));
     }
 
@@ -416,6 +419,7 @@ class AlertService
             $response = Http::post($webhook, [
                 'text' => $message,
             ]);
+
             return $response->successful();
         } catch (\Throwable $e) {
             return false;
@@ -428,7 +432,7 @@ class AlertService
             return true;
         }
 
-        if (!$lastSent) {
+        if (! $lastSent) {
             return true;
         }
 
@@ -450,6 +454,7 @@ class AlertService
                 $mail->to($emails)
                     ->subject($subject);
             });
+
             return true;
         } catch (\Throwable $e) {
             return false;

@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class AuditLogService

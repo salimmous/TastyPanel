@@ -68,6 +68,7 @@ class ShoppingList extends Model
     {
         $item = $this->items()->create($data);
         $this->increment('items_count');
+
         return $item;
     }
 
@@ -76,6 +77,7 @@ class ShoppingList extends Model
         if ($this->items_count === 0) {
             return 0;
         }
+
         return (int) round(($this->checked_count / $this->items_count) * 100);
     }
 

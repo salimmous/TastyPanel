@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\AutomationRun;
 use App\Models\Article;
+use App\Models\AutomationRun;
 use App\Models\SiteSetting;
 use App\Models\Tenant;
 use App\Support\ContentWorkflow;
@@ -16,8 +16,7 @@ class AutomationRunnerService
         private OpenAiService $openAi,
         private ContentScoringService $scoring,
         private WebhookService $webhooks
-    ) {
-    }
+    ) {}
 
     public function runForTenant(
         Tenant $tenant,
@@ -42,12 +41,12 @@ class AutomationRunnerService
             $automation = $this->settingsService->revealSecrets($automation);
 
             $apiKey = $automation['openai']['api_key'] ?? '';
-            if (empty($automation['openai']['enabled']) || !$apiKey) {
+            if (empty($automation['openai']['enabled']) || ! $apiKey) {
                 throw new \RuntimeException('OpenAI is not configured for this tenant.');
             }
 
             $topic = $topicOverride ?: $this->pickTopic($automation);
-            if (!$topic) {
+            if (! $topic) {
                 throw new \RuntimeException('No topics configured for automation.');
             }
 
@@ -58,7 +57,7 @@ class AutomationRunnerService
             $maxWords = (int) ($contentSettings['max_words'] ?? 900);
 
             $title = $topic;
-            if (!empty($automation['pipeline']['generate_title'])) {
+            if (! empty($automation['pipeline']['generate_title'])) {
                 $generatedTitle = $this->openAi->generateTitle($apiKey, $automation, $topic, $language, $voice);
                 if ($generatedTitle) {
                     $title = $generatedTitle;
@@ -66,18 +65,18 @@ class AutomationRunnerService
             }
 
             $body = $this->openAi->generateArticle($apiKey, $automation, $title, $topic, $language, $voice, $minWords, $maxWords);
-            if (!$body) {
+            if (! $body) {
                 throw new \RuntimeException('OpenAI returned an empty response.');
             }
 
             $status = $automation['schedule']['publish_status'] ?? ContentWorkflow::STATUS_DRAFT;
-            if (!in_array($status, ContentWorkflow::statuses(), true)) {
+            if (! in_array($status, ContentWorkflow::statuses(), true)) {
                 $status = ContentWorkflow::STATUS_DRAFT;
             }
 
             $slug = $this->uniqueSlug($tenant->id, $environment, $title);
 
-            $article = new Article();
+            $article = new Article;
             $article->tenant_id = $tenant->id;
             $article->environment = $environment;
             $article->title = $title;
@@ -131,9 +130,10 @@ class AutomationRunnerService
         if (is_string($topics)) {
             $topics = array_filter(array_map('trim', preg_split('/\r\n|\r|\n|,/', $topics)));
         }
-        if (!is_array($topics) || empty($topics)) {
+        if (! is_array($topics) || empty($topics)) {
             return null;
         }
+
         return $topics[array_rand($topics)];
     }
 
@@ -149,9 +149,10 @@ class AutomationRunnerService
             ->where('environment', $environment)
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base . '-' . $i;
+            $slug = $base.'-'.$i;
             $i++;
         }
+
         return $slug;
     }
 }

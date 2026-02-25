@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SearchLog extends Model
 {
     public $timestamps = false;
+
     protected $table = 'search_logs';
 
     protected $fillable = [

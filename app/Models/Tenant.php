@@ -196,6 +196,7 @@ class Tenant extends Model
     {
         return $this->hasMany(TenantMailEvent::class);
     }
+
     public function users()
     {
         return $this->hasMany(User::class);

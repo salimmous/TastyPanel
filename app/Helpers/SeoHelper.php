@@ -12,7 +12,7 @@ class SeoHelper
     public static function recipeMetaTags(object $recipe): array
     {
         return [
-            'title' => $recipe->seo_title ?? $recipe->title . ' | Recipe',
+            'title' => $recipe->seo_title ?? $recipe->title.' | Recipe',
             'description' => $recipe->seo_description ?? Str::limit(strip_tags($recipe->description), 160),
             'keywords' => $recipe->keywords ?? '',
             'og:title' => $recipe->title,
@@ -71,7 +71,7 @@ class SeoHelper
             'keywords' => $recipe->keywords ?? '',
             'nutrition' => isset($recipe->calories) ? [
                 '@type' => 'NutritionInformation',
-                'calories' => $recipe->calories . ' calories',
+                'calories' => $recipe->calories.' calories',
             ] : null,
         ];
     }

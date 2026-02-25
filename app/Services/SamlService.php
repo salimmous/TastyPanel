@@ -17,6 +17,7 @@ class SamlService
     public function enabled(): bool
     {
         $settings = $this->settings();
+
         return (bool) ($settings['saml_enabled'] ?? false);
     }
 
@@ -45,7 +46,7 @@ class SamlService
         $groupsKey = $settings['saml_attribute_groups'] ?? 'groups';
 
         $email = $this->firstAttribute($attributes, $emailKey);
-        if (!$email && $nameId && filter_var($nameId, FILTER_VALIDATE_EMAIL)) {
+        if (! $email && $nameId && filter_var($nameId, FILTER_VALIDATE_EMAIL)) {
             $email = $nameId;
         }
 
@@ -63,9 +64,10 @@ class SamlService
     {
         $settings = $this->settings();
         $raw = $settings['saml_allowed_domains'] ?? '';
-        if (!$raw) {
+        if (! $raw) {
             return [];
         }
+
         return array_values(array_filter(array_map('trim', explode(',', $raw))));
     }
 
@@ -74,9 +76,9 @@ class SamlService
         $settings = $this->settings();
         $appUrl = rtrim(config('app.url'), '/');
 
-        $spEntityId = $settings['saml_sp_entity_id'] ?? ($appUrl . '/admin/saml/metadata');
-        $acsUrl = $settings['saml_acs_url'] ?? ($appUrl . '/admin/saml/acs');
-        $sloUrl = $settings['saml_slo_url'] ?? ($appUrl . '/admin/saml/logout');
+        $spEntityId = $settings['saml_sp_entity_id'] ?? ($appUrl.'/admin/saml/metadata');
+        $acsUrl = $settings['saml_acs_url'] ?? ($appUrl.'/admin/saml/acs');
+        $sloUrl = $settings['saml_slo_url'] ?? ($appUrl.'/admin/saml/logout');
 
         $sp = [
             'entityId' => $spEntityId,
@@ -105,13 +107,13 @@ class SamlService
     private function resolveIdp(array $settings): array
     {
         $parsed = [];
-        if (!empty($settings['saml_idp_metadata_xml'])) {
+        if (! empty($settings['saml_idp_metadata_xml'])) {
             try {
                 $parsed = IdPMetadataParser::parseXML($settings['saml_idp_metadata_xml']);
             } catch (\Throwable $e) {
                 $parsed = [];
             }
-        } elseif (!empty($settings['saml_idp_metadata_url'])) {
+        } elseif (! empty($settings['saml_idp_metadata_url'])) {
             try {
                 $parsed = IdPMetadataParser::parseRemoteXML($settings['saml_idp_metadata_url']);
             } catch (\Throwable $e) {

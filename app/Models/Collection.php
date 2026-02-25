@@ -66,7 +66,7 @@ class Collection extends Model
     // Methods
     public function addRecipe(int $recipeId, ?string $notes = null): void
     {
-        if (!$this->recipes()->where('recipe_id', $recipeId)->exists()) {
+        if (! $this->recipes()->where('recipe_id', $recipeId)->exists()) {
             $maxOrder = $this->recipes()->max('collection_recipe.sort_order') ?? 0;
             $this->recipes()->attach($recipeId, [
                 'sort_order' => $maxOrder + 1,

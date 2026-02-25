@@ -73,6 +73,7 @@ class Subscription extends Model
         if ($this->plan_interval === 'yearly') {
             return round($this->price / 12, 2);
         }
+
         return $this->price;
     }
 
@@ -81,6 +82,7 @@ class Subscription extends Model
         if ($this->plan_interval === 'monthly') {
             return $this->price * 12;
         }
+
         return $this->price;
     }
 }

@@ -42,7 +42,7 @@ class BackupCleanupService
     private function cleanupOrphans($cutoff, int &$deleted): void
     {
         $root = storage_path('app/backups');
-        if (!File::exists($root)) {
+        if (! File::exists($root)) {
             return;
         }
 
@@ -60,6 +60,7 @@ class BackupCleanupService
     {
         $settings = PlatformSetting::getData();
         $days = $settings['backup_retention_days'] ?? 7;
+
         return max(0, (int) $days);
     }
 }

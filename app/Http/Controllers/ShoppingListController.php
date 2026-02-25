@@ -194,7 +194,7 @@ class ShoppingListController extends Controller
         $shoppingList->updateCounts();
 
         return response()->json([
-            'message' => count($validated['item_ids']) . ' items updated',
+            'message' => count($validated['item_ids']).' items updated',
             'progress' => $shoppingList->getProgress(),
         ]);
     }

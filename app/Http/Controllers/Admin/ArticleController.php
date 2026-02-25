@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Tenant;
-use App\Support\AdminEnvironmentResolver;
-use App\Support\AdminTenantResolver;
-use App\Support\AdminPermissions;
-use App\Support\ContentWorkflow;
+use App\Services\ContentScoringService;
 use App\Services\TenantLimitService;
 use App\Services\WebhookService;
-use App\Services\ContentScoringService;
+use App\Support\AdminEnvironmentResolver;
+use App\Support\AdminPermissions;
+use App\Support\AdminTenantResolver;
+use App\Support\ContentWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -40,12 +40,13 @@ class ArticleController extends Controller
         }
 
         $articles = $query->orderBy('created_at', 'desc')->paginate(20);
+
         return response()->json($articles);
     }
 
     public function store(Request $request)
     {
-        if (!AdminPermissions::canManageContent($request->user())) {
+        if (! AdminPermissions::canManageContent($request->user())) {
             abort(403);
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -83,7 +84,7 @@ class ArticleController extends Controller
             $tenant = Tenant::find($validated['tenant_id']);
             if ($tenant) {
                 $limits = app(TenantLimitService::class);
-                if (!$limits->canCreatePost($tenant, $environment)) {
+                if (! $limits->canCreatePost($tenant, $environment)) {
                     return response()->json([
                         'message' => 'Post limit reached for this tenant.',
                     ], 422);
@@ -114,12 +115,13 @@ class ArticleController extends Controller
         $article = Article::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->where('environment', $environment)
             ->findOrFail($id);
+
         return response()->json($article);
     }
 
     public function update(Request $request, $id)
     {
-        if (!AdminPermissions::canManageContent($request->user())) {
+        if (! AdminPermissions::canManageContent($request->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId($request);
@@ -144,7 +146,7 @@ class ArticleController extends Controller
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
-        if (array_key_exists('tenant_id', $validated) && !$validated['tenant_id']) {
+        if (array_key_exists('tenant_id', $validated) && ! $validated['tenant_id']) {
             $validated['tenant_id'] = AdminTenantResolver::resolveId($request);
         }
 
@@ -173,7 +175,7 @@ class ArticleController extends Controller
 
     public function destroy($id)
     {
-        if (!AdminPermissions::canDeleteContent(request()->user())) {
+        if (! AdminPermissions::canDeleteContent(request()->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId(request());
@@ -188,6 +190,7 @@ class ArticleController extends Controller
         if ($tenant) {
             app(WebhookService::class)->dispatchEvent($tenant, 'article.deleted', $payload);
         }
+
         return response()->json(['message' => 'Article deleted successfully']);
     }
 }

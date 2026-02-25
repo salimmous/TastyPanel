@@ -10,7 +10,7 @@ class Http3HealthService
     {
         $udp = $this->checkUdp($domain);
 
-        if (!$domain->http3_enabled) {
+        if (! $domain->http3_enabled) {
             $domain->http3_status = 'disabled';
             $domain->http3_error = null;
             $domain->http3_checked_at = now();
@@ -18,6 +18,7 @@ class Http3HealthService
             $domain->http3_udp_error = $udp['error'];
             $domain->http3_udp_checked_at = now();
             $domain->save();
+
             return $domain;
         }
 
@@ -29,10 +30,11 @@ class Http3HealthService
             $domain->http3_udp_error = $udp['error'];
             $domain->http3_udp_checked_at = now();
             $domain->save();
+
             return $domain;
         }
 
-        $url = 'https://' . $domain->hostname;
+        $url = 'https://'.$domain->hostname;
         $timeout = 8;
 
         $result = $this->runCurl("--http3 -I --max-time {$timeout} --connect-timeout 5", $url);
@@ -41,6 +43,7 @@ class Http3HealthService
             $domain->http3_error = null;
             $domain->http3_checked_at = now();
             $domain->save();
+
             return $domain;
         }
 
@@ -96,7 +99,7 @@ class Http3HealthService
 
     private function checkUdp(Domain $domain): array
     {
-        if (!$domain->http3_enabled) {
+        if (! $domain->http3_enabled) {
             return [
                 'status' => 'disabled',
                 'error' => null,
@@ -107,12 +110,12 @@ class Http3HealthService
         $hostArg = escapeshellarg($host);
         $cmd = sprintf(
             'sh -c %s',
-            escapeshellarg('if command -v nc >/dev/null 2>&1; then nc -zu -w2 ' . $hostArg . ' 443; else exit 127; fi')
+            escapeshellarg('if command -v nc >/dev/null 2>&1; then nc -zu -w2 '.$hostArg.' 443; else exit 127; fi')
         );
 
         $output = [];
         $exitCode = 0;
-        exec($cmd . ' 2>&1', $output, $exitCode);
+        exec($cmd.' 2>&1', $output, $exitCode);
 
         if ($exitCode === 0) {
             return [

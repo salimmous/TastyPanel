@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Theme;
 use App\Models\ThemeVersion;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use App\Support\AdminPermissions;
 use App\Services\ThemePackageService;
+use App\Support\AdminPermissions;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ThemeController extends Controller
 {
@@ -120,7 +119,7 @@ class ThemeController extends Controller
         if ($request->hasFile('preview')) {
             $previewPath = $request->file('preview')->storeAs(
                 'theme-previews',
-                $key . '-' . time() . '.' . $request->file('preview')->getClientOriginalExtension(),
+                $key.'-'.time().'.'.$request->file('preview')->getClientOriginalExtension(),
                 'public'
             );
         }
@@ -134,7 +133,7 @@ class ThemeController extends Controller
             'tags' => $this->normalizeTags($data['tags'] ?? null),
             'author' => $data['author'] ?? null,
             'version' => $data['version'] ?? null,
-            'preview_image' => $previewPath ? '/storage/' . $previewPath : null,
+            'preview_image' => $previewPath ? '/storage/'.$previewPath : null,
             'is_featured' => $data['is_featured'] ?? false,
             'is_marketplace' => $data['is_marketplace'] ?? false,
             'is_active' => true,
@@ -162,6 +161,7 @@ class ThemeController extends Controller
         if (is_string($value)) {
             $parts = array_map('trim', explode(',', $value));
             $parts = array_values(array_filter($parts, fn ($tag) => $tag !== ''));
+
             return $parts ?: null;
         }
 

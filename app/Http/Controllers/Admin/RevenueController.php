@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Subscription;
 use App\Models\Invoice;
+use App\Models\Subscription;
 use App\Services\RevenueService;
 use Illuminate\Http\Request;
 
@@ -12,8 +12,7 @@ class RevenueController extends Controller
 {
     public function __construct(
         protected RevenueService $revenue
-    ) {
-    }
+    ) {}
 
     /**
      * Revenue dashboard
@@ -21,6 +20,7 @@ class RevenueController extends Controller
     public function index()
     {
         $dashboard = $this->revenue->getDashboard();
+
         return view('platform.revenue.index', compact('dashboard'));
     }
 

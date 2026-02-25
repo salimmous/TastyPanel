@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Services\HealthCheckService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class HealthController extends Controller
 {
     public function __construct(
         protected HealthCheckService $healthCheck
-    ) {
-    }
+    ) {}
 
     /**
      * Overall health check

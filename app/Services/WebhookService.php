@@ -15,7 +15,7 @@ class WebhookService
             ->get();
 
         foreach ($webhooks as $webhook) {
-            if (!$this->matchesEvent($webhook->event, $event)) {
+            if (! $this->matchesEvent($webhook->event, $event)) {
                 continue;
             }
 
@@ -32,7 +32,8 @@ class WebhookService
 
         if (str_ends_with($rule, '.*')) {
             $prefix = substr($rule, 0, -2);
-            return str_starts_with($event, $prefix . '.');
+
+            return str_starts_with($event, $prefix.'.');
         }
 
         return $rule === $event;

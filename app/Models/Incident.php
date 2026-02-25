@@ -49,4 +49,3 @@ class Incident extends Model
         return $this->hasMany(IncidentEvent::class);
     }
 }
-

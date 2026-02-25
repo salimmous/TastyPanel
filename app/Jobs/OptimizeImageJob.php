@@ -15,6 +15,7 @@ class OptimizeImageJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $timeout = 300; // 5 minutes
+
     public $tries = 3;
 
     /**
@@ -23,8 +24,7 @@ class OptimizeImageJob implements ShouldQueue
     public function __construct(
         public string $imagePath,
         public array $options = []
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the job.
@@ -40,6 +40,7 @@ class OptimizeImageJob implements ShouldQueue
                 'path' => $this->imagePath,
                 'error' => $result['error'],
             ]);
+
             return;
         }
 

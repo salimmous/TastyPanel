@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Recipe;
 use App\Models\Category;
+use App\Models\Recipe;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class RecipeSeeder extends Seeder
@@ -119,6 +119,6 @@ class RecipeSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Created ' . count($recipes) . ' demo recipes');
+        $this->command->info('Created '.count($recipes).' demo recipes');
     }
 }

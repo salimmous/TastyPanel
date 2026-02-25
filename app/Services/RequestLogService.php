@@ -15,11 +15,11 @@ class RequestLogService
         $query = RequestLog::with(['user:id,name,email', 'tenant:id,name']);
 
         // Apply filters
-        if (!empty($filters['method'])) {
+        if (! empty($filters['method'])) {
             $query->where('method', $filters['method']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             if ($filters['status'] === 'error') {
                 $query->errors();
             } elseif ($filters['status'] === 'success') {
@@ -29,31 +29,31 @@ class RequestLogService
             }
         }
 
-        if (!empty($filters['path'])) {
-            $query->where('path', 'like', '%' . $filters['path'] . '%');
+        if (! empty($filters['path'])) {
+            $query->where('path', 'like', '%'.$filters['path'].'%');
         }
 
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $query->forUser($filters['user_id']);
         }
 
-        if (!empty($filters['tenant_id'])) {
+        if (! empty($filters['tenant_id'])) {
             $query->forTenant($filters['tenant_id']);
         }
 
-        if (!empty($filters['ip'])) {
+        if (! empty($filters['ip'])) {
             $query->where('ip', $filters['ip']);
         }
 
-        if (!empty($filters['slow'])) {
+        if (! empty($filters['slow'])) {
             $query->slowRequests($filters['slow']);
         }
 
-        if (!empty($filters['from'])) {
+        if (! empty($filters['from'])) {
             $query->where('created_at', '>=', $filters['from']);
         }
 
-        if (!empty($filters['to'])) {
+        if (! empty($filters['to'])) {
             $query->where('created_at', '<=', $filters['to']);
         }
 

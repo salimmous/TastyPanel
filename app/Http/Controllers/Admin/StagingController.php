@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Services\ContentSnapshotService;
-use App\Support\AdminPermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,6 +13,7 @@ class StagingController extends Controller
     public function index($tenantId)
     {
         $tenant = $this->resolveTenant($tenantId);
+
         return view('platform.staging.index', compact('tenant'));
     }
 
@@ -22,7 +22,7 @@ class StagingController extends Controller
         $tenant = $this->resolveTenant($tenantId);
 
         $tenant->staging_enabled = true;
-        if (!$tenant->staging_theme_id) {
+        if (! $tenant->staging_theme_id) {
             $tenant->staging_theme_id = $tenant->theme_id;
         }
         $tenant->save();
@@ -73,18 +73,18 @@ class StagingController extends Controller
     public function destroy(Request $request, $tenantId)
     {
         $tenant = $this->resolveTenant($tenantId);
-        
+
         $tenant->staging_enabled = false;
         $tenant->save();
-        
+
         // We generally keep the data but disable the access
-        
+
         return redirect()->route('platform.tenants.staging', $tenant->id)->with('success', 'Staging environment disabled.');
     }
 
     private function resolveTenant($id): Tenant
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             abort(403); // Should be handled by middleware but safety first
         }
 

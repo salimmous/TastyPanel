@@ -14,6 +14,7 @@ class FirewallController extends Controller
     {
         $this->authorizeSuperadmin($request);
         $rules = FirewallRule::orderByDesc('id')->get();
+
         return response()->json(['data' => $rules]);
     }
 
@@ -72,6 +73,7 @@ class FirewallController extends Controller
     {
         $this->authorizeSuperadmin($request);
         $rule->delete();
+
         return response()->json(['message' => 'Firewall rule deleted.']);
     }
 
@@ -79,18 +81,20 @@ class FirewallController extends Controller
     {
         $this->authorizeSuperadmin($request);
         $results = $firewall->applyAll();
+
         return response()->json(['data' => $results]);
     }
 
     public function status(Request $request, FirewallService $firewall)
     {
         $this->authorizeSuperadmin($request);
+
         return response()->json(['data' => $firewall->status()]);
     }
 
     private function authorizeSuperadmin(Request $request): void
     {
-        if (!AdminPermissions::isSuperadmin($request->user())) {
+        if (! AdminPermissions::isSuperadmin($request->user())) {
             abort(403);
         }
     }

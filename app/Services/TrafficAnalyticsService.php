@@ -32,7 +32,7 @@ class TrafficAnalyticsService
     private function processDomain(Domain $domain): array
     {
         $path = $this->accessLogPath($domain->hostname);
-        if (!$path || !file_exists($path)) {
+        if (! $path || ! file_exists($path)) {
             return ['lines' => 0, 'metrics' => 0];
         }
 
@@ -47,7 +47,7 @@ class TrafficAnalyticsService
         }
 
         $handle = fopen($path, 'r');
-        if (!$handle) {
+        if (! $handle) {
             return ['lines' => 0, 'metrics' => 0];
         }
 
@@ -59,14 +59,14 @@ class TrafficAnalyticsService
         while (($line = fgets($handle)) !== false) {
             $lines++;
             $parsed = $this->parseLine($line);
-            if (!$parsed) {
+            if (! $parsed) {
                 continue;
             }
 
             [$ip, $date, $status, $bytes] = $parsed;
             $day = $date->toDateString();
 
-            if (!isset($bucket[$day])) {
+            if (! isset($bucket[$day])) {
                 $bucket[$day] = [
                     'requests' => 0,
                     'bytes' => 0,
@@ -113,21 +113,22 @@ class TrafficAnalyticsService
     private function accessLogPath(string $hostname): ?string
     {
         $template = config('services.logs.nginx_access_template', '/var/log/nginx/%s-access.log');
-        if (!str_contains($template, '%s')) {
+        if (! str_contains($template, '%s')) {
             return null;
         }
+
         return sprintf($template, $hostname);
     }
 
     private function parseLine(string $line): ?array
     {
-        if (!preg_match('/^(\S+) \S+ \S+ \[([^\]]+)\] "[^"]*" (\d{3}) (\d+|-)/', $line, $matches)) {
+        if (! preg_match('/^(\S+) \S+ \S+ \[([^\]]+)\] "[^"]*" (\d{3}) (\d+|-)/', $line, $matches)) {
             return null;
         }
 
         $ip = $matches[1];
         $date = $this->parseDate($matches[2]);
-        if (!$date) {
+        if (! $date) {
             return null;
         }
         $status = (int) $matches[3];

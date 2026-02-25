@@ -24,7 +24,7 @@ class TenantBackupRestoreService
         try {
             $zipPath = $this->resolveBackupZip($backup, $output);
             $result = $this->runRestoreScript($tenant, $zipPath);
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new \RuntimeException($result['output'] ?: 'Restore failed.');
             }
             $output[] = $result['output'];
@@ -47,16 +47,16 @@ class TenantBackupRestoreService
 
     private function resolveBackupZip(TenantBackupRun $backup, array &$output): string
     {
-        $localZip = $backup->path ? $backup->path . '/backup.zip' : null;
+        $localZip = $backup->path ? $backup->path.'/backup.zip' : null;
         if ($localZip && file_exists($localZip)) {
             return $localZip;
         }
 
         if ($backup->disk === 's3' && $backup->remote_path) {
-            $tmp = storage_path('app/tenant-backups/restore_' . $backup->id . '.zip');
+            $tmp = storage_path('app/tenant-backups/restore_'.$backup->id.'.zip');
             $disk = Storage::disk('s3');
             $stream = $disk->readStream($backup->remote_path);
-            if (!$stream) {
+            if (! $stream) {
                 throw new \RuntimeException('Unable to download backup from S3.');
             }
             $dest = fopen($tmp, 'w');
@@ -66,6 +66,7 @@ class TenantBackupRestoreService
                 fclose($stream);
             }
             $output[] = 'Downloaded backup from S3.';
+
             return $tmp;
         }
 
@@ -74,14 +75,14 @@ class TenantBackupRestoreService
 
     private function runRestoreScript(Tenant $tenant, string $zipPath): array
     {
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Instance root is missing.',
                 'exit_code' => 1,
             ];
         }
-        if (!$tenant->instance_db_name || !$tenant->instance_db_user) {
+        if (! $tenant->instance_db_name || ! $tenant->instance_db_user) {
             return [
                 'success' => false,
                 'output' => 'Instance database credentials are missing.',
@@ -90,7 +91,7 @@ class TenantBackupRestoreService
         }
 
         $script = config('services.tenant_backups.restore_script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant restore script not found.',
@@ -113,7 +114,7 @@ class TenantBackupRestoreService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,

@@ -14,6 +14,7 @@ class SecurityController extends Controller
     {
         $this->authorizeSuperadmin($request);
         $scans = SecurityScan::orderByDesc('id')->paginate(20);
+
         return response()->json($scans);
     }
 
@@ -37,7 +38,7 @@ class SecurityController extends Controller
 
     private function authorizeSuperadmin(Request $request): void
     {
-        if (!AdminPermissions::isSuperadmin($request->user())) {
+        if (! AdminPermissions::isSuperadmin($request->user())) {
             abort(403);
         }
     }

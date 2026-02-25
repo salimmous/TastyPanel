@@ -8,8 +8,11 @@ use App\Models\IncidentEvent;
 class IncidentService
 {
     public const STATUS_OPEN = 'open';
+
     public const STATUS_ACKED = 'acked';
+
     public const STATUS_SNOOZED = 'snoozed';
+
     public const STATUS_RESOLVED = 'resolved';
 
     public function recordIssue(
@@ -30,7 +33,7 @@ class IncidentService
             ->where('fingerprint', $fingerprint)
             ->first();
 
-        if (!$incident) {
+        if (! $incident) {
             $incident = Incident::create([
                 'tenant_id' => $tenantId,
                 'fingerprint' => $fingerprint,
@@ -104,7 +107,7 @@ class IncidentService
 
         $incident->meta = $meta ?: null;
         $incident->last_seen_at = $now;
-        if (!$incident->first_seen_at) {
+        if (! $incident->first_seen_at) {
             $incident->first_seen_at = $now;
             $changed = true;
         }
@@ -127,7 +130,7 @@ class IncidentService
             ->whereIn('status', [self::STATUS_OPEN, self::STATUS_ACKED, self::STATUS_SNOOZED])
             ->first();
 
-        if (!$incident) {
+        if (! $incident) {
             return false;
         }
 
@@ -211,7 +214,7 @@ class IncidentService
         $incident->snoozed_until = $until;
         $incident->save();
 
-        $this->event($incident->id, 'snoozed', 'Snoozed until ' . $until->toDateTimeString() . '.', $actorId, [
+        $this->event($incident->id, 'snoozed', 'Snoozed until '.$until->toDateTimeString().'.', $actorId, [
             'until' => $until->toIso8601String(),
         ]);
     }
@@ -275,4 +278,3 @@ class IncidentService
         }
     }
 }
-

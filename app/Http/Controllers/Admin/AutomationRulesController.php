@@ -11,8 +11,7 @@ class AutomationRulesController extends Controller
 {
     public function __construct(
         protected PlatformAutomationService $automation
-    ) {
-    }
+    ) {}
 
     /**
      * List all automation rules
@@ -113,7 +112,7 @@ class AutomationRulesController extends Controller
      */
     public function toggle(AutomationRule $rule)
     {
-        $rule->is_active = !$rule->is_active;
+        $rule->is_active = ! $rule->is_active;
         $rule->save();
 
         return response()->json([
@@ -144,7 +143,7 @@ class AutomationRulesController extends Controller
 
         return response()->json([
             'data' => $results,
-            'message' => 'Scheduled rules executed: ' . count($results),
+            'message' => 'Scheduled rules executed: '.count($results),
         ]);
     }
 

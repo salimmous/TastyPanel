@@ -25,7 +25,7 @@ class SslProvisioningService
     {
         $certificate = $this->requestCertificate($domain);
 
-        if (!$force && !config('services.ssl.auto')) {
+        if (! $force && ! config('services.ssl.auto')) {
             return $certificate;
         }
 
@@ -33,10 +33,11 @@ class SslProvisioningService
         $email = config('services.ssl.certbot_email');
         $dnsToken = config('services.cloudflare.dns_token');
 
-        if (!$email || !$dnsToken) {
+        if (! $email || ! $dnsToken) {
             $certificate->status = 'error';
             $certificate->last_error = 'Missing SSL_CERTBOT_EMAIL or CLOUDFLARE_DNS_TOKEN.';
             $certificate->save();
+
             return $certificate;
         }
 
@@ -46,19 +47,19 @@ class SslProvisioningService
         $credentialsPath = storage_path('app/certbot/cloudflare.ini');
 
         foreach ([$configDir, $workDir, $logsDir, dirname($credentialsPath)] as $dir) {
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 mkdir($dir, 0700, true);
             }
         }
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             file_put_contents($credentialsPath, "dns_cloudflare_api_token = {$dnsToken}\n");
             chmod($credentialsPath, 0600);
         }
 
         $domains = [$domain->hostname];
         if (substr_count($domain->hostname, '.') === 1) {
-            $domains[] = 'www.' . $domain->hostname;
+            $domains[] = 'www.'.$domain->hostname;
         }
 
         $certificate->status = 'provisioning';
@@ -92,19 +93,19 @@ class SslProvisioningService
         try {
             $output = [];
             $exitCode = 0;
-            exec($escaped . ' 2>&1', $output, $exitCode);
+            exec($escaped.' 2>&1', $output, $exitCode);
             if ($exitCode !== 0) {
                 throw new \RuntimeException(implode("\n", $output));
             }
 
-            $livePath = $configDir . '/live/' . $domain->hostname;
+            $livePath = $configDir.'/live/'.$domain->hostname;
             $certificate->status = 'issued';
             $certificate->issued_at = now();
             $certificate->last_error = null;
             $certificate->meta = [
-                'cert_path' => $livePath . '/fullchain.pem',
-                'key_path' => $livePath . '/privkey.pem',
-                'chain_path' => $livePath . '/chain.pem',
+                'cert_path' => $livePath.'/fullchain.pem',
+                'key_path' => $livePath.'/privkey.pem',
+                'chain_path' => $livePath.'/chain.pem',
                 'domains' => $domains,
             ];
             $certificate->save();

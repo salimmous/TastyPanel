@@ -14,14 +14,14 @@ class SetTenantFromHost
     {
         $host = $request->getHost();
         $domain = $this->resolveDomain($host);
-        if (!$domain) {
+        if (! $domain) {
             $headerHost = trim((string) $request->header('X-Tenant-Host', ''));
             if ($headerHost !== '') {
                 $domain = $this->resolveDomain($headerHost);
             }
         }
 
-        if ($domain && !$this->isTenantDomainActive($domain)) {
+        if ($domain && ! $this->isTenantDomainActive($domain)) {
             $domain = null;
         }
 
@@ -44,6 +44,7 @@ class SetTenantFromHost
 
         if (str_starts_with($host, 'www.')) {
             $host = substr($host, 4);
+
             return Domain::with('tenant')->where('hostname', $host)->first();
         }
 
@@ -53,7 +54,7 @@ class SetTenantFromHost
     private function isTenantDomainActive(Domain $domain): bool
     {
         $tenant = $domain->tenant;
-        if (!$tenant || $tenant->status !== 'active') {
+        if (! $tenant || $tenant->status !== 'active') {
             return false;
         }
 

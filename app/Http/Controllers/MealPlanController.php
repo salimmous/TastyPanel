@@ -12,8 +12,7 @@ class MealPlanController extends Controller
 {
     public function __construct(
         protected MealPlanningService $service
-    ) {
-    }
+    ) {}
 
     /**
      * List user's meal plans

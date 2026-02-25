@@ -36,19 +36,19 @@ class RealtimeAnalyticsService
 
         foreach ($domains as $domain) {
             $path = $this->accessLogPath($domain->hostname);
-            if (!$path || !file_exists($path)) {
+            if (! $path || ! file_exists($path)) {
                 continue;
             }
 
             $content = $reader->tail($path, $lines);
-            if (!$content) {
+            if (! $content) {
                 continue;
             }
 
             $linesArray = explode("\n", trim($content));
             foreach ($linesArray as $line) {
                 $parsed = $this->parseLine($line);
-                if (!$parsed) {
+                if (! $parsed) {
                     continue;
                 }
                 [$date, $status, $pathValue] = $parsed;
@@ -91,20 +91,21 @@ class RealtimeAnalyticsService
     private function accessLogPath(string $hostname): ?string
     {
         $template = config('services.logs.nginx_access_template', '/var/log/nginx/%s-access.log');
-        if (!str_contains($template, '%s')) {
+        if (! str_contains($template, '%s')) {
             return null;
         }
+
         return sprintf($template, $hostname);
     }
 
     private function parseLine(string $line): ?array
     {
-        if (!preg_match('/^[^\\[]+\\[([^\\]]+)\\] "[A-Z]+ ([^\\s"]+)/', $line, $matches)) {
+        if (! preg_match('/^[^\\[]+\\[([^\\]]+)\\] "[A-Z]+ ([^\\s"]+)/', $line, $matches)) {
             return null;
         }
 
         $date = $this->parseDate($matches[1]);
-        if (!$date) {
+        if (! $date) {
             return null;
         }
 
@@ -116,6 +117,7 @@ class RealtimeAnalyticsService
         }
 
         $path = $matches[2] ?? null;
+
         return [$date, $status, $path];
     }
 

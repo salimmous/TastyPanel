@@ -2,11 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Domain;
+use App\Services\EdgeCacheService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Domain;
-use App\Services\EdgeCacheService;
 
 class SiteResponseCache
 {
@@ -15,13 +15,13 @@ class SiteResponseCache
     public function handle(Request $request, Closure $next)
     {
         // Only cache public GET/HEAD with no query string
-        if (!in_array($request->method(), ['GET', 'HEAD'], true) || $request->getQueryString()) {
+        if (! in_array($request->method(), ['GET', 'HEAD'], true) || $request->getQueryString()) {
             return $next($request);
         }
 
         $host = $request->getHost();
         $domain = $this->resolveDomain($host);
-        if (!$domain) {
+        if (! $domain) {
             return $next($request);
         }
 
@@ -43,7 +43,7 @@ class SiteResponseCache
 
         if ($response->getStatusCode() === 200 &&
             str_contains($response->headers->get('Content-Type', ''), 'text/html') &&
-            !auth()->check()) {
+            ! auth()->check()) {
             Cache::put($cacheKey, [
                 'status' => 200,
                 'headers' => $response->headers->allPreserveCase(),
@@ -66,6 +66,7 @@ class SiteResponseCache
 
         if (str_starts_with($host, 'www.')) {
             $host = substr($host, 4);
+
             return Domain::with(['tenant.theme', 'tenant.stagingTheme', 'tenant.settings', 'tenant.stagingSettings'])
                 ->where('hostname', $host)
                 ->first();

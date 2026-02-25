@@ -17,25 +17,26 @@ class ProcessTenantProvisioningJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 1800;
 
     public function __construct(
         public int $tenantId,
         public int $domainId,
         public int $provisioningJobId
-    ) {
-    }
+    ) {}
 
     public function handle(ProvisioningService $provisioning): void
     {
         $job = ProvisioningJob::query()->find($this->provisioningJobId);
-        if (!$job) {
+        if (! $job) {
             return;
         }
 
         $domain = Domain::query()->with('tenant')->find($this->domainId);
-        if (!$domain || $domain->tenant_id !== $this->tenantId) {
+        if (! $domain || $domain->tenant_id !== $this->tenantId) {
             $this->markFailed($job, 'Provisioning target domain not found.');
+
             return;
         }
 
@@ -58,6 +59,7 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                     'lock_contended' => true,
                     'completed_steps' => $result['completed_steps'] ?? [],
                 ]);
+
                 return;
             }
 
@@ -68,10 +70,11 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                     'idempotent' => true,
                     'completed_steps' => $result['completed_steps'] ?? [],
                 ]);
+
                 return;
             }
 
-            if (!($result['success'] ?? false)) {
+            if (! ($result['success'] ?? false)) {
                 $message = $domain->last_error ?: 'Provisioning failed.';
                 $rollback = $result['rollback'] ?? ['performed' => false, 'success' => null];
                 if (($rollback['performed'] ?? false) && ($rollback['success'] ?? false)) {
@@ -82,6 +85,7 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                         'completed_steps' => $result['completed_steps'] ?? [],
                         'rollback' => $rollback,
                     ]);
+
                     return;
                 }
 
@@ -92,6 +96,7 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                     'completed_steps' => $result['completed_steps'] ?? [],
                     'rollback' => $rollback,
                 ]);
+
                 return;
             }
 
@@ -108,7 +113,7 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                 'admin_email' => $meta['admin_email'] ?? '',
                 'admin_user' => $meta['admin_user'] ?? 'admin',
                 'admin_password' => $meta['admin_password'] ?? '',
-                'url' => 'http://' . ($domain->hostname ?? 'localhost'),
+                'url' => 'http://'.($domain->hostname ?? 'localhost'),
             ];
             \App\Jobs\InstallTenantAppJob::dispatch($domain->tenant, 'laravel', null, $adminConfig);
         } catch (Throwable $e) {
@@ -120,7 +125,7 @@ class ProcessTenantProvisioningJob implements ShouldQueue
     public function failed(Throwable $e): void
     {
         $job = ProvisioningJob::query()->find($this->provisioningJobId);
-        if (!$job) {
+        if (! $job) {
             return;
         }
 

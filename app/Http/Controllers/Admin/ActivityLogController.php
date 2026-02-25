@@ -13,7 +13,7 @@ class ActivityLogController extends Controller
     public function index(Request $request, Tenant $tenant)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
+        if (! AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
             abort(403);
         }
 
@@ -27,6 +27,7 @@ class ActivityLogController extends Controller
         }
 
         $logs = $query->orderByDesc('id')->paginate(25);
+
         return response()->json($logs);
     }
 }

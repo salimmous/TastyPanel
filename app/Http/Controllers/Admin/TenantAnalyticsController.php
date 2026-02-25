@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tenant;
-use App\Models\TenantTrafficMetric;
 use App\Models\Article;
 use App\Models\Recipe;
-use App\Services\TenantStorageService;
-use App\Services\TenantLimitService;
+use App\Models\Tenant;
+use App\Models\TenantTrafficMetric;
 use App\Services\RealtimeAnalyticsService;
 use App\Services\TenantCostService;
+use App\Services\TenantLimitService;
 use App\Services\TenantObservabilityService;
-use App\Support\AdminPermissions;
+use App\Services\TenantStorageService;
 use App\Support\AdminEnvironmentResolver;
+use App\Support\AdminPermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -26,10 +26,9 @@ class TenantAnalyticsController extends Controller
         TenantLimitService $limits,
         TenantCostService $costs,
         TenantObservabilityService $observability
-    )
-    {
+    ) {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
+        if (! AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
             abort(403);
         }
 
@@ -85,7 +84,7 @@ class TenantAnalyticsController extends Controller
     public function realtime(Request $request, Tenant $tenant, RealtimeAnalyticsService $realtime)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
+        if (! AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
             abort(403);
         }
 

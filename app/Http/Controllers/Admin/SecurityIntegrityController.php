@@ -14,6 +14,7 @@ class SecurityIntegrityController extends Controller
     public function baselines(Request $request)
     {
         $this->authorizeSuperadmin($request);
+
         return response()->json([
             'data' => SecurityBaseline::orderByDesc('id')->get(),
         ]);
@@ -45,6 +46,7 @@ class SecurityIntegrityController extends Controller
     {
         $this->authorizeSuperadmin($request);
         $check = $integrity->check($baseline, $request->user()?->id);
+
         return response()->json([
             'data' => $check,
         ], 201);
@@ -56,12 +58,13 @@ class SecurityIntegrityController extends Controller
         $checks = SecurityIntegrityCheck::where('security_baseline_id', $baseline->id)
             ->orderByDesc('id')
             ->paginate(20);
+
         return response()->json($checks);
     }
 
     private function authorizeSuperadmin(Request $request): void
     {
-        if (!AdminPermissions::isSuperadmin($request->user())) {
+        if (! AdminPermissions::isSuperadmin($request->user())) {
             abort(403);
         }
     }

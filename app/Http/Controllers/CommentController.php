@@ -56,7 +56,7 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment): JsonResponse
     {
-        if (!$comment->canEdit(auth()->user())) {
+        if (! $comment->canEdit(auth()->user())) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
@@ -81,7 +81,7 @@ class CommentController extends Controller
      */
     public function destroy(Request $request, Comment $comment): JsonResponse
     {
-        if (!$comment->canDelete(auth()->user())) {
+        if (! $comment->canDelete(auth()->user())) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);

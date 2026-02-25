@@ -57,7 +57,7 @@ class PerformanceMetric extends Model
 
     public function getFormattedResponseTimeAttribute(): string
     {
-        return number_format($this->response_time, 2) . 'ms';
+        return number_format($this->response_time, 2).'ms';
     }
 
     public function getFormattedMemoryAttribute(): string
@@ -68,6 +68,6 @@ class PerformanceMetric extends Model
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 }

@@ -18,6 +18,7 @@ class UptimeController extends Controller
         $checks = UptimeCheck::where('tenant_id', $tenant->id)
             ->orderByDesc('id')
             ->get();
+
         return response()->json(['data' => $checks]);
     }
 
@@ -76,6 +77,7 @@ class UptimeController extends Controller
         }
 
         $check->delete();
+
         return response()->json(['message' => 'Uptime check deleted.']);
     }
 
@@ -101,6 +103,7 @@ class UptimeController extends Controller
         }
 
         $result = $monitor->check($check);
+
         return response()->json(['data' => $result]);
     }
 

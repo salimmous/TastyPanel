@@ -9,8 +9,8 @@ use Carbon\Carbon;
 class TenantCostService
 {
     /**
-    * Compute rough monthly cost based on bandwidth + storage.
-    */
+     * Compute rough monthly cost based on bandwidth + storage.
+     */
     public function estimate(Tenant $tenant, ?Carbon $from = null, ?Carbon $to = null): array
     {
         $from = $from ?: now()->copy()->firstOfMonth();

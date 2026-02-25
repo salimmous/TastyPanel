@@ -28,4 +28,3 @@ return new class extends Migration
         Schema::dropIfExists('tenant_secrets');
     }
 };
-

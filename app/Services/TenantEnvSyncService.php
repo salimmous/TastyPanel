@@ -15,8 +15,8 @@ class TenantEnvSyncService
         if ($normalized === '') {
             $normalized = 'SECRET';
         }
-        if (!preg_match('/^[A-Z]/', $normalized)) {
-            $normalized = 'SECRET_' . $normalized;
+        if (! preg_match('/^[A-Z]/', $normalized)) {
+            $normalized = 'SECRET_'.$normalized;
         }
 
         return $normalized;
@@ -34,7 +34,7 @@ class TenantEnvSyncService
 
     private function run(string $action, Tenant $tenant, string $envKey, ?string $envValue): array
     {
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Tenant instance root is missing.',
@@ -42,7 +42,7 @@ class TenantEnvSyncService
             ];
         }
 
-        if (!preg_match('/^[A-Z][A-Z0-9_]*$/', $envKey)) {
+        if (! preg_match('/^[A-Z][A-Z0-9_]*$/', $envKey)) {
             return [
                 'success' => false,
                 'output' => 'Invalid env key format.',
@@ -51,7 +51,7 @@ class TenantEnvSyncService
         }
 
         $script = config('services.instances.env_sync_script', base_path('infrastructure/sync-tenant-env.sh'));
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant env sync script not found.',
@@ -76,7 +76,7 @@ class TenantEnvSyncService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,

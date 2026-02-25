@@ -2,23 +2,22 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\TwoFactorService;
 use Closure;
 use Illuminate\Http\Request;
-use App\Services\TwoFactorService;
 
 class TwoFactorAuth
 {
     public function __construct(
         protected TwoFactorService $twoFactorService
-    ) {
-    }
+    ) {}
 
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
 
         // Skip if user not authenticated or 2FA not enabled
-        if (!$user || !$user->twoFactorSecret?->enabled) {
+        if (! $user || ! $user->twoFactorSecret?->enabled) {
             return $next($request);
         }
 

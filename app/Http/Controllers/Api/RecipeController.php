@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\Recipe;
 use App\Models\Category;
-use App\Support\TenantContext;
+use App\Models\Recipe;
 use Illuminate\Http\Request;
 
 /**
@@ -14,7 +12,7 @@ use Illuminate\Http\Request;
  *     description="Recipe management and browsing"
  * )
  */
-class RecipeController extends Controller
+class RecipeController extends BaseApiController
 {
     /**
      * @OA\Get(
@@ -22,25 +20,32 @@ class RecipeController extends Controller
      *     tags={"Recipes"},
      *     summary="Get all recipes",
      *     description="Returns paginated list of published recipes",
+     *
      *     @OA\Parameter(
      *         name="category",
      *         in="query",
      *         description="Filter by category slug",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="search",
      *         in="query",
      *         description="Search in title and description",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
+     *
      *         @OA\JsonContent(
      *             type="array",
+     *
      *             @OA\Items(ref="#/components/schemas/Recipe")
      *         )
      *     )
@@ -49,14 +54,11 @@ class RecipeController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = TenantContext::id();
-        $environment = TenantContext::environment();
+        $environment = $this->getEnvironment();
         $query = Recipe::with('category');
 
-        if ($tenantId) {
-            $query->where('tenant_id', $tenantId);
-        }
-        $query->where('environment', $environment);
+        $this->scopeWithTenant($query);
+
         if ($environment === 'production') {
             $query->where('status', 'published');
         }
@@ -79,6 +81,7 @@ class RecipeController extends Controller
         }
 
         $recipes = $query->get();
+
         return response()->json($recipes);
     }
 
@@ -89,18 +92,24 @@ class RecipeController extends Controller
      *     summary="Create new recipe",
      *     description="Create a new recipe (requires authentication)",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/RecipeInput")
      *     ),
+     *
      *     @OA\Response(
      *         response=201,
      *         description="Recipe created successfully",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/Recipe")
      *     ),
+     *
      *     @OA\Response(
      *         response=422,
      *         description="Validation error",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
      *     )
      * )
@@ -108,8 +117,8 @@ class RecipeController extends Controller
      */
     public function store(Request $request)
     {
-        $tenantId = TenantContext::id();
-        $environment = TenantContext::environment();
+        $tenantId = $this->getTenantId();
+        $environment = $this->getEnvironment();
         $validated = $request->validate([
             'slug' => 'required',
             'category_id' => 'required|exists:categories,id',
@@ -124,19 +133,13 @@ class RecipeController extends Controller
             'nutrition' => 'nullable|array',
         ]);
 
-        if ($tenantId) {
-            $exists = Recipe::where('tenant_id', $tenantId)
-                ->where('environment', $environment)
-                ->where('slug', $validated['slug'])
-                ->exists();
-            if ($exists) {
-                return response()->json(['message' => 'Slug already exists.'], 422);
-            }
+        if (! $this->isSlugUnique(Recipe::class, $validated['slug'])) {
+            return response()->json(['message' => 'Slug already exists.'], 422);
         }
 
         if ($tenantId) {
             $category = Category::where('environment', $environment)->find($validated['category_id']);
-            if (!$category) {
+            if (! $category) {
                 return response()->json([
                     'message' => 'Category does not belong to current environment.',
                 ], 422);
@@ -148,12 +151,10 @@ class RecipeController extends Controller
             }
         }
 
-        if ($tenantId) {
-            $validated['tenant_id'] = $tenantId;
-        }
-        $validated['environment'] = $environment;
+        $validated = $this->applyTenantData($validated);
 
         $recipe = Recipe::create($validated);
+
         return response()->json($recipe->load('category'), 201);
     }
 
@@ -163,18 +164,23 @@ class RecipeController extends Controller
      *     tags={"Recipes"},
      *     summary="Get recipe by slug",
      *     description="Returns detailed recipe information",
+     *
      *     @OA\Parameter(
      *         name="slug",
      *         in="path",
      *         description="Recipe slug",
      *         required=true,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/Recipe")
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Recipe not found"
@@ -184,14 +190,17 @@ class RecipeController extends Controller
      */
     public function show(string $slug)
     {
-        $tenantId = TenantContext::id();
-        $environment = TenantContext::environment();
-        $recipe = Recipe::where('slug', $slug)
-            ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('environment', $environment)
-            ->when($environment === 'production', fn($q) => $q->where('status', 'published'))
-            ->with('category')
-            ->firstOrFail();
+        $environment = $this->getEnvironment();
+        $query = Recipe::where('slug', $slug);
+
+        $this->scopeWithTenant($query);
+
+        if ($environment === 'production') {
+            $query->where('status', 'published');
+        }
+
+        $recipe = $query->with('category')->firstOrFail();
+
         return response()->json($recipe);
     }
 
@@ -202,16 +211,21 @@ class RecipeController extends Controller
      *     summary="Update recipe",
      *     description="Update existing recipe (requires authentication)",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/RecipeInput")
      *     ),
+     *
      *     @OA\Response(response=200, description="Recipe updated"),
      *     @OA\Response(response=404, description="Recipe not found")
      * )
@@ -219,11 +233,12 @@ class RecipeController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $tenantId = TenantContext::id();
-        $environment = TenantContext::environment();
-        $recipe = Recipe::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('environment', $environment)
-            ->findOrFail($id);
+        $tenantId = $this->getTenantId();
+        $environment = $this->getEnvironment();
+
+        $query = Recipe::query();
+        $this->scopeWithTenant($query);
+        $recipe = $query->findOrFail($id);
 
         $validated = $request->validate([
             'slug' => 'sometimes',
@@ -239,20 +254,15 @@ class RecipeController extends Controller
             'nutrition' => 'nullable|array',
         ]);
 
-        if (!empty($validated['slug']) && $tenantId) {
-            $exists = Recipe::where('tenant_id', $tenantId)
-                ->where('environment', $environment)
-                ->where('slug', $validated['slug'])
-                ->where('id', '!=', $recipe->id)
-                ->exists();
-            if ($exists) {
+        if (! empty($validated['slug'])) {
+            if (! $this->isSlugUnique(Recipe::class, $validated['slug'], $recipe->id)) {
                 return response()->json(['message' => 'Slug already exists.'], 422);
             }
         }
 
         if ($tenantId && isset($validated['category_id'])) {
             $category = Category::where('environment', $environment)->find($validated['category_id']);
-            if (!$category) {
+            if (! $category) {
                 return response()->json([
                     'message' => 'Category does not belong to current environment.',
                 ], 422);
@@ -265,6 +275,7 @@ class RecipeController extends Controller
         }
 
         $recipe->update($validated);
+
         return response()->json($recipe->load('category'));
     }
 
@@ -275,12 +286,15 @@ class RecipeController extends Controller
      *     summary="Delete recipe",
      *     description="Delete recipe (requires authentication)",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Response(response=204, description="Recipe deleted"),
      *     @OA\Response(response=404, description="Recipe not found")
      * )
@@ -288,12 +302,11 @@ class RecipeController extends Controller
      */
     public function destroy(string $id)
     {
-        $tenantId = TenantContext::id();
-        $environment = TenantContext::environment();
-        $recipe = Recipe::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('environment', $environment)
-            ->findOrFail($id);
+        $query = Recipe::query();
+        $this->scopeWithTenant($query);
+        $recipe = $query->findOrFail($id);
         $recipe->delete();
+
         return response()->json(null, 204);
     }
 }

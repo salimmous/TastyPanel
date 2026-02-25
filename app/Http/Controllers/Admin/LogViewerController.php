@@ -47,7 +47,7 @@ class LogViewerController extends Controller
             $path = str_contains($template, '%s') ? sprintf($template, $domain->hostname) : $template;
         }
 
-        if (!$path) {
+        if (! $path) {
             return response()->json(['message' => 'Invalid log type.'], 422);
         }
 
@@ -59,7 +59,7 @@ class LogViewerController extends Controller
 
     private function authorizeSuperadmin(Request $request): void
     {
-        if (!AdminPermissions::isSuperadmin($request->user())) {
+        if (! AdminPermissions::isSuperadmin($request->user())) {
             abort(403);
         }
     }

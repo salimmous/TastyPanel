@@ -29,10 +29,10 @@ class Share extends Model
             $share->created_at = now();
 
             // Auto-fill IP and user agent if not set
-            if (!$share->ip_address) {
+            if (! $share->ip_address) {
                 $share->ip_address = request()->ip();
             }
-            if (!$share->user_agent) {
+            if (! $share->user_agent) {
                 $share->user_agent = request()->userAgent();
             }
         });

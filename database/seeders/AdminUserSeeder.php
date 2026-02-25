@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
@@ -15,10 +14,10 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $password = 'Admin123!';
-        
+
         $user = User::where('email', 'admin@tastypanel.com')->first();
-        
-        if (!$user) {
+
+        if (! $user) {
             User::create([
                 'name' => 'Admin',
                 'email' => 'admin@tastypanel.com',

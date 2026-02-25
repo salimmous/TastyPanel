@@ -19,7 +19,7 @@ class RunPlatformMaintenance extends Command
         $analyticsOnly = $this->option('analytics');
         $automationOnly = $this->option('automation');
 
-        $runBoth = !$analyticsOnly && !$automationOnly;
+        $runBoth = ! $analyticsOnly && ! $automationOnly;
 
         // Collect Analytics
         if ($runBoth || $analyticsOnly) {
@@ -51,7 +51,7 @@ class RunPlatformMaintenance extends Command
                     $status = $result['status'] === 'success' ? '✓' : '✗';
                     $this->line("{$status} {$result['rule']}: {$result['status']}");
                 }
-                $this->info('Automation complete: ' . count($results) . ' rules executed.');
+                $this->info('Automation complete: '.count($results).' rules executed.');
             }
         }
 

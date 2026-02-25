@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Recipe;
-use Illuminate\Support\Facades\DB;
 
 class BulkOperationService
 {

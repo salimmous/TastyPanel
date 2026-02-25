@@ -18,6 +18,7 @@ class SsoController extends Controller
     public function status(SsoService $sso)
     {
         $settings = $sso->settings();
+
         return response()->json([
             'enabled' => (bool) ($settings['sso_enabled'] ?? false),
             'label' => $settings['sso_provider_label'] ?? 'SSO',
@@ -49,13 +50,13 @@ class SsoController extends Controller
         }
 
         $state = $request->get('state');
-        if (!$state || $state !== $request->session()->get('sso_state')) {
+        if (! $state || $state !== $request->session()->get('sso_state')) {
             return redirect('/login?error=sso_state');
         }
         $request->session()->forget('sso_state');
 
         $code = $request->get('code');
-        if (!$code) {
+        if (! $code) {
             return redirect('/login?error=sso_code');
         }
 
@@ -64,25 +65,25 @@ class SsoController extends Controller
         $email = $profile['email'] ?? null;
         $name = $profile['name'] ?? 'SSO User';
 
-        if (!$email) {
+        if (! $email) {
             return redirect('/login?error=sso_email');
         }
 
         $allowed = $sso->allowedDomains();
-        if (!empty($allowed)) {
+        if (! empty($allowed)) {
             $domain = substr(strrchr($email, '@') ?: '', 1);
-            if (!in_array($domain, $allowed, true)) {
+            if (! in_array($domain, $allowed, true)) {
                 return redirect('/login?error=sso_domain');
             }
         }
 
         $user = User::where('email', $email)->first();
-        if (!$user) {
-            if (!($settings['sso_auto_create'] ?? false)) {
+        if (! $user) {
+            if (! ($settings['sso_auto_create'] ?? false)) {
                 return redirect('/login?error=sso_user');
             }
 
-            $user = new User();
+            $user = new User;
             $user->name = $name;
             $user->email = $email;
             $user->password = Hash::make(bin2hex(random_bytes(16)));
@@ -99,7 +100,7 @@ class SsoController extends Controller
         }
 
         $platformSettings = PlatformSetting::getData();
-        if (($platformSettings['force_2fa'] ?? false) && AdminPermissions::isSuperadmin($user) && !$user->two_factor_enabled) {
+        if (($platformSettings['force_2fa'] ?? false) && AdminPermissions::isSuperadmin($user) && ! $user->two_factor_enabled) {
             return redirect('/login?error=sso_2fa');
         }
 

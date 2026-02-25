@@ -14,8 +14,7 @@ class ApiKeyService
         ?int $userId = null,
         int $rateLimit = 0,
         ?string $expiresAt = null
-    ): array
-    {
+    ): array {
         $plain = bin2hex(random_bytes(32));
         $hash = hash('sha256', $plain);
         $prefix = substr($plain, 0, 12);
@@ -36,7 +35,7 @@ class ApiKeyService
 
     public function verify(string $token): ?ApiKey
     {
-        if (!$token) {
+        if (! $token) {
             return null;
         }
 
@@ -46,7 +45,7 @@ class ApiKeyService
         $key = ApiKey::where('token_prefix', $prefix)
             ->where('token_hash', $hash)
             ->first();
-        if (!$key || !$key->isActive()) {
+        if (! $key || ! $key->isActive()) {
             return null;
         }
 

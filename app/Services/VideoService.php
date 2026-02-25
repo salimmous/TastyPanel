@@ -76,7 +76,7 @@ class VideoService
     {
         $parsed = $this->parseUrl($url);
 
-        if (!$parsed) {
+        if (! $parsed) {
             return [
                 'video_url' => $url,
                 'video_embed' => null,

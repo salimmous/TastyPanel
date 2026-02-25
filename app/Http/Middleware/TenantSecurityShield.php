@@ -13,12 +13,12 @@ class TenantSecurityShield
     public function handle(Request $request, Closure $next): Response
     {
         $tenant = TenantContext::get();
-        if (!$tenant) {
+        if (! $tenant) {
             return $next($request);
         }
 
         $profile = $tenant->securityProfile;
-        if (!$profile) {
+        if (! $profile) {
             return $next($request);
         }
 
@@ -62,6 +62,7 @@ class TenantSecurityShield
                 return true;
             }
         }
+
         return false;
     }
 
@@ -73,6 +74,7 @@ class TenantSecurityShield
                 return true;
             }
         }
+
         return false;
     }
 
@@ -120,6 +122,7 @@ class TenantSecurityShield
     private function isLogMode(TenantSecurityProfile $profile): bool
     {
         $mode = strtolower((string) ($profile->waf_mode ?: $profile->mode ?: 'block'));
+
         return $mode === 'log';
     }
 

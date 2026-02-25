@@ -18,6 +18,7 @@ class PlatformSetting extends Model
     {
         try {
             $record = static::query()->first();
+
             return $record?->data ?? [];
         } catch (\Throwable $e) {
             return [];
@@ -28,7 +29,7 @@ class PlatformSetting extends Model
     {
         try {
             $record = static::query()->first();
-            if (!$record) {
+            if (! $record) {
                 return static::create(['data' => $data]);
             }
 

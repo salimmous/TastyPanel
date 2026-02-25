@@ -55,11 +55,11 @@ class ShareController extends Controller
         $description = $recipe->description ?? '';
 
         return response()->json([
-            'facebook' => "https://www.facebook.com/sharer/sharer.php?u=" . urlencode($url),
-            'twitter' => "https://twitter.com/intent/tweet?url=" . urlencode($url) . "&text=" . urlencode($title),
-            'whatsapp' => "https://wa.me/?text=" . urlencode("{$title} - {$url}"),
-            'pinterest' => "https://pinterest.com/pin/create/button/?url=" . urlencode($url) . "&description=" . urlencode($title),
-            'email' => "mailto:?subject=" . urlencode($title) . "&body=" . urlencode("{$title}\n\n{$description}\n\n{$url}"),
+            'facebook' => 'https://www.facebook.com/sharer/sharer.php?u='.urlencode($url),
+            'twitter' => 'https://twitter.com/intent/tweet?url='.urlencode($url).'&text='.urlencode($title),
+            'whatsapp' => 'https://wa.me/?text='.urlencode("{$title} - {$url}"),
+            'pinterest' => 'https://pinterest.com/pin/create/button/?url='.urlencode($url).'&description='.urlencode($title),
+            'email' => 'mailto:?subject='.urlencode($title).'&body='.urlencode("{$title}\n\n{$description}\n\n{$url}"),
             'copy_link' => $url,
         ]);
     }

@@ -34,7 +34,7 @@ class PreviewWebController extends Controller
         $old = $tenant->only(['preview_enabled', 'preview_theme_id']);
 
         $tenant->preview_enabled = true;
-        if (!$tenant->preview_theme_id) {
+        if (! $tenant->preview_theme_id) {
             $tenant->preview_theme_id = $tenant->theme_id;
         }
         $tenant->save();
@@ -109,7 +109,7 @@ class PreviewWebController extends Controller
     {
         $tenant = $this->resolveTenant((int) $tenantId);
 
-        if (!$tenant->preview_theme_id) {
+        if (! $tenant->preview_theme_id) {
             return redirect()
                 ->route('platform.tenants.preview', $tenant->id)
                 ->with('error', 'Preview theme is not set. Sync production to preview first.');
@@ -165,7 +165,7 @@ class PreviewWebController extends Controller
 
     private function resolveTenant(int $id): Tenant
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             abort(403);
         }
 
@@ -190,7 +190,7 @@ class PreviewWebController extends Controller
                 'action' => $action,
                 'resource_type' => Tenant::class,
                 'resource_id' => $tenant->id,
-                'description' => $action . ' for tenant #' . $tenant->id,
+                'description' => $action.' for tenant #'.$tenant->id,
                 'old_values' => $oldValues,
                 'new_values' => $newValues,
                 'ip_address' => request()->ip(),
@@ -206,4 +206,3 @@ class PreviewWebController extends Controller
         }
     }
 }
-

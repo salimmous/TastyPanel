@@ -169,7 +169,7 @@ class CollectionController extends Controller
 
     protected function authorizeAccess(Collection $collection): void
     {
-        if (!$collection->is_public && $collection->user_id !== Auth::id()) {
+        if (! $collection->is_public && $collection->user_id !== Auth::id()) {
             abort(403, 'Access denied');
         }
     }

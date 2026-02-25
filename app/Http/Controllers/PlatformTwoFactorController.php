@@ -15,12 +15,12 @@ class PlatformTwoFactorController extends Controller
 {
     public function show(Request $request): View|RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $user = Auth::user();
-        if (!$user?->two_factor_enabled) {
+        if (! $user?->two_factor_enabled) {
             return redirect()->route('platform.dashboard');
         }
 
@@ -35,12 +35,12 @@ class PlatformTwoFactorController extends Controller
 
     public function verify(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $user = Auth::user();
-        if (!$user?->two_factor_enabled) {
+        if (! $user?->two_factor_enabled) {
             return redirect()->route('platform.dashboard');
         }
 
@@ -48,7 +48,7 @@ class PlatformTwoFactorController extends Controller
             'code' => ['required', 'string', 'min:4'],
         ]);
 
-        if (!$user->two_factor_code || !$user->two_factor_expires_at) {
+        if (! $user->two_factor_code || ! $user->two_factor_expires_at) {
             return back()->with('error', 'Verification code expired. Please request a new code.');
         }
 
@@ -56,7 +56,7 @@ class PlatformTwoFactorController extends Controller
             return back()->with('error', 'Verification code expired. Please request a new code.');
         }
 
-        if (!Hash::check((string) $data['code'], $user->two_factor_code)) {
+        if (! Hash::check((string) $data['code'], $user->two_factor_code)) {
             return back()->with('error', 'Invalid verification code.');
         }
 
@@ -73,12 +73,12 @@ class PlatformTwoFactorController extends Controller
 
     public function resend(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $user = Auth::user();
-        if (!$user?->two_factor_enabled) {
+        if (! $user?->two_factor_enabled) {
             return redirect()->route('platform.dashboard');
         }
 
@@ -131,4 +131,3 @@ class PlatformTwoFactorController extends Controller
         }
     }
 }
-

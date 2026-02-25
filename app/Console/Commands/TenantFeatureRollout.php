@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class TenantFeatureRollout extends Command
 {
     protected $signature = 'feature:rollout {key} {--tenant=} {--percent=} {--enable} {--disable}';
+
     protected $description = 'Adjust feature flag rollout for tenant or global.';
 
     public function handle(): int

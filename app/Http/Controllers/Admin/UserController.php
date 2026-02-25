@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Support\AdminTenantResolver;
-use App\Support\AdminPermissions;
-use App\Services\TenantLimitService;
 use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantLimitService;
+use App\Support\AdminPermissions;
+use App\Support\AdminTenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        if (!AdminPermissions::canManageUsers($request->user())) {
+        if (! AdminPermissions::canManageUsers($request->user())) {
             abort(403);
         }
         $query = User::query();
@@ -28,16 +28,17 @@ class UserController extends Controller
         if ($request->has('search')) {
             $search = $request->search;
             $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                ->orWhere('email', 'like', "%{$search}%");
         }
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
+
         return response()->json($users);
     }
 
     public function store(Request $request)
     {
-        if (!AdminPermissions::canManageUsers($request->user())) {
+        if (! AdminPermissions::canManageUsers($request->user())) {
             abort(403);
         }
         $currentUser = $request->user();
@@ -54,7 +55,7 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        if (!$isSuperadmin) {
+        if (! $isSuperadmin) {
             $validated['tenant_id'] = $currentUser?->tenant_id;
             $allowedRoles = $tenantMode ? ['tenant-admin', 'editor', 'writer'] : ['editor', 'writer'];
             $requestedRole = $validated['role'] ?? null;
@@ -68,11 +69,11 @@ class UserController extends Controller
             $validated['is_superadmin'] = ($validated['role'] === 'superadmin');
         }
 
-        if (!empty($validated['tenant_id'])) {
+        if (! empty($validated['tenant_id'])) {
             $tenant = Tenant::find($validated['tenant_id']);
             if ($tenant) {
                 $limits = app(TenantLimitService::class);
-                if (!$limits->canCreateUser($tenant)) {
+                if (! $limits->canCreateUser($tenant)) {
                     return response()->json([
                         'message' => 'User limit reached for this tenant.',
                     ], 422);
@@ -81,23 +82,25 @@ class UserController extends Controller
         }
 
         $user = User::create($validated);
+
         return response()->json($user, 201);
     }
 
     public function show($id)
     {
-        if (!AdminPermissions::canManageUsers(request()->user())) {
+        if (! AdminPermissions::canManageUsers(request()->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId(request());
         $user = User::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
+
         return response()->json($user);
     }
 
     public function update(Request $request, $id)
     {
-        if (!AdminPermissions::canManageUsers($request->user())) {
+        if (! AdminPermissions::canManageUsers($request->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId($request);
@@ -106,7 +109,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'email' => 'required|string|email|max:255|unique:users,email,'.$id,
             'password' => 'nullable|string|min:8',
             'tenant_id' => 'nullable|exists:tenants,id',
             'is_superadmin' => 'nullable|boolean',
@@ -115,7 +118,7 @@ class UserController extends Controller
         ]);
 
         $currentUser = $request->user();
-        if (!AdminPermissions::isSuperadmin($currentUser)) {
+        if (! AdminPermissions::isSuperadmin($currentUser)) {
             $validated['tenant_id'] = $currentUser?->tenant_id;
             $tenantMode = (bool) config('services.tenant_mode.enabled', false);
             $allowedRoles = $tenantMode ? ['tenant-admin', 'editor', 'writer'] : ['editor', 'writer'];
@@ -142,18 +145,20 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
         return response()->json($user);
     }
 
     public function destroy($id)
     {
-        if (!AdminPermissions::canManageUsers(request()->user())) {
+        if (! AdminPermissions::canManageUsers(request()->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId(request());
         $user = User::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
         $user->delete();
+
         return response()->json(['message' => 'User deleted successfully']);
     }
 }

@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Domain;
 use App\Models\DomainNginxVersion;
 use App\Models\Tenant;
+use App\Services\Http3HealthService;
+use App\Services\NginxProvisioningService;
 use App\Services\ProvisioningService;
 use App\Services\SslProvisioningService;
-use App\Services\NginxProvisioningService;
-use App\Services\Http3HealthService;
 use App\Support\AdminPermissions;
 use Illuminate\Http\Request;
 
@@ -20,16 +20,15 @@ class TenantDomainController extends Controller
         private SslProvisioningService $sslProvisioning,
         private NginxProvisioningService $nginxProvisioning,
         private Http3HealthService $http3Health
-    ) {
-    }
+    ) {}
 
     public function store(Request $request, Tenant $tenant)
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
             abort(403);
         }
         $data = $request->validate([
@@ -68,10 +67,10 @@ class TenantDomainController extends Controller
     public function provision(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
         $domain = $this->provisioning->provisionDomain($domain);
@@ -87,10 +86,10 @@ class TenantDomainController extends Controller
     public function destroy(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
         $domain->delete();
@@ -103,10 +102,10 @@ class TenantDomainController extends Controller
     public function ssl(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -120,10 +119,10 @@ class TenantDomainController extends Controller
     public function nginx(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -140,10 +139,10 @@ class TenantDomainController extends Controller
     public function config(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -152,7 +151,7 @@ class TenantDomainController extends Controller
                 'effective_config' => $this->nginxProvisioning->renderConfig($domain),
                 'default_config' => $this->nginxProvisioning->renderDefaultConfig($domain),
                 'custom_config' => $domain->nginx_custom_config,
-                'is_custom' => !empty($domain->nginx_custom_config),
+                'is_custom' => ! empty($domain->nginx_custom_config),
                 'http3_enabled' => (bool) $domain->http3_enabled,
                 'http3_status' => $domain->http3_status,
                 'http3_error' => $domain->http3_error,
@@ -170,10 +169,10 @@ class TenantDomainController extends Controller
     public function updateConfig(Request $request, Domain $domain)
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -194,10 +193,10 @@ class TenantDomainController extends Controller
     public function resetConfig(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -214,14 +213,14 @@ class TenantDomainController extends Controller
     public function toggleHttp3(Request $request, Domain $domain)
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
-        if (!empty($domain->nginx_custom_config)) {
+        if (! empty($domain->nginx_custom_config)) {
             return response()->json([
                 'message' => 'HTTP/3 toggle is disabled when using a custom Nginx config.',
             ], 409);
@@ -245,10 +244,10 @@ class TenantDomainController extends Controller
     public function checkHttp3(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -262,10 +261,10 @@ class TenantDomainController extends Controller
     public function testConfig(Request $request, Domain $domain)
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -284,10 +283,10 @@ class TenantDomainController extends Controller
     public function versions(Domain $domain)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
 
@@ -308,10 +307,10 @@ class TenantDomainController extends Controller
     public function restoreVersion(Domain $domain, DomainNginxVersion $version)
     {
         $user = request()->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $domain->tenant_id) {
             abort(403);
         }
         if ($version->domain_id !== $domain->id) {
@@ -334,7 +333,7 @@ class TenantDomainController extends Controller
         $targetConfig = $customConfig ?? $this->nginxProvisioning->renderDefaultConfig($domain);
 
         $test = $this->nginxProvisioning->testConfig($domain, $targetConfig);
-        if (!$test['success']) {
+        if (! $test['success']) {
             return [
                 'success' => false,
                 'message' => 'Nginx test failed. Configuration was not applied.',
@@ -350,7 +349,7 @@ class TenantDomainController extends Controller
         $apply = $this->nginxProvisioning->applyConfig($domain, $configPath);
         $domain = $domain->refresh();
 
-        if (!$apply['success']) {
+        if (! $apply['success']) {
             $domain->nginx_custom_config = $previousCustom;
             $domain->save();
 
@@ -385,6 +384,7 @@ class TenantDomainController extends Controller
     {
         $host = strtolower(trim($host));
         $host = preg_replace('#^https?://#', '', $host);
+
         return rtrim($host, '/');
     }
 }

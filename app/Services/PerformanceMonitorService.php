@@ -4,15 +4,18 @@ namespace App\Services;
 
 use App\Models\PerformanceMetric;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class PerformanceMonitorService
 {
     protected float $startTime;
+
     protected int $startMemory;
+
     protected bool $enabled = true;
+
     protected bool $recording = false;
 
     /**
@@ -21,8 +24,9 @@ class PerformanceMonitorService
     public function start(Request $request): void
     {
         $this->enabled = (bool) config('monitoring.performance.enabled', true);
-        if (!$this->enabled || $this->shouldSkip($request)) {
+        if (! $this->enabled || $this->shouldSkip($request)) {
             $this->recording = false;
+
             return;
         }
 
@@ -40,7 +44,7 @@ class PerformanceMonitorService
      */
     public function stop(Request $request, Response $response): ?PerformanceMetric
     {
-        if (!$this->recording || !isset($this->startTime)) {
+        if (! $this->recording || ! isset($this->startTime)) {
             return null;
         }
 
@@ -57,7 +61,7 @@ class PerformanceMonitorService
 
         $metric = PerformanceMetric::create([
             'tenant_id' => $this->getTenantId(),
-            'endpoint' => '/' . ltrim($request->path(), '/'),
+            'endpoint' => '/'.ltrim($request->path(), '/'),
             'method' => $request->method(),
             'status_code' => $response->getStatusCode(),
             'response_time' => $responseTime,
@@ -184,7 +188,7 @@ class PerformanceMonitorService
 
     private function shouldSkip(Request $request): bool
     {
-        $path = '/' . ltrim($request->path(), '/');
+        $path = '/'.ltrim($request->path(), '/');
         if ($path === '/up' || str_starts_with($path, '/health')) {
             return true;
         }

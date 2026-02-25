@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\AutomationRule;
 use App\Models\Tenant;
-use App\Services\AdminNotificationService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,8 +12,7 @@ class PlatformAutomationService
 {
     public function __construct(
         protected AdminNotificationService $notifications
-    ) {
-    }
+    ) {}
 
     /**
      * Run all due scheduled rules
@@ -46,8 +44,9 @@ class PlatformAutomationService
 
         try {
             // Check conditions
-            if (!$this->evaluateConditions($rule)) {
+            if (! $this->evaluateConditions($rule)) {
                 $rule->recordRun(true, 'Skipped: conditions not met');
+
                 return ['rule' => $rule->name, 'status' => 'skipped', 'reason' => 'conditions'];
             }
 
@@ -80,7 +79,7 @@ class PlatformAutomationService
         $conditions = $rule->conditions ?? [];
 
         foreach ($conditions as $condition) {
-            if (!$this->evaluateCondition($condition)) {
+            if (! $this->evaluateCondition($condition)) {
                 return false;
             }
         }
@@ -164,6 +163,7 @@ class PlatformAutomationService
         }
 
         Artisan::call($command);
+
         return Artisan::output();
     }
 
@@ -171,6 +171,7 @@ class PlatformAutomationService
     {
         Artisan::call('cache:clear');
         Artisan::call('config:clear');
+
         return 'Cache cleared';
     }
 
@@ -207,7 +208,7 @@ class PlatformAutomationService
     protected function cleanupBackups(int $days): string
     {
         $path = storage_path('app/backups');
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return 'No backups directory';
         }
 
@@ -245,7 +246,7 @@ class PlatformAutomationService
 
     protected function deleteDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

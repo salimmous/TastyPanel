@@ -18,10 +18,11 @@ class SearchController extends Controller
 
         $tenantId = TenantContext::id();
         $environment = TenantContext::environment();
-        $types = !empty($data['types']) ? array_map('trim', explode(',', $data['types'])) : [];
+        $types = ! empty($data['types']) ? array_map('trim', explode(',', $data['types'])) : [];
 
         try {
             $results = $search->search($data['query'], $tenantId, $environment, $types);
+
             return response()->json($results);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 422);

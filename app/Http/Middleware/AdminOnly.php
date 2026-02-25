@@ -14,7 +14,7 @@ class AdminOnly
     public function handle(Request $request, Closure $next): Response
     {
         // Check if user is authenticated and is admin
-        if (!$request->user() || !$request->user()->is_admin) {
+        if (! $request->user() || ! $request->user()->is_admin) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Admin access required.',

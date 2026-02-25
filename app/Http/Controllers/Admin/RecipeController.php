@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Recipe;
 use App\Models\Category;
-use App\Support\AdminEnvironmentResolver;
-use App\Support\AdminTenantResolver;
-use App\Support\AdminPermissions;
-use App\Support\ContentWorkflow;
+use App\Models\Recipe;
+use App\Models\Tenant;
+use App\Services\ContentScoringService;
 use App\Services\TenantLimitService;
 use App\Services\WebhookService;
-use App\Services\ContentScoringService;
-use App\Models\Tenant;
+use App\Support\AdminEnvironmentResolver;
+use App\Support\AdminPermissions;
+use App\Support\AdminTenantResolver;
+use App\Support\ContentWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -45,12 +45,13 @@ class RecipeController extends Controller
         }
 
         $recipes = $query->orderBy('created_at', 'desc')->paginate(20);
+
         return response()->json($recipes);
     }
 
     public function store(Request $request)
     {
-        if (!AdminPermissions::canManageContent($request->user())) {
+        if (! AdminPermissions::canManageContent($request->user())) {
             abort(403);
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -79,7 +80,7 @@ class RecipeController extends Controller
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
         $category = Category::where('environment', $environment)->find($validated['category_id']);
-        if (!$category) {
+        if (! $category) {
             return response()->json([
                 'message' => 'Category does not belong to selected environment.',
             ], 422);
@@ -89,7 +90,7 @@ class RecipeController extends Controller
                 'message' => 'Category does not belong to selected tenant.',
             ], 422);
         }
-        if (!array_key_exists('tenant_id', $validated) || !$validated['tenant_id']) {
+        if (! array_key_exists('tenant_id', $validated) || ! $validated['tenant_id']) {
             $validated['tenant_id'] = AdminTenantResolver::enforceTenantId(
                 $request,
                 $category?->tenant_id ?? $resolvedTenantId
@@ -108,7 +109,7 @@ class RecipeController extends Controller
             $tenant = Tenant::find($validated['tenant_id']);
             if ($tenant) {
                 $limits = app(TenantLimitService::class);
-                if (!$limits->canCreatePost($tenant, $environment)) {
+                if (! $limits->canCreatePost($tenant, $environment)) {
                     return response()->json([
                         'message' => 'Post limit reached for this tenant.',
                     ], 422);
@@ -140,12 +141,13 @@ class RecipeController extends Controller
             ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->where('environment', $environment)
             ->findOrFail($id);
+
         return response()->json($recipe);
     }
 
     public function update(Request $request, $id)
     {
-        if (!AdminPermissions::canManageContent($request->user())) {
+        if (! AdminPermissions::canManageContent($request->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId($request);
@@ -178,7 +180,7 @@ class RecipeController extends Controller
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
         $category = Category::where('environment', $environment)->find($validated['category_id']);
-        if (!$category) {
+        if (! $category) {
             return response()->json([
                 'message' => 'Category does not belong to selected environment.',
             ], 422);
@@ -188,7 +190,7 @@ class RecipeController extends Controller
                 'message' => 'Category does not belong to selected tenant.',
             ], 422);
         }
-        if (array_key_exists('tenant_id', $validated) && !$validated['tenant_id']) {
+        if (array_key_exists('tenant_id', $validated) && ! $validated['tenant_id']) {
             $validated['tenant_id'] = AdminTenantResolver::resolveId($request);
         }
 
@@ -217,7 +219,7 @@ class RecipeController extends Controller
 
     public function destroy($id)
     {
-        if (!AdminPermissions::canDeleteContent(request()->user())) {
+        if (! AdminPermissions::canDeleteContent(request()->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId(request());
@@ -232,19 +234,20 @@ class RecipeController extends Controller
         if ($tenant) {
             app(WebhookService::class)->dispatchEvent($tenant, 'recipe.deleted', $payload);
         }
+
         return response()->json(['message' => 'Recipe deleted successfully']);
     }
 
     private function recipeText(Recipe $recipe): string
     {
         $parts = [];
-        if (!empty($recipe->description)) {
+        if (! empty($recipe->description)) {
             $parts[] = $recipe->description;
         }
-        if (!empty($recipe->ingredients) && is_array($recipe->ingredients)) {
+        if (! empty($recipe->ingredients) && is_array($recipe->ingredients)) {
             $parts[] = implode(' ', $recipe->ingredients);
         }
-        if (!empty($recipe->instructions) && is_array($recipe->instructions)) {
+        if (! empty($recipe->instructions) && is_array($recipe->instructions)) {
             $parts[] = implode(' ', array_map(function ($item) {
                 if (is_string($item)) {
                     return $item;
@@ -252,9 +255,11 @@ class RecipeController extends Controller
                 if (is_array($item)) {
                     return implode(' ', $item);
                 }
+
                 return '';
             }, $recipe->instructions));
         }
+
         return implode("\n", array_filter($parts));
     }
 }

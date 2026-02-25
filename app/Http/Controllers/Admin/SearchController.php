@@ -24,10 +24,11 @@ class SearchController extends Controller
 
         $tenantId = AdminTenantResolver::resolveId($request);
         $environment = AdminEnvironmentResolver::resolve($request);
-        $types = !empty($data['types']) ? array_map('trim', explode(',', $data['types'])) : [];
+        $types = ! empty($data['types']) ? array_map('trim', explode(',', $data['types'])) : [];
 
         try {
             $results = $search->search($data['query'], $tenantId, $environment, $types);
+
             return response()->json($results);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -41,6 +42,7 @@ class SearchController extends Controller
 
         try {
             $result = $search->reindex($tenantId, $environment);
+
             return response()->json($result);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 422);

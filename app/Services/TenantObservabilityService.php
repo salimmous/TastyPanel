@@ -115,6 +115,7 @@ class TenantObservabilityService
                 return 'degraded';
             }
         }
+
         return 'healthy';
     }
 
@@ -131,4 +132,3 @@ class TenantObservabilityService
         return round((float) $values[$index], 2);
     }
 }
-

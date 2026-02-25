@@ -35,6 +35,7 @@ class RecipeVersionService
     public function restore(RecipeVersion $version): Recipe
     {
         $version->restore();
+
         return $version->recipe->fresh();
     }
 
@@ -66,7 +67,7 @@ class RecipeVersionService
         $significantFields = ['title', 'description', 'ingredients', 'instructions', 'prep_time', 'cook_time'];
 
         if (array_intersect($significantFields, array_keys($dirty))) {
-            $this->createVersion($recipe, $summary ?? 'Updated ' . implode(', ', array_keys($dirty)));
+            $this->createVersion($recipe, $summary ?? 'Updated '.implode(', ', array_keys($dirty)));
         }
     }
 }

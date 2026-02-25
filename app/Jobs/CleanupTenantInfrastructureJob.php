@@ -7,8 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class CleanupTenantInfrastructureJob implements ShouldQueue
 {
@@ -34,7 +34,7 @@ class CleanupTenantInfrastructureJob implements ShouldQueue
         $dbName = $this->dbName ?: '';
         $dbUser = $this->dbUser ?: '';
         $systemUser = $this->systemUser ?: '';
-        
+
         Log::info("Running deprovision-instance for {$this->tenantKey}");
         Process::run("sudo $deprovisionInstance \"{$this->tenantKey}\" \"{$this->tenantRoot}\" \"$dbName\" \"$dbUser\" \"8.3\" \"$systemUser\"");
 

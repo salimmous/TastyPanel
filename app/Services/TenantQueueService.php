@@ -6,13 +6,11 @@ use App\Models\Tenant;
 
 class TenantQueueService
 {
-    public function __construct(private TenantDatabaseService $database)
-    {
-    }
+    public function __construct(private TenantDatabaseService $database) {}
 
     public function stats(Tenant $tenant): array
     {
-        if (!$tenant->instance_db_name || !$tenant->instance_db_user) {
+        if (! $tenant->instance_db_name || ! $tenant->instance_db_user) {
             return [
                 'failed' => null,
                 'pending' => null,
@@ -66,7 +64,7 @@ class TenantQueueService
 
     private function run(Tenant $tenant, string $action): array
     {
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Instance root not found.',
@@ -74,7 +72,7 @@ class TenantQueueService
         }
 
         $script = config('services.tenant_queue.script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant queue script not found.',
@@ -93,7 +91,7 @@ class TenantQueueService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,

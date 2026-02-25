@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessExportJob;
 use App\Models\Export;
 use App\Services\ExportService;
-use App\Jobs\ProcessExportJob;
 use App\Support\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,8 +14,7 @@ class ExportController extends Controller
 {
     public function __construct(
         protected ExportService $exportService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of exports
@@ -24,7 +23,7 @@ class ExportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $exports = Export::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $exports = Export::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->with(['user'])
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -74,7 +73,7 @@ class ExportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $export = Export::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $export = Export::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->with(['user'])
             ->findOrFail($id);
 
@@ -88,10 +87,10 @@ class ExportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $export = Export::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $export = Export::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
 
-        if (!$export->isReady()) {
+        if (! $export->isReady()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Export is not ready yet',
@@ -118,7 +117,7 @@ class ExportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $export = Export::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $export = Export::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
 
         // Delete associated file
@@ -141,7 +140,7 @@ class ExportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $export = Export::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $export = Export::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
 
         return response()->json([

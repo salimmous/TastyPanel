@@ -11,9 +11,7 @@ use RuntimeException;
 
 class TenantFileController extends Controller
 {
-    public function __construct(private TenantFileService $files)
-    {
-    }
+    public function __construct(private TenantFileService $files) {}
 
     public function index(Request $request)
     {
@@ -124,12 +122,12 @@ class TenantFileController extends Controller
     private function resolveTenantId(Request $request): int
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
 

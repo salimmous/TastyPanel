@@ -87,7 +87,7 @@ class TenantMailController extends Controller
         ]);
 
         $result = $mailboxes->createMailbox($tenant, $data);
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return response()->json([
                 'message' => $result['output'] ?? 'Failed to create mailbox.',
             ], 422);
@@ -112,7 +112,7 @@ class TenantMailController extends Controller
         ]);
 
         $result = $mailboxes->resetPassword($tenant, $mailbox, $data['password'] ?? null);
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return response()->json([
                 'message' => $result['output'] ?? 'Failed to reset mailbox password.',
             ], 422);
@@ -133,7 +133,7 @@ class TenantMailController extends Controller
         abort_unless((int) $mailbox->tenant_id === (int) $tenant->id, 404);
 
         $result = $mailboxes->deleteMailbox($tenant, $mailbox);
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return response()->json([
                 'message' => $result['output'] ?? 'Failed to delete mailbox.',
             ], 422);
@@ -150,7 +150,7 @@ class TenantMailController extends Controller
         abort_unless((int) $mailbox->tenant_id === (int) $tenant->id, 404);
 
         $result = $mailboxes->refreshUsage($tenant, $mailbox);
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return response()->json([
                 'message' => $result['output'] ?? 'Failed to refresh usage.',
             ], 422);
@@ -193,7 +193,7 @@ class TenantMailController extends Controller
     private function authorizeAccess(Request $request, Tenant $tenant): void
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && (int) $request->user()->tenant_id !== (int) $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && (int) $request->user()->tenant_id !== (int) $tenant->id) {
             abort(403);
         }
     }

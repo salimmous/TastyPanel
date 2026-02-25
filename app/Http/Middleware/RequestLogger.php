@@ -104,7 +104,7 @@ class RequestLogger
 
         foreach ($headers as $key => $value) {
             $key = strtolower($key);
-            if (!in_array($key, $this->excludeHeaders)) {
+            if (! in_array($key, $this->excludeHeaders)) {
                 $filtered[$key] = is_array($value) ? $value[0] : $value;
             }
         }
@@ -114,7 +114,7 @@ class RequestLogger
 
     protected function filterBody(?array $body): ?array
     {
-        if (!$body) {
+        if (! $body) {
             return null;
         }
 
@@ -142,6 +142,7 @@ class RequestLogger
     {
         if ($response->getStatusCode() >= 400) {
             $content = json_decode($response->getContent(), true);
+
             return $content['message'] ?? $content['error'] ?? null;
         }
 

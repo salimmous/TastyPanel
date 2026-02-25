@@ -11,17 +11,17 @@ class SslHealthService
     {
         $meta = $certificate->meta ?? [];
         $certPath = $meta['cert_path'] ?? null;
-        if (!$certPath || !file_exists($certPath)) {
+        if (! $certPath || ! file_exists($certPath)) {
             return null;
         }
 
         $content = file_get_contents($certPath);
-        if (!$content) {
+        if (! $content) {
             return null;
         }
 
         $parsed = openssl_x509_parse($content);
-        if (!$parsed || empty($parsed['validTo_time_t'])) {
+        if (! $parsed || empty($parsed['validTo_time_t'])) {
             return null;
         }
 
@@ -41,7 +41,7 @@ class SslHealthService
 
         $results = collect();
         foreach ($certs as $cert) {
-            if (!$cert->expires_at) {
+            if (! $cert->expires_at) {
                 $this->updateExpiry($cert);
             }
             if ($cert->expires_at && $cert->expires_at->lessThanOrEqualTo($cutoff)) {

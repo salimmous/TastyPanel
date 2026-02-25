@@ -49,7 +49,7 @@ class PlatformInstallController extends Controller
 
         $checks = [
             'env_file' => file_exists(base_path('.env')),
-            'app_key' => !empty(config('app.key')),
+            'app_key' => ! empty(config('app.key')),
             'database' => $this->databaseReachable(),
             'users_table' => $this->tableExists('users'),
             'settings_table' => $this->tableExists('platform_settings'),
@@ -78,21 +78,21 @@ class PlatformInstallController extends Controller
             'panel_port' => ['required', 'integer', 'min:1', 'max:65535'],
         ]);
 
-        if (!$this->databaseReachable()) {
+        if (! $this->databaseReachable()) {
             return back()->withErrors([
                 'admin_email' => 'Database is not reachable. Configure DB in .env first, then reload this page.',
             ])->withInput();
         }
 
-        if (!$this->tableExists('users')) {
+        if (! $this->tableExists('users')) {
             return back()->withErrors([
                 'admin_email' => 'Tables are not migrated yet. Run: php artisan migrate --force',
             ])->withInput();
         }
 
         $user = User::query()->where('email', $data['admin_email'])->first();
-        if (!$user) {
-            $user = new User();
+        if (! $user) {
+            $user = new User;
             $user->email = $data['admin_email'];
         }
 
@@ -137,6 +137,7 @@ class PlatformInstallController extends Controller
     {
         try {
             DB::connection()->getPdo();
+
             return true;
         } catch (\Throwable $e) {
             return false;
@@ -157,27 +158,27 @@ class PlatformInstallController extends Controller
         $host = trim($host);
         $isDefaultPort = ($scheme === 'http' && $port === 80) || ($scheme === 'https' && $port === 443);
         if ($isDefaultPort) {
-            return $scheme . '://' . $host;
+            return $scheme.'://'.$host;
         }
 
-        return $scheme . '://' . $host . ':' . $port;
+        return $scheme.'://'.$host.':'.$port;
     }
 
     private function writeEnv(string $key, string $value): void
     {
         $path = base_path('.env');
-        if (!file_exists($path) || !is_writable($path)) {
+        if (! file_exists($path) || ! is_writable($path)) {
             return;
         }
 
         $content = (string) file_get_contents($path);
-        $line = $key . '=' . $value;
-        $pattern = '/^' . preg_quote($key, '/') . '=.*$/m';
+        $line = $key.'='.$value;
+        $pattern = '/^'.preg_quote($key, '/').'=.*$/m';
 
         if (preg_match($pattern, $content)) {
             $content = preg_replace($pattern, $line, $content) ?: $content;
         } else {
-            $content = rtrim($content) . PHP_EOL . $line . PHP_EOL;
+            $content = rtrim($content).PHP_EOL.$line.PHP_EOL;
         }
 
         file_put_contents($path, $content);

@@ -2,9 +2,9 @@
 
 namespace App\Console;
 
+use App\Models\PlatformSetting;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Models\PlatformSetting;
 
 class Kernel extends ConsoleKernel
 {
@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
     {
         $settings = PlatformSetting::getData();
         $cronEnabled = (bool) ($settings['cron_enabled'] ?? true);
-        if (!$cronEnabled) {
+        if (! $cronEnabled) {
             return;
         }
         $cronTimezone = (string) ($settings['cron_timezone'] ?? config('app.timezone', 'UTC'));
@@ -59,7 +59,7 @@ class Kernel extends ConsoleKernel
 
     protected function commands(): void
     {
-        $this->load(__DIR__ . '/Commands');
+        $this->load(__DIR__.'/Commands');
 
         require base_path('routes/console.php');
     }

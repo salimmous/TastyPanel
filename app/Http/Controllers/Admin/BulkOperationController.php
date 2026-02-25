@@ -11,8 +11,7 @@ class BulkOperationController extends Controller
 {
     public function __construct(
         protected BulkOperationService $bulkService
-    ) {
-    }
+    ) {}
 
     /**
      * Bulk update recipes

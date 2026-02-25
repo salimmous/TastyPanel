@@ -18,21 +18,21 @@ class TenantArtisanService
     public function run(Tenant $tenant, string $action): array
     {
         $action = trim($action);
-        if (!in_array($action, self::ALLOWED_ACTIONS, true)) {
+        if (! in_array($action, self::ALLOWED_ACTIONS, true)) {
             return [
                 'success' => false,
                 'output' => 'Unsupported action.',
             ];
         }
 
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Instance root not found.',
             ];
         }
 
-        if (!$this->isSafeInstanceRoot((string) $tenant->instance_root)) {
+        if (! $this->isSafeInstanceRoot((string) $tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Unsafe tenant root path. Aborting.',
@@ -40,7 +40,7 @@ class TenantArtisanService
         }
 
         $script = (string) config('services.tenant_artisan.script');
-        if ($script === '' || !file_exists($script)) {
+        if ($script === '' || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant artisan script not found.',
@@ -61,7 +61,7 @@ class TenantArtisanService
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -80,13 +80,14 @@ class TenantArtisanService
             return false;
         }
 
-        return str_starts_with($root . '/', $base . '/');
+        return str_starts_with($root.'/', $base.'/');
     }
 
     private function normalizePath(string $path): string
     {
         $path = str_replace('\\', '/', trim($path));
         $path = preg_replace('#/+#', '/', $path) ?: '';
+
         return rtrim($path, '/');
     }
 }

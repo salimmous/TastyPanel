@@ -20,7 +20,7 @@ class ContentScoringService
             'seo_score' => $seo,
             'word_count' => $wordCount ?: null,
             'reading_time_minutes' => $readingTime,
-            'language' => $this->detectLanguage($title . ' ' . $text),
+            'language' => $this->detectLanguage($title.' '.$text),
         ];
     }
 
@@ -29,6 +29,7 @@ class ContentScoringService
         if ($text === '') {
             return 0;
         }
+
         return count(preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY));
     }
 
@@ -38,6 +39,7 @@ class ContentScoringService
             return 0;
         }
         $count = preg_match_all('/[.!?]+/', $text, $matches);
+
         return max(1, (int) $count);
     }
 
@@ -55,6 +57,7 @@ class ContentScoringService
             }
             $count += $this->estimateSyllables($word);
         }
+
         return max(1, $count);
     }
 
@@ -62,6 +65,7 @@ class ContentScoringService
     {
         $word = preg_replace('/e$/', '', $word);
         $groups = preg_match_all('/[aeiouy]+/', $word, $matches);
+
         return max(1, (int) $groups);
     }
 
@@ -72,6 +76,7 @@ class ContentScoringService
         }
         $score = 206.835 - 1.015 * ($words / $sentences) - 84.6 * ($syllables / max(1, $words));
         $score = (int) round($score);
+
         return max(0, min(100, $score));
     }
 
@@ -122,6 +127,7 @@ class ContentScoringService
             }
             $keywords[] = $token;
         }
+
         return array_slice(array_unique($keywords), 0, 3);
     }
 
@@ -133,6 +139,7 @@ class ContentScoringService
         if (preg_match('/[a-zA-Z]/', $text)) {
             return 'en';
         }
+
         return null;
     }
 }

@@ -74,7 +74,7 @@ class TenantSecurityProfileController extends Controller
     private function authorizeAccess(Request $request, Tenant $tenant): void
     {
         abort_unless(AdminPermissions::canManageTenantInfrastructure($request->user()), 403);
-        if ($request->user() && !AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if ($request->user() && ! AdminPermissions::isSuperadmin($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
     }

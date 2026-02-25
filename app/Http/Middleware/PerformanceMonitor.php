@@ -24,7 +24,7 @@ class PerformanceMonitor
         $duration = (microtime(true) - $start) * 1000; // Convert to milliseconds
 
         // Add header with response time
-        $response->headers->set('X-Response-Time', round($duration, 2) . 'ms');
+        $response->headers->set('X-Response-Time', round($duration, 2).'ms');
 
         // Add cache status if available
         if ($cacheStatus = $request->attributes->get('cache_status')) {

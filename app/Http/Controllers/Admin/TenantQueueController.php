@@ -42,7 +42,7 @@ class TenantQueueController extends Controller
 
     private function respond(array $result)
     {
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return response()->json([
                 'success' => false,
                 'message' => $result['output'] ?? 'Queue action failed.',
@@ -58,10 +58,10 @@ class TenantQueueController extends Controller
     private function authorizeTenant(Request $request, Tenant $tenant): void
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
             abort(403);
         }
     }

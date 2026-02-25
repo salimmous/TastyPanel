@@ -22,7 +22,7 @@ class TenantBackupService
         $output = [];
         $status = 'completed';
         $settings = $this->settings($tenant);
-        if (!$settings['s3_enabled'] && !$settings['keep_local']) {
+        if (! $settings['s3_enabled'] && ! $settings['keep_local']) {
             $settings['keep_local'] = true;
             $output[] = 'Keep local enabled because S3 is disabled.';
         }
@@ -32,18 +32,18 @@ class TenantBackupService
 
             $timestamp = now()->format('Ymd_His');
             $backupDir = $this->backupDirectory($tenant, $timestamp);
-            if (!is_dir($backupDir)) {
+            if (! is_dir($backupDir)) {
                 mkdir($backupDir, 0755, true);
             }
 
             $result = $this->runScript($tenant, $backupDir);
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new \RuntimeException($result['output'] ?: 'Backup script failed.');
             }
 
             $output[] = $result['output'];
 
-            $zipPath = $backupDir . '/backup.zip';
+            $zipPath = $backupDir.'/backup.zip';
             $size = file_exists($zipPath) ? filesize($zipPath) : null;
             $checksum = file_exists($zipPath) ? hash_file('sha256', $zipPath) : null;
 
@@ -64,7 +64,7 @@ class TenantBackupService
                 $output[] = 'Backup uploaded to S3.';
             }
 
-            if (!$settings['keep_local']) {
+            if (! $settings['keep_local']) {
                 $this->deleteDirectory($backupDir);
                 $run->path = null;
                 $output[] = 'Local backup removed.';
@@ -111,20 +111,21 @@ class TenantBackupService
     private function backupDirectory(Tenant $tenant, string $timestamp): string
     {
         $root = config('services.tenant_backups.root', storage_path('app/tenant-backups'));
-        return rtrim($root, '/') . '/' . $tenant->id . '/' . $timestamp;
+
+        return rtrim($root, '/').'/'.$tenant->id.'/'.$timestamp;
     }
 
     private function s3Path(Tenant $tenant, string $timestamp, string $prefix): string
     {
-        return trim($prefix, '/') . '/' . $tenant->id . '/' . $timestamp . '/backup.zip';
+        return trim($prefix, '/').'/'.$tenant->id.'/'.$timestamp.'/backup.zip';
     }
 
     private function assertTenantReady(Tenant $tenant): void
     {
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             throw new \RuntimeException('Instance root is missing.');
         }
-        if (!$tenant->instance_db_name || !$tenant->instance_db_user) {
+        if (! $tenant->instance_db_name || ! $tenant->instance_db_user) {
             throw new \RuntimeException('Instance database credentials are missing.');
         }
     }
@@ -132,7 +133,7 @@ class TenantBackupService
     private function runScript(Tenant $tenant, string $backupDir): array
     {
         $script = config('services.tenant_backups.script');
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant backup script not found.',
@@ -155,7 +156,7 @@ class TenantBackupService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,

@@ -6,45 +6,46 @@ use App\Models\AuditLog;
 use App\Models\BackupRun;
 use App\Models\Domain;
 use App\Models\PlatformSetting;
+use App\Models\Plugin;
 use App\Models\Tenant;
+use App\Models\Theme;
 use App\Models\User;
+use App\Services\CronManagementService;
+use App\Services\NginxProvisioningService;
+use App\Services\PhpMyAdminProvisioningService;
+use App\Services\SslProvisioningService;
+use App\Services\TenantAccessService;
+use App\Services\TenantMailService;
+use App\Services\TenantQuotaService;
+use App\Support\AdminPermissions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use App\Models\Theme;
-use App\Models\Plugin;
-use App\Services\PhpMyAdminProvisioningService;
-use App\Services\TenantAccessService;
-use App\Services\TenantMailService;
-use App\Services\TenantQuotaService;
-use App\Services\CronManagementService;
-use App\Services\SslProvisioningService;
-use App\Services\NginxProvisioningService;
-use App\Support\AdminPermissions;
 
 class PlatformController extends Controller
 {
     public function dashboard()
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return redirect()->route('platform.install');
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $user = Auth::user();
-        if ($user->role !== 'superadmin' && !$user->is_superadmin) {
+        if ($user->role !== 'superadmin' && ! $user->is_superadmin) {
             Auth::logout();
+
             return redirect()->route('platform.login')->withErrors(['email' => 'Unauthorized access.']);
         }
 
@@ -61,8 +62,9 @@ class PlatformController extends Controller
 
     public function overview()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         // System metrics
         $load = sys_getloadavg();
@@ -137,6 +139,7 @@ class PlatformController extends Controller
             $total = $meminfo['MemTotal'] ?? 0;
             $available = $meminfo['MemAvailable'] ?? 0;
             $used = max($total - $available, 0);
+
             return [
                 'total_mb' => round($total / 1024, 2),
                 'used_mb' => round($used / 1024, 2),
@@ -146,6 +149,7 @@ class PlatformController extends Controller
         }
 
         $usage = memory_get_usage(true);
+
         return [
             'total_mb' => null,
             'used_mb' => round($usage / 1024 / 1024, 2),
@@ -157,7 +161,7 @@ class PlatformController extends Controller
     private function readMeminfo(): ?array
     {
         $path = '/proc/meminfo';
-        if (!is_readable($path)) {
+        if (! is_readable($path)) {
             return null;
         }
 
@@ -186,6 +190,7 @@ class PlatformController extends Controller
         }
 
         $used = max($total - $free, 0);
+
         return [
             'total_gb' => round($total / 1024 / 1024 / 1024, 2),
             'used_gb' => round($used / 1024 / 1024 / 1024, 2),
@@ -202,27 +207,29 @@ class PlatformController extends Controller
         if ($exit === 0) {
             return 'running';
         }
+
         return 'stopped';
     }
 
     public function tenants()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $tenants = Tenant::with(['domains', 'users'])->paginate(20);
+
         return view('platform.tenants', compact('tenants'));
     }
 
     public function showTenant($id, TenantAccessService $accessService, TenantMailService $mailService, TenantQuotaService $quotaService, CronManagementService $cronService)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $tenant = Tenant::with(['domains', 'users', 'securityProfile', 'secrets', 'backupRuns'])->findOrFail($id);
-        
+
         // ... (access, mail, security, quota) ...
         $access = $accessService->connectionInfo($tenant);
         $mail = $mailService->settingsPayload($tenant);
@@ -252,7 +259,7 @@ class PlatformController extends Controller
         // Fetch Logs & Vhost ...
         // ... rest of the method ...
         $logs = [];
-        $tenantKey = $tenant->instance_key ?: $tenant->slug; 
+        $tenantKey = $tenant->instance_key ?: $tenant->slug;
         $logPath = "/var/www/tastypanel-sites/{$tenantKey}/storage/logs/php-fpm.log";
         if (File::exists($logPath)) {
             $logs = array_slice(explode("\n", File::get($logPath)), -100);
@@ -290,7 +297,7 @@ class PlatformController extends Controller
         $tenant = Tenant::findOrFail($id);
         $primaryDomain = $tenant->domains->where('is_primary', true)->first();
 
-        if (!$primaryDomain) {
+        if (! $primaryDomain) {
             return redirect()->back()->with('error', 'Primary domain not found.');
         }
 
@@ -299,16 +306,16 @@ class PlatformController extends Controller
         ]);
 
         $vhostPath = "/etc/nginx/sites-available/{$primaryDomain->hostname}.conf";
-        
+
         // Use sudo to write the file (via shell since PHP might not have write access to /etc/nginx)
         $tempFile = tempnam(sys_get_temp_dir(), 'nginx_vhost');
         File::put($tempFile, $validated['vhost_content']);
-        
+
         $result = Process::run("sudo cp \"$tempFile\" \"$vhostPath\" && sudo nginx -t && sudo systemctl reload nginx");
         unlink($tempFile);
 
         if ($result->failed()) {
-            return redirect()->back()->with('error', 'Nginx Config Test Failed: ' . $result->errorOutput());
+            return redirect()->back()->with('error', 'Nginx Config Test Failed: '.$result->errorOutput());
         }
 
         return redirect()->back()->with('success', 'Nginx configuration updated and reloaded.');
@@ -317,11 +324,11 @@ class PlatformController extends Controller
     public function provisionSsl(Request $request, $id, SslProvisioningService $sslService)
     {
         $domain = Domain::findOrFail($id);
-        
+
         $result = $sslService->provisionCertificate($domain, true);
 
         if ($result->status === 'error') {
-            return redirect()->back()->with('error', 'SSL Provisioning Failed: ' . $result->last_error);
+            return redirect()->back()->with('error', 'SSL Provisioning Failed: '.$result->last_error);
         }
 
         return redirect()->back()->with('success', 'SSL certificate issued successfully.');
@@ -330,7 +337,7 @@ class PlatformController extends Controller
     public function updatePhpSettings(Request $request, $id)
     {
         $tenant = Tenant::findOrFail($id);
-        
+
         $validated = $request->validate([
             'memory_limit' => 'required|integer|min:64|max:4096',
             'max_children' => 'required|integer|min:1|max:100',
@@ -338,7 +345,7 @@ class PlatformController extends Controller
         ]);
 
         $fpmPoolPath = "/etc/php/8.3/fpm/pool.d/{$tenant->instance_key}.conf";
-        if (!File::exists($fpmPoolPath)) {
+        if (! File::exists($fpmPoolPath)) {
             return redirect()->back()->with('error', 'PHP-FPM pool configuration not found.');
         }
 
@@ -350,12 +357,12 @@ class PlatformController extends Controller
         // Write back using sudo
         $tempFile = tempnam(sys_get_temp_dir(), 'fpm_pool');
         File::put($tempFile, $content);
-        
+
         $result = Process::run("sudo cp \"$tempFile\" \"$fpmPoolPath\" && sudo systemctl reload php8.3-fpm");
         unlink($tempFile);
 
         if ($result->failed()) {
-            return redirect()->back()->with('error', 'Failed to update PHP-FPM config: ' . $result->errorOutput());
+            return redirect()->back()->with('error', 'Failed to update PHP-FPM config: '.$result->errorOutput());
         }
 
         return redirect()->back()->with('success', 'PHP settings updated and FPM reloaded.');
@@ -384,7 +391,7 @@ class PlatformController extends Controller
     public function storeSecret(Request $request, $id)
     {
         $tenant = Tenant::findOrFail($id);
-        
+
         $validated = $request->validate([
             'secret_key' => 'required|string|max:255',
             'secret_value' => 'required|string',
@@ -422,7 +429,7 @@ class PlatformController extends Controller
         $tenant = Tenant::findOrFail($id);
         $run = $tenant->backupRuns()->findOrFail($backupId);
 
-        if ($run->status !== 'success' || !file_exists($run->path)) {
+        if ($run->status !== 'success' || ! file_exists($run->path)) {
             return redirect()->back()->with('error', 'Backup file not found.');
         }
 
@@ -445,14 +452,14 @@ class PlatformController extends Controller
 
     public function phpmyadminFrame($id): View|RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $tenant = Tenant::with('domains')->findOrFail($id);
         $pmaUrl = $this->resolvePhpMyAdminUrl($tenant);
 
-        if (!$pmaUrl) {
+        if (! $pmaUrl) {
             return redirect()->route('platform.tenants.show', $id)
                 ->withErrors(['phpmyadmin' => 'phpMyAdmin URL not configured. Set PMA_URL or PMA_PATH in .env (e.g. PMA_URL=http://84.247.160.84:8443/phpmyadmin/).']);
         }
@@ -470,12 +477,13 @@ class PlatformController extends Controller
     {
         $single = config('services.phpmyadmin.url');
         if ($single !== null && $single !== '') {
-            return rtrim($single, '/') . '/';
+            return rtrim($single, '/').'/';
         }
         $path = config('services.phpmyadmin.path', '/phpmyadmin');
         if ($path !== null && $path !== '') {
             $base = rtrim(config('app.url'), '/');
-            return $base . '/' . ltrim($path, '/');
+
+            return $base.'/'.ltrim($path, '/');
         }
         if ($tenant) {
             $primaryDomain = $tenant->domains->firstWhere('is_primary', true) ?? $tenant->domains->first();
@@ -484,15 +492,16 @@ class PlatformController extends Controller
                 return str_replace(':domain', $primaryDomain->hostname, $template);
             }
             if ($primaryDomain) {
-                return (request()->secure() ? 'https://' : 'http://') . 'pma.' . $primaryDomain->hostname;
+                return (request()->secure() ? 'https://' : 'http://').'pma.'.$primaryDomain->hostname;
             }
         }
+
         return null;
     }
 
     public function provisionPhpMyAdmin($id, PhpMyAdminProvisioningService $pma): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -510,24 +519,32 @@ class PlatformController extends Controller
 
     public function themes()
     {
-        if (!Auth::check()) return redirect()->route('platform.login');
-        
+        if (! Auth::check()) {
+            return redirect()->route('platform.login');
+        }
+
         $themes = Theme::orderByDesc('is_active')->orderBy('name')->get();
+
         return view('platform.themes.index', compact('themes'));
     }
 
     public function marketplace()
     {
-        if (!Auth::check()) return redirect()->route('platform.login');
+        if (! Auth::check()) {
+            return redirect()->route('platform.login');
+        }
 
         // logic: fetch marketplace themes. For now using local themes flagged as is_marketplace
         $themes = Theme::where('is_marketplace', true)->get();
+
         return view('platform.themes.marketplace', compact('themes'));
     }
 
     public function uploadTheme(Request $request, \App\Services\ThemePackageService $packages)
     {
-        if (!Auth::check()) return redirect()->route('platform.login');
+        if (! Auth::check()) {
+            return redirect()->route('platform.login');
+        }
 
         $request->validate([
             'zip' => ['required', 'file', 'mimes:zip'],
@@ -537,7 +554,7 @@ class PlatformController extends Controller
             // We use a temporary key based on filename, the service extracts real key from json
             $key = pathinfo($request->file('zip')->getClientOriginalName(), PATHINFO_FILENAME);
             $packages->importThemeZip($request->file('zip'), $key);
-            
+
             return redirect()->route('platform.themes')->with('success', 'Theme uploaded successfully.');
         } catch (\Throwable $e) {
             return redirect()->route('platform.themes')->withErrors(['zip' => $e->getMessage()]);
@@ -546,15 +563,18 @@ class PlatformController extends Controller
 
     public function plugins()
     {
-        if (!Auth::check()) return redirect()->route('platform.login');
+        if (! Auth::check()) {
+            return redirect()->route('platform.login');
+        }
 
         $plugins = Plugin::orderBy('name')->get();
+
         return view('platform.plugins.index', compact('plugins'));
     }
 
     public function createTenant()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -563,7 +583,7 @@ class PlatformController extends Controller
 
     public function storeTenant(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -589,13 +609,13 @@ class PlatformController extends Controller
         ]);
 
         $jobMeta = ['domain_id' => $domain->id];
-        if (!empty($validated['admin_email'])) {
+        if (! empty($validated['admin_email'])) {
             $jobMeta['admin_email'] = $validated['admin_email'];
         }
-        if (!empty($validated['admin_user'])) {
+        if (! empty($validated['admin_user'])) {
             $jobMeta['admin_user'] = $validated['admin_user'];
         }
-        if (!empty($validated['admin_password'])) {
+        if (! empty($validated['admin_password'])) {
             $jobMeta['admin_password'] = $validated['admin_password'];
         }
 
@@ -603,7 +623,7 @@ class PlatformController extends Controller
         $job = \App\Models\ProvisioningJob::create([
             'tenant_id' => $tenant->id,
             'status' => 'pending',
-            'message' => 'Provisioning started for ' . $domain->hostname,
+            'message' => 'Provisioning started for '.$domain->hostname,
             'meta' => $jobMeta,
         ]);
 
@@ -628,14 +648,14 @@ class PlatformController extends Controller
         $domain = $tenant->primaryDomain?->hostname ?: 'localhost';
 
         \App\Jobs\InstallTenantAppJob::dispatch(
-            $tenant, 
-            $validated['app_type'], 
+            $tenant,
+            $validated['app_type'],
             $validated['repo_url'] ?? null,
             [
                 'admin_user' => $validated['admin_user'],
                 'admin_email' => $validated['admin_email'],
                 'admin_password' => $validated['admin_password'],
-                'url' => "http://{$domain}"
+                'url' => "http://{$domain}",
             ]
         );
 
@@ -652,12 +672,12 @@ class PlatformController extends Controller
 
     public function destroyTenant($id): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $tenant = Tenant::with('domains')->findOrFail($id);
-        
+
         // Prepare data for cleanup job
         $tenantKey = $tenant->instance_key ?: $tenant->slug;
         $tenantRoot = $tenant->instance_root;
@@ -684,7 +704,7 @@ class PlatformController extends Controller
 
     public function toggleTenantStatus($id)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -693,36 +713,37 @@ class PlatformController extends Controller
         $tenant->save();
 
         $message = $tenant->status === 'active' ? 'Tenant activated successfully.' : 'Tenant deactivated successfully.';
+
         return redirect()->route('platform.tenants')->with('success', $message);
     }
 
     public function bulkActivate(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $tenantIds = $request->input('tenant_ids', []);
         Tenant::whereIn('id', $tenantIds)->update(['status' => 'active']);
 
-        return redirect()->route('platform.tenants')->with('success', count($tenantIds) . ' tenant(s) activated successfully.');
+        return redirect()->route('platform.tenants')->with('success', count($tenantIds).' tenant(s) activated successfully.');
     }
 
     public function bulkDeactivate(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $tenantIds = $request->input('tenant_ids', []);
         Tenant::whereIn('id', $tenantIds)->update(['status' => 'inactive']);
 
-        return redirect()->route('platform.tenants')->with('success', count($tenantIds) . ' tenant(s) deactivated successfully.');
+        return redirect()->route('platform.tenants')->with('success', count($tenantIds).' tenant(s) deactivated successfully.');
     }
 
     public function bulkDelete(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -734,22 +755,23 @@ class PlatformController extends Controller
         // Delete tenants
         Tenant::whereIn('id', $tenantIds)->delete();
 
-        return redirect()->route('platform.tenants')->with('success', count($tenantIds) . ' tenant(s) deleted successfully.');
+        return redirect()->route('platform.tenants')->with('success', count($tenantIds).' tenant(s) deleted successfully.');
     }
 
     public function users()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $users = User::with('tenant')->paginate(20);
+
         return view('platform.users', compact('users'));
     }
 
     public function settings()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -761,7 +783,7 @@ class PlatformController extends Controller
 
     public function updateSettings(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -835,12 +857,12 @@ class PlatformController extends Controller
 
     public function sendTestEmail(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $email = $request->input('email');
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return back()->with('error', 'Invalid email address for testing.');
         }
 
@@ -850,9 +872,9 @@ class PlatformController extends Controller
                     ->subject('TastyPanel SMTP Test');
             });
 
-            return back()->with('success', 'Test email sent successfully to ' . $email);
+            return back()->with('success', 'Test email sent successfully to '.$email);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Failed to send test email: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send test email: '.$e->getMessage());
         }
     }
 
@@ -911,7 +933,7 @@ class PlatformController extends Controller
             'sso_auth_url' => '',
             'sso_token_url' => '',
             'sso_userinfo_url' => '',
-            'sso_redirect_url' => config('app.url') . '/admin/sso/callback',
+            'sso_redirect_url' => config('app.url').'/admin/sso/callback',
             'sso_scopes' => 'openid email profile',
             'sso_allowed_domains' => '',
             'sso_auto_create' => false,
@@ -936,26 +958,31 @@ class PlatformController extends Controller
 
     public function analytics(\App\Services\AnalyticsService $analytics)
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         $stats = $analytics->getPlatformOverview();
+
         return view('platform.analytics', compact('stats'));
     }
 
     public function backups()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         $backups = BackupRun::latest()->paginate(20);
+
         return view('platform.backups', compact('backups'));
     }
 
     public function system()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         $services = [
             'nginx' => 'running', // Assumed running if we are here
@@ -989,10 +1016,12 @@ class PlatformController extends Controller
 
     public function auditLogs()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         $logs = AuditLog::with('user')->latest()->paginate(25);
+
         return view('platform.audit_logs', compact('logs'));
     }
 
@@ -1012,14 +1041,16 @@ class PlatformController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            if (!AdminPermissions::isSuperadmin($user)) {
+            if (! AdminPermissions::isSuperadmin($user)) {
                 Auth::logout();
+
                 return back()->withErrors(['email' => 'Unauthorized access.']);
             }
 
             $settings = PlatformSetting::getData();
-            if (($settings['force_2fa'] ?? false) && !$user->two_factor_enabled) {
+            if (($settings['force_2fa'] ?? false) && ! $user->two_factor_enabled) {
                 Auth::logout();
+
                 return back()->withErrors(['email' => 'Two-factor authentication is required. Enable 2FA for your account first.']);
             }
 
@@ -1029,11 +1060,13 @@ class PlatformController extends Controller
                 $this->sendTwoFactorCode($user);
                 $request->session()->put('two_factor_verified', false);
                 $this->auditAuthEvent('login_2fa_challenge', $user, $request);
+
                 return redirect()->route('platform.2fa');
             }
 
             $request->session()->put('two_factor_verified', true);
             $this->auditAuthEvent('login', $user, $request);
+
             return redirect()->intended(route('platform.dashboard'));
 
         }
@@ -1051,6 +1084,7 @@ class PlatformController extends Controller
         if ($user) {
             $this->auditAuthEvent('logout', $user, $request);
         }
+
         return redirect()->route('platform.login');
     }
 
@@ -1099,8 +1133,9 @@ class PlatformController extends Controller
 
     public function queue()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         // Get queue statistics
         $stats = $this->getQueueStats();
@@ -1115,6 +1150,7 @@ class PlatformController extends Controller
                 ->get()
                 ->map(function ($job) {
                     $payload = json_decode($job->payload, true);
+
                     return [
                         'id' => $job->id,
                         'queue' => $job->queue,
@@ -1137,6 +1173,7 @@ class PlatformController extends Controller
                 ->get()
                 ->map(function ($job) {
                     $payload = json_decode($job->payload, true);
+
                     return [
                         'id' => $job->id,
                         'uuid' => $job->uuid,
@@ -1155,8 +1192,9 @@ class PlatformController extends Controller
 
     public function queueRestart()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         $output = [];
         $exit = 0;
@@ -1171,8 +1209,9 @@ class PlatformController extends Controller
 
     public function queueFlushFailed()
     {
-        if (!Auth::check())
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
+        }
 
         $output = [];
         $exit = 0;
@@ -1208,7 +1247,7 @@ class PlatformController extends Controller
 
     public function services()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -1242,7 +1281,7 @@ class PlatformController extends Controller
                 'service' => 'supervisor',
                 'status' => $this->checkServiceStatus('supervisor'),
                 'icon' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>',
-            ]
+            ],
         ];
 
         return view('platform.services', compact('services'));
@@ -1250,14 +1289,14 @@ class PlatformController extends Controller
 
     public function serviceAction(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         $service = $request->input('service');
         $action = $request->input('action');
 
-        if (!in_array($action, ['start', 'stop', 'restart'])) {
+        if (! in_array($action, ['start', 'stop', 'restart'])) {
             return back()->with('error', 'Invalid action');
         }
 
@@ -1270,12 +1309,12 @@ class PlatformController extends Controller
             return back()->with('success', "Service {$service} {$action}ed successfully.");
         }
 
-        return back()->with('error', "Failed to {$action} {$service}. Output: " . implode("\n", $output));
+        return back()->with('error', "Failed to {$action} {$service}. Output: ".implode("\n", $output));
     }
 
     public function serviceLogs(Request $request)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -1299,21 +1338,23 @@ class PlatformController extends Controller
                 return response()->json(['error' => 'Unknown service'], 400);
         }
 
-        if (!file_exists($logFile) || !is_readable($logFile)) {
+        if (! file_exists($logFile) || ! is_readable($logFile)) {
             // Try journalctl if file not accessible
             $cmd = sprintf('journalctl -u %s -n 50 --no-pager', escapeshellarg($service));
             $output = [];
             @exec($cmd, $output);
+
             return response()->json(['logs' => implode("\n", $output)]);
         }
 
-        $content = shell_exec("tail -n 50 " . escapeshellarg($logFile));
+        $content = shell_exec('tail -n 50 '.escapeshellarg($logFile));
+
         return response()->json(['logs' => $content]);
     }
 
     public function deployNginxSafe(\App\Services\NginxSafeDeployService $deployer)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -1328,7 +1369,7 @@ class PlatformController extends Controller
 
     public function drills()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -1342,7 +1383,7 @@ class PlatformController extends Controller
 
     public function runDrill(\App\Services\DisasterRecoveryDrillService $drillService)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -1354,29 +1395,30 @@ class PlatformController extends Controller
                 return back()->with('success', 'Disaster recovery drill passed successfully.');
             }
 
-            return back()->with('error', 'Disaster recovery drill failed: ' . $drill->message);
+            return back()->with('error', 'Disaster recovery drill failed: '.$drill->message);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Drill execution failed: ' . $e->getMessage());
+            return back()->with('error', 'Drill execution failed: '.$e->getMessage());
         }
     }
 
     public function createBackup(\App\Services\BackupService $backupService)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
         try {
             $backupService->run(Auth::id());
+
             return back()->with('success', 'Backup created successfully.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Backup failed: ' . $e->getMessage());
+            return back()->with('error', 'Backup failed: '.$e->getMessage());
         }
     }
 
     public function downloadBackup($id)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -1386,8 +1428,8 @@ class PlatformController extends Controller
             if ($backup->remote_path) {
                 return \Illuminate\Support\Facades\Storage::disk('s3')->download($backup->remote_path);
             }
-        } elseif ($backup->path && file_exists($backup->path . '/backup.zip')) {
-            return response()->download($backup->path . '/backup.zip');
+        } elseif ($backup->path && file_exists($backup->path.'/backup.zip')) {
+            return response()->download($backup->path.'/backup.zip');
         }
 
         return back()->with('error', 'Backup file not found.');
@@ -1395,7 +1437,7 @@ class PlatformController extends Controller
 
     public function deleteBackup($id)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
@@ -1411,24 +1453,30 @@ class PlatformController extends Controller
             }
 
             $backup->delete();
+
             return back()->with('success', 'Backup deleted successfully.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Failed to delete backup: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete backup: '.$e->getMessage());
         }
     }
 
     private function deleteDirectory($dir)
     {
-        if (!file_exists($dir))
+        if (! file_exists($dir)) {
             return true;
-        if (!is_dir($dir))
-            return unlink($dir);
-        foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..')
-                continue;
-            if (!$this->deleteDirectory($dir . DIRECTORY_SEPARATOR . $item))
-                return false;
         }
+        if (! is_dir($dir)) {
+            return unlink($dir);
+        }
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+            if (! $this->deleteDirectory($dir.DIRECTORY_SEPARATOR.$item)) {
+                return false;
+            }
+        }
+
         return rmdir($dir);
     }
 }

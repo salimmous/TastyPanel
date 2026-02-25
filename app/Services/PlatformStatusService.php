@@ -17,6 +17,7 @@ class PlatformStatusService
     private function loadAverage(): array
     {
         $load = sys_getloadavg();
+
         return [
             '1m' => $load[0] ?? null,
             '5m' => $load[1] ?? null,
@@ -31,6 +32,7 @@ class PlatformStatusService
             $total = $meminfo['MemTotal'] ?? 0;
             $available = $meminfo['MemAvailable'] ?? 0;
             $used = max($total - $available, 0);
+
             return [
                 'total_mb' => round($total / 1024, 2),
                 'used_mb' => round($used / 1024, 2),
@@ -39,6 +41,7 @@ class PlatformStatusService
         }
 
         $usage = memory_get_usage(true);
+
         return [
             'total_mb' => null,
             'used_mb' => round($usage / 1024 / 1024, 2),
@@ -49,7 +52,7 @@ class PlatformStatusService
     private function readMeminfo(): ?array
     {
         $path = '/proc/meminfo';
-        if (!is_readable($path)) {
+        if (! is_readable($path)) {
             return null;
         }
 
@@ -77,6 +80,7 @@ class PlatformStatusService
         }
 
         $used = max($total - $free, 0);
+
         return [
             'total_gb' => round($total / 1024 / 1024 / 1024, 2),
             'used_gb' => round($used / 1024 / 1024 / 1024, 2),
@@ -101,6 +105,7 @@ class PlatformStatusService
         if ($exit === 0) {
             return trim($output[0] ?? 'active');
         }
+
         return 'unknown';
     }
 
@@ -110,6 +115,7 @@ class PlatformStatusService
         if ($socket && file_exists($socket)) {
             return 'active';
         }
+
         return $this->checkService('php-fpm');
     }
 }

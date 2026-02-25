@@ -15,21 +15,21 @@ class TenantDeployService
     public function run(Tenant $tenant, string $mode): array
     {
         $mode = trim($mode);
-        if (!in_array($mode, self::ALLOWED_MODES, true)) {
+        if (! in_array($mode, self::ALLOWED_MODES, true)) {
             return [
                 'success' => false,
                 'output' => 'Unsupported deploy mode.',
             ];
         }
 
-        if (!$tenant->instance_root || !is_dir($tenant->instance_root)) {
+        if (! $tenant->instance_root || ! is_dir($tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Instance root not found.',
             ];
         }
 
-        if (!$this->isSafeInstanceRoot((string) $tenant->instance_root)) {
+        if (! $this->isSafeInstanceRoot((string) $tenant->instance_root)) {
             return [
                 'success' => false,
                 'output' => 'Unsafe tenant root path. Aborting.',
@@ -37,7 +37,7 @@ class TenantDeployService
         }
 
         $script = (string) config('services.tenant_deploy.script', base_path('infrastructure/tenant-deploy.sh'));
-        if ($script === '' || !file_exists($script)) {
+        if ($script === '' || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Tenant deploy script not found.',
@@ -58,7 +58,7 @@ class TenantDeployService
 
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -77,14 +77,14 @@ class TenantDeployService
             return false;
         }
 
-        return str_starts_with($root . '/', $base . '/');
+        return str_starts_with($root.'/', $base.'/');
     }
 
     private function normalizePath(string $path): string
     {
         $path = str_replace('\\', '/', trim($path));
         $path = preg_replace('#/+#', '/', $path) ?: '';
+
         return rtrim($path, '/');
     }
 }
-

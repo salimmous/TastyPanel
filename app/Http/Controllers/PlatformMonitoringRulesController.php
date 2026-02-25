@@ -16,15 +16,15 @@ class PlatformMonitoringRulesController extends Controller
 {
     public function index(Request $request): View|RedirectResponse
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return redirect()->route('platform.install');
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -33,8 +33,8 @@ class PlatformMonitoringRulesController extends Controller
         $tenantsQuery = Tenant::query()->with('alertRule');
         if ($q !== '') {
             $tenantsQuery->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', '%' . $q . '%')
-                    ->orWhere('slug', 'like', '%' . $q . '%');
+                $sub->where('name', 'like', '%'.$q.'%')
+                    ->orWhere('slug', 'like', '%'.$q.'%');
             });
         }
 
@@ -59,10 +59,10 @@ class PlatformMonitoringRulesController extends Controller
 
     public function upsert(Request $request, Tenant $tenant): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -106,8 +106,8 @@ class PlatformMonitoringRulesController extends Controller
             'notify_backup' => $rule->notify_backup,
             'notify_http3' => $rule->notify_http3,
             'notify_storage' => $rule->notify_storage,
-            'has_emails' => !empty(trim((string) $rule->emails)),
-            'has_slack' => !empty(trim((string) $rule->slack_webhook)),
+            'has_emails' => ! empty(trim((string) $rule->emails)),
+            'has_slack' => ! empty(trim((string) $rule->slack_webhook)),
         ]);
 
         return back()->with('success', 'Monitoring rule saved.');
@@ -115,10 +115,10 @@ class PlatformMonitoringRulesController extends Controller
 
     public function destroy(Request $request, Tenant $tenant): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 

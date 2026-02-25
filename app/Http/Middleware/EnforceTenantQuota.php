@@ -13,12 +13,12 @@ class EnforceTenantQuota
     public function handle(Request $request, Closure $next): Response
     {
         $tenant = TenantContext::get();
-        if (!$tenant) {
+        if (! $tenant) {
             return $next($request);
         }
 
         $quota = app(TenantQuotaService::class)->evaluateAndTrack($tenant);
-        if (!($quota['allowed'] ?? true)) {
+        if (! ($quota['allowed'] ?? true)) {
             return response()->json([
                 'message' => 'Tenant quota exceeded.',
                 'reason' => $quota['reason'] ?? 'quota_exceeded',
@@ -32,10 +32,9 @@ class EnforceTenantQuota
         if (is_array($usage)) {
             $used = (int) ($usage['used'] ?? 0);
             $limit = $usage['limit'] ?? 'unlimited';
-            $response->headers->set('X-Tenant-Requests', $used . '/' . $limit);
+            $response->headers->set('X-Tenant-Requests', $used.'/'.$limit);
         }
 
         return $response;
     }
 }
-

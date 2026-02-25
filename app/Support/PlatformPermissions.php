@@ -16,12 +16,14 @@ use App\Models\User;
 class PlatformPermissions
 {
     public const ROLE_SUPERADMIN = 'superadmin';
+
     public const ROLE_OPS = 'ops';
+
     public const ROLE_SUPPORT = 'support';
 
     public static function role(?User $user): string
     {
-        if (!$user) {
+        if (! $user) {
             return '';
         }
 
@@ -113,4 +115,3 @@ class PlatformPermissions
         return self::isSuperadmin($user);
     }
 }
-

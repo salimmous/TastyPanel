@@ -33,7 +33,7 @@ class ThrottleTenant
         $key = sprintf('tenant_rate:%s:%s:%s', $tenantId, $request->ip(), $request->path());
         $ttl = now()->addMinute();
 
-        if (!Cache::has($key)) {
+        if (! Cache::has($key)) {
             Cache::put($key, 1, $ttl);
         } else {
             Cache::increment($key);
@@ -53,6 +53,7 @@ class ThrottleTenant
     {
         $settings = PlatformSetting::getData();
         $limit = $settings['rate_limit_per_minute'] ?? config('services.platform.rate_limit_per_minute', 120);
+
         return (int) $limit;
     }
 }

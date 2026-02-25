@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class TenantQueueAutoscale extends Command
 {
     protected $signature = 'tenant:queue:autoscale {--tenant=}';
+
     protected $description = 'Compute desired worker counts per tenant based on queue depth.';
 
     public function handle(TenantQueueProfileService $service): int

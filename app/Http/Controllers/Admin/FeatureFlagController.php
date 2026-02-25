@@ -13,7 +13,7 @@ class FeatureFlagController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user)) {
+        if (! AdminPermissions::isSuperadmin($user)) {
             abort(403);
         }
 
@@ -33,7 +33,7 @@ class FeatureFlagController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user)) {
+        if (! AdminPermissions::isSuperadmin($user)) {
             abort(403);
         }
 
@@ -48,7 +48,7 @@ class FeatureFlagController extends Controller
     public function update(Request $request, FeatureFlag $featureFlag)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user)) {
+        if (! AdminPermissions::isSuperadmin($user)) {
             abort(403);
         }
 
@@ -61,7 +61,7 @@ class FeatureFlagController extends Controller
     public function destroy(Request $request, FeatureFlag $featureFlag)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user)) {
+        if (! AdminPermissions::isSuperadmin($user)) {
             abort(403);
         }
 
@@ -73,10 +73,10 @@ class FeatureFlagController extends Controller
     private function validated(Request $request, bool $create = true): array
     {
         $rules = [
-            'key' => ($create ? 'required' : 'sometimes') . '|string|max:191',
+            'key' => ($create ? 'required' : 'sometimes').'|string|max:191',
             'name' => 'nullable|string|max:191',
             'description' => 'nullable|string',
-            'enabled' => ($create ? 'required' : 'sometimes') . '|boolean',
+            'enabled' => ($create ? 'required' : 'sometimes').'|boolean',
             'rollout_percentage' => 'nullable|integer|min:0|max:100',
             'environment' => 'nullable|string|max:64',
             'tenant_id' => 'nullable|exists:tenants,id',

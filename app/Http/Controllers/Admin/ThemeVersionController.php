@@ -43,10 +43,10 @@ class ThemeVersionController extends Controller
             'created_by' => $request->user()?->id,
         ]);
 
-        if (!empty($data['version'])) {
+        if (! empty($data['version'])) {
             $theme->version = $data['version'];
         }
-        if (!empty($package['view'])) {
+        if (! empty($package['view'])) {
             $theme->view = $package['view'];
         }
         $theme->save();
@@ -64,17 +64,17 @@ class ThemeVersionController extends Controller
             abort(404);
         }
 
-        if (!Storage::disk('local')->exists($version->zip_path)) {
+        if (! Storage::disk('local')->exists($version->zip_path)) {
             return response()->json(['message' => 'Theme package not found.'], 404);
         }
 
         $zipPath = Storage::disk('local')->path($version->zip_path);
         $view = $packages->extractThemeZip($zipPath, $theme->key);
 
-        if (!empty($version->version)) {
+        if (! empty($version->version)) {
             $theme->version = $version->version;
         }
-        if (!empty($view)) {
+        if (! empty($view)) {
             $theme->view = $view;
         }
         $theme->save();

@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\SiteSetting;
+use App\Services\AutomationRunnerService;
 use App\Services\AutomationSettingsService;
 use App\Services\CanvaService;
 use App\Services\DiscordService;
 use App\Services\OpenAiService;
 use App\Services\PinterestService;
-use App\Services\AutomationRunnerService;
 use App\Support\AdminEnvironmentResolver;
 use App\Support\AdminPermissions;
 use App\Support\AdminTenantResolver;
@@ -28,13 +28,12 @@ class AutomationController extends Controller
         private CanvaService $canva,
         private DiscordService $discord,
         private PinterestService $pinterest,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request, $tenantId)
     {
         $tenant = \App\Models\Tenant::findOrFail($tenantId);
-        if (!AdminPermissions::canManageTenantInfrastructure($request->user()) && $request->user()->tenant_id !== $tenant->id) {
+        if (! AdminPermissions::canManageTenantInfrastructure($request->user()) && $request->user()->tenant_id !== $tenant->id) {
             abort(403);
         }
 
@@ -56,7 +55,7 @@ class AutomationController extends Controller
     public function show(Request $request)
     {
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
 
@@ -73,12 +72,12 @@ class AutomationController extends Controller
 
     public function update(Request $request)
     {
-        if (!AdminPermissions::canManageTenantInfrastructure($request->user())) {
+        if (! AdminPermissions::canManageTenantInfrastructure($request->user())) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -139,7 +138,7 @@ class AutomationController extends Controller
             'schedule.environment' => ['nullable', 'string', Rule::in(['production', 'staging', 'preview'])],
         ]);
 
-        $settings = $this->loadSettings($tenantId, $environment) ?? new SiteSetting();
+        $settings = $this->loadSettings($tenantId, $environment) ?? new SiteSetting;
         $current = $settings->data ?? [];
         $currentAutomation = $current['automation'] ?? [];
 
@@ -167,7 +166,7 @@ class AutomationController extends Controller
 
     public function test(Request $request)
     {
-        if (!AdminPermissions::canManageTenantInfrastructure($request->user())) {
+        if (! AdminPermissions::canManageTenantInfrastructure($request->user())) {
             abort(403);
         }
 
@@ -186,7 +185,7 @@ class AutomationController extends Controller
         }
 
         $check = $this->checkProvider($data['provider'], $payload);
-        if (!$check['ok']) {
+        if (! $check['ok']) {
             return response()->json([
                 'success' => false,
                 'message' => $check['message'],
@@ -201,12 +200,12 @@ class AutomationController extends Controller
 
     public function createDraft(Request $request)
     {
-        if (!AdminPermissions::canManageContent($request->user())) {
+        if (! AdminPermissions::canManageContent($request->user())) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -228,7 +227,7 @@ class AutomationController extends Controller
 
         $summary = $this->generateSummary($data['title'], $data['summary'] ?? '', $automation);
 
-        $article = new Article();
+        $article = new Article;
         $article->tenant_id = $tenantId;
         $article->environment = $environment;
         $article->title = $data['title'];
@@ -246,12 +245,12 @@ class AutomationController extends Controller
 
     public function canvaConnect(Request $request)
     {
-        if (!AdminPermissions::canManageTenantInfrastructure($request->user())) {
+        if (! AdminPermissions::canManageTenantInfrastructure($request->user())) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
 
@@ -275,7 +274,7 @@ class AutomationController extends Controller
     public function runs(Request $request)
     {
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -295,12 +294,12 @@ class AutomationController extends Controller
 
     public function run(Request $request, AutomationRunnerService $runner)
     {
-        if (!AdminPermissions::canManageContent($request->user())) {
+        if (! AdminPermissions::canManageContent($request->user())) {
             abort(403);
         }
 
         $tenantId = AdminTenantResolver::resolveId($request);
-        if (!$tenantId) {
+        if (! $tenantId) {
             abort(422, 'Tenant required.');
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -319,7 +318,7 @@ class AutomationController extends Controller
 
     public function canvaCallback(Request $request)
     {
-        if (!AdminPermissions::canManageTenantInfrastructure($request->user())) {
+        if (! AdminPermissions::canManageTenantInfrastructure($request->user())) {
             abort(403);
         }
 
@@ -330,12 +329,12 @@ class AutomationController extends Controller
 
         $code = $request->query('code');
         $state = $request->query('state');
-        if (!$code || !$state) {
+        if (! $code || ! $state) {
             return redirect('/admin/auto-post-settings?canva=missing');
         }
 
         $stateData = $this->canva->consumeState($state);
-        if (!$stateData) {
+        if (! $stateData) {
             return redirect('/admin/auto-post-settings?canva=expired');
         }
 
@@ -349,7 +348,7 @@ class AutomationController extends Controller
             return redirect('/admin/auto-post-settings?canva=failed');
         }
 
-        $settings = $this->loadSettings($stateData['tenant_id'], $stateData['environment']) ?? new SiteSetting();
+        $settings = $this->loadSettings($stateData['tenant_id'], $stateData['environment']) ?? new SiteSetting;
         $automation = $this->settingsService->mergeWithDefaults($settings?->data['automation'] ?? []);
         $automation = $this->settingsService->revealSecrets($automation);
 
@@ -380,7 +379,7 @@ class AutomationController extends Controller
 
     private function loadSettings(?int $tenantId, ?string $environment): ?SiteSetting
     {
-        if (!$tenantId) {
+        if (! $tenantId) {
             return null;
         }
 
@@ -406,7 +405,7 @@ class AutomationController extends Controller
             return ['ok' => false, 'message' => 'OpenAI is disabled.'];
         }
         $apiKey = $payload['openai']['api_key'] ?? '';
-        if (!$apiKey) {
+        if (! $apiKey) {
             return ['ok' => false, 'message' => 'OpenAI key is missing.'];
         }
 
@@ -419,7 +418,7 @@ class AutomationController extends Controller
             return ['ok' => false, 'message' => 'Midjourney is disabled.'];
         }
         $botToken = $payload['midjourney']['bot_token'] ?? '';
-        if (!$botToken) {
+        if (! $botToken) {
             return ['ok' => false, 'message' => 'Discord bot token is missing.'];
         }
         if (empty($payload['midjourney']['channel_id'])) {
@@ -454,7 +453,7 @@ class AutomationController extends Controller
             return ['ok' => false, 'message' => 'Pinterest is disabled.'];
         }
         $token = $payload['pinterest']['access_token'] ?? '';
-        if (!$token) {
+        if (! $token) {
             return ['ok' => false, 'message' => 'Pinterest token is missing.'];
         }
 
@@ -466,7 +465,7 @@ class AutomationController extends Controller
         $oauth = $payload['canva']['oauth'] ?? [];
         $expiresAt = $oauth['expires_at'] ?? null;
 
-        if (!$expiresAt || empty($oauth['refresh_token'])) {
+        if (! $expiresAt || empty($oauth['refresh_token'])) {
             return $payload;
         }
 
@@ -538,7 +537,7 @@ class AutomationController extends Controller
             ->where('slug', $slug)
             ->exists()) {
             $counter += 1;
-            $slug = $base . '-' . $counter;
+            $slug = $base.'-'.$counter;
         }
 
         return $slug;
@@ -550,7 +549,7 @@ class AutomationController extends Controller
             return $summary;
         }
 
-        $enabled = !empty($automation['openai']['enabled']);
+        $enabled = ! empty($automation['openai']['enabled']);
         $apiKey = $automation['openai']['api_key'] ?? '';
         if ($enabled && $apiKey) {
             $draft = $this->openAi->generateDraft($apiKey, $automation, $title, $summary);
@@ -568,12 +567,12 @@ class AutomationController extends Controller
         $toneLine = $tone ? "Tone guidance: {$tone}\n\n" : '';
 
         return $toneLine
-            . "{$title}\n\n"
-            . "This is an automated draft placeholder. Add your key points, data, and sources here.\n\n"
-            . "Outline:\n"
-            . "1. Introduction\n"
-            . "2. Key takeaways\n"
-            . "3. Practical tips\n"
-            . "4. Conclusion\n";
+            ."{$title}\n\n"
+            ."This is an automated draft placeholder. Add your key points, data, and sources here.\n\n"
+            ."Outline:\n"
+            ."1. Introduction\n"
+            ."2. Key takeaways\n"
+            ."3. Practical tips\n"
+            ."4. Conclusion\n";
     }
 }

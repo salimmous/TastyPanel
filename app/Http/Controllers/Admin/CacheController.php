@@ -14,7 +14,7 @@ class CacheController extends Controller
     public function purgeTenant(Request $request, Tenant $tenant, CloudflareService $cloudflare)
     {
         $user = $request->user();
-        if (!AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
+        if (! AdminPermissions::isSuperadmin($user) && (int) $user?->tenant_id !== (int) $tenant->id) {
             abort(403);
         }
 
@@ -25,12 +25,13 @@ class CacheController extends Controller
 
         $results = [];
         foreach ($domains as $domain) {
-            if (!$domain->cf_zone_id) {
+            if (! $domain->cf_zone_id) {
                 $results[] = [
                     'domain' => $domain->hostname,
                     'status' => 'skipped',
                     'message' => 'Missing Cloudflare zone id.',
                 ];
+
                 continue;
             }
 

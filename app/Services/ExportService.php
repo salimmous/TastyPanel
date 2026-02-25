@@ -2,15 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
-use App\Models\Export;
-use App\Models\Recipe;
 use App\Models\Article;
 use App\Models\Category;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Export;
+use App\Models\Recipe;
+use App\Models\Tenant;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use League\Csv\Writer;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExportService
 {
@@ -254,7 +253,7 @@ class ExportService
                 'Nutrition',
                 'Image',
                 'Status',
-                'Created At'
+                'Created At',
             ],
             'article' => [
                 'ID',
@@ -265,7 +264,7 @@ class ExportService
                 'Image',
                 'Status',
                 'Published At',
-                'Created At'
+                'Created At',
             ],
             'category' => [
                 'ID',
@@ -273,7 +272,7 @@ class ExportService
                 'Slug',
                 'Description',
                 'Image',
-                'Created At'
+                'Created At',
             ],
             default => ['ID', 'Data'],
         };

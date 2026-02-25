@@ -61,9 +61,10 @@ class ShoppingListItem extends Model
 
     public function toggle(): bool
     {
-        $this->is_checked = !$this->is_checked;
+        $this->is_checked = ! $this->is_checked;
         $this->save();
         $this->shoppingList->updateCounts();
+
         return $this->is_checked;
     }
 
@@ -71,8 +72,9 @@ class ShoppingListItem extends Model
     {
         $parts = [$this->name];
         if ($this->quantity) {
-            array_unshift($parts, $this->quantity . ($this->unit ? ' ' . $this->unit : ''));
+            array_unshift($parts, $this->quantity.($this->unit ? ' '.$this->unit : ''));
         }
+
         return implode(' ', $parts);
     }
 }

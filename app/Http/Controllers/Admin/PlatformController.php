@@ -3,26 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AuditLog;
 use App\Models\AuditExport;
+use App\Models\AuditLog;
 use App\Models\BackupRun;
 use App\Models\DisasterRecoveryDrill;
 use App\Models\Domain;
 use App\Models\PlatformSetting;
-use App\Services\BackupService;
-use App\Services\BackupRestoreService;
-use App\Services\PlatformStatusService;
-use App\Services\PlatformServiceManagerService;
 use App\Services\AuditExportService;
+use App\Services\BackupRestoreService;
+use App\Services\BackupService;
 use App\Services\DisasterRecoveryDrillService;
 use App\Services\NginxSafeDeployService;
+use App\Services\PlatformServiceManagerService;
+use App\Services\PlatformStatusService;
 use App\Services\SslHealthService;
-use App\Services\TenantStorageService;
 use App\Services\TenantLimitService;
+use App\Services\TenantStorageService;
+use App\Support\AdminPermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Support\AdminPermissions;
 
 class PlatformController extends Controller
 {
@@ -30,6 +30,7 @@ class PlatformController extends Controller
     {
         $this->middleware(function ($request, $next) {
             abort_unless(AdminPermissions::isSuperadmin($request->user()), 403);
+
             return $next($request);
         });
     }
@@ -225,12 +226,14 @@ class PlatformController extends Controller
     public function backups()
     {
         $runs = BackupRun::orderByDesc('id')->paginate(20);
+
         return response()->json($runs);
     }
 
     public function createBackup(Request $request, BackupService $backupService)
     {
         $run = $backupService->run($request->user()?->id);
+
         return response()->json([
             'data' => $run,
         ]);
@@ -238,12 +241,12 @@ class PlatformController extends Controller
 
     public function downloadBackup(BackupRun $backup)
     {
-        if (!$backup->path) {
+        if (! $backup->path) {
             abort(404);
         }
 
-        $zipPath = $backup->path . '/backup.zip';
-        if (!file_exists($zipPath)) {
+        $zipPath = $backup->path.'/backup.zip';
+        if (! file_exists($zipPath)) {
             abort(404);
         }
 
@@ -283,12 +286,14 @@ class PlatformController extends Controller
         }
 
         $logs = $query->orderByDesc('id')->paginate(25);
+
         return response()->json($logs);
     }
 
     public function auditExports()
     {
         $exports = AuditExport::orderByDesc('id')->paginate(20);
+
         return response()->json($exports);
     }
 
@@ -307,8 +312,8 @@ class PlatformController extends Controller
 
     public function downloadAuditExport(AuditExport $export)
     {
-        $path = storage_path('app/' . $export->file_path);
-        if (!$export->file_path || !file_exists($path)) {
+        $path = storage_path('app/'.$export->file_path);
+        if (! $export->file_path || ! file_exists($path)) {
             abort(404);
         }
 
@@ -341,7 +346,7 @@ class PlatformController extends Controller
         $tenants = \App\Models\Tenant::all(['id', 'name']);
         foreach ($tenants as $tenant) {
             $limitBytes = $limits->storageLimitBytes($tenant);
-            if (!$limitBytes) {
+            if (! $limitBytes) {
                 continue;
             }
             $usage = $storage->usage($tenant);
@@ -385,8 +390,8 @@ class PlatformController extends Controller
             'tenants' => [],
         ];
 
-        if (!($data['platform_only'] ?? false)) {
-            if (!empty($data['tenant_ids'])) {
+        if (! ($data['platform_only'] ?? false)) {
+            if (! empty($data['tenant_ids'])) {
                 foreach ($data['tenant_ids'] as $tenantId) {
                     $tenant = \App\Models\Tenant::find((int) $tenantId);
                     if ($tenant) {
@@ -447,7 +452,7 @@ class PlatformController extends Controller
             'sso_auth_url' => '',
             'sso_token_url' => '',
             'sso_userinfo_url' => '',
-            'sso_redirect_url' => config('app.url') . '/admin/sso/callback',
+            'sso_redirect_url' => config('app.url').'/admin/sso/callback',
             'sso_scopes' => 'openid email profile',
             'sso_allowed_domains' => '',
             'sso_auto_create' => false,
@@ -462,9 +467,9 @@ class PlatformController extends Controller
             'saml_idp_sso_url' => '',
             'saml_idp_slo_url' => '',
             'saml_idp_x509' => '',
-            'saml_sp_entity_id' => config('app.url') . '/admin/saml/metadata',
-            'saml_acs_url' => config('app.url') . '/admin/saml/acs',
-            'saml_slo_url' => config('app.url') . '/admin/saml/logout',
+            'saml_sp_entity_id' => config('app.url').'/admin/saml/metadata',
+            'saml_acs_url' => config('app.url').'/admin/saml/acs',
+            'saml_slo_url' => config('app.url').'/admin/saml/logout',
             'saml_nameid_format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
             'saml_attribute_email' => 'email',
             'saml_attribute_name' => 'name',

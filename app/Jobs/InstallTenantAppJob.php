@@ -8,8 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class InstallTenantAppJob implements ShouldQueue
 {
@@ -35,8 +35,9 @@ class InstallTenantAppJob implements ShouldQueue
         $tenantKey = $this->tenant->instance_key;
         $tenantRoot = $this->tenant->instance_root;
 
-        if (!$tenantKey || !$tenantRoot) {
+        if (! $tenantKey || ! $tenantRoot) {
             Log::error("Missing tenant key or root for ID {$this->tenant->id}");
+
             return;
         }
 
@@ -54,15 +55,15 @@ class InstallTenantAppJob implements ShouldQueue
         $adminEmail = $this->adminConfig['admin_email'] ?? '';
         $adminUser = $this->adminConfig['admin_user'] ?? '';
         $adminPass = $this->adminConfig['admin_password'] ?? '';
-        $appUrl = $this->adminConfig['url'] ?? "http://localhost";
+        $appUrl = $this->adminConfig['url'] ?? 'http://localhost';
 
         $result = Process::run("sudo $script \"$tenantKey\" \"$tenantRoot\" \"$appType\" \"$repoUrl\" \"$systemUser\" \"www-data\" \"$dbName\" \"$dbUser\" \"$dbPass\" \"$adminEmail\" \"$adminUser\" \"$adminPass\" \"$appUrl\" \"$logPath\"");
 
-        $output = trim($result->output() . "\n" . $result->errorOutput());
-        file_put_contents($logPath, $output . "\n");
+        $output = trim($result->output()."\n".$result->errorOutput());
+        file_put_contents($logPath, $output."\n");
 
         if ($result->failed()) {
-            Log::error("App installation failed for Tenant {$this->tenant->id}: " . $result->errorOutput());
+            Log::error("App installation failed for Tenant {$this->tenant->id}: ".$result->errorOutput());
             $this->tenant->instance_last_error = "App Install Failed. See storage/logs/tenant-install-{$this->tenant->id}.log";
             $this->tenant->save();
         } else {

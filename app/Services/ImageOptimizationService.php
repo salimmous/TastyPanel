@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class ImageOptimizationService
 {
@@ -13,7 +12,7 @@ class ImageOptimizationService
 
     public function __construct()
     {
-        $this->manager = new ImageManager(new Driver());
+        $this->manager = new ImageManager(new Driver);
     }
 
     /**
@@ -63,7 +62,7 @@ class ImageOptimizationService
                 ],
             ];
         } catch (\Exception $e) {
-            Log::error('Image optimization failed: ' . $e->getMessage(), [
+            Log::error('Image optimization failed: '.$e->getMessage(), [
                 'path' => $path,
                 'error' => $e->getMessage(),
             ]);
@@ -81,7 +80,7 @@ class ImageOptimizationService
     private function convertToAvif($image, string $outputPath, int $quality): void
     {
         // Save temp file
-        $tempPath = sys_get_temp_dir() . '/' . uniqid() . '.png';
+        $tempPath = sys_get_temp_dir().'/'.uniqid().'.png';
         $image->toPng()->save($tempPath);
 
         // Convert using avifenc if available
@@ -91,6 +90,7 @@ class ImageOptimizationService
 
             if ($returnCode === 0 && file_exists($outputPath)) {
                 unlink($tempPath);
+
                 return;
             }
         }
@@ -100,6 +100,7 @@ class ImageOptimizationService
             exec("convert {$tempPath} -quality {$quality} {$outputPath} 2>&1");
             if (file_exists($outputPath)) {
                 unlink($tempPath);
+
                 return;
             }
         }
@@ -123,7 +124,8 @@ class ImageOptimizationService
     private function commandExists(string $command): bool
     {
         $result = shell_exec("which {$command} 2>/dev/null");
-        return !empty($result);
+
+        return ! empty($result);
     }
 
     /**
@@ -147,7 +149,7 @@ class ImageOptimizationService
      */
     public function calculateSavings(array $result): array
     {
-        if (!isset($result['sizes'])) {
+        if (! isset($result['sizes'])) {
             return ['savings' => 0, 'percentage' => 0];
         }
 

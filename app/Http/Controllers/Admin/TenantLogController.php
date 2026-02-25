@@ -54,7 +54,7 @@ class TenantLogController extends Controller
             $path = str_contains($template, '%s') ? sprintf($template, $domain->hostname) : $template;
         }
 
-        if (!$path) {
+        if (! $path) {
             return response()->json(['message' => 'Invalid log type.'], 422);
         }
 
@@ -66,21 +66,21 @@ class TenantLogController extends Controller
 
     private function resolveLaravelLog(Tenant $tenant): ?string
     {
-        if (!$tenant->instance_root) {
+        if (! $tenant->instance_root) {
             return null;
         }
-        $logDir = rtrim($tenant->instance_root, '/') . '/storage/logs';
-        $default = $logDir . '/laravel.log';
+        $logDir = rtrim($tenant->instance_root, '/').'/storage/logs';
+        $default = $logDir.'/laravel.log';
         if (file_exists($default)) {
             return $default;
         }
 
-        if (!is_dir($logDir)) {
+        if (! is_dir($logDir)) {
             return $default;
         }
 
-        $files = glob($logDir . '/laravel*.log');
-        if (!$files) {
+        $files = glob($logDir.'/laravel*.log');
+        if (! $files) {
             return $default;
         }
 
@@ -93,19 +93,20 @@ class TenantLogController extends Controller
 
     private function resolvePhpFpmLog(Tenant $tenant): ?string
     {
-        if (!$tenant->instance_root) {
+        if (! $tenant->instance_root) {
             return null;
         }
-        return rtrim($tenant->instance_root, '/') . '/storage/logs/php-fpm.log';
+
+        return rtrim($tenant->instance_root, '/').'/storage/logs/php-fpm.log';
     }
 
     private function authorizeTenant(Request $request, Tenant $tenant): void
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
             abort(403);
         }
     }

@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\BackupRun;
 use App\Models\PlatformSetting;
 use App\Models\Tenant;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BackupService
 {
@@ -20,8 +20,8 @@ class BackupService
         ]);
 
         $timestamp = now()->format('Ymd_His');
-        $backupDir = storage_path('app/backups/' . $timestamp);
-        if (!is_dir($backupDir)) {
+        $backupDir = storage_path('app/backups/'.$timestamp);
+        if (! is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
 
@@ -33,13 +33,13 @@ class BackupService
         $s3Prefix = trim((string) ($settings['backup_s3_prefix'] ?? 'tastypanel/backups'), '/');
 
         try {
-            $dbPath = $backupDir . '/database.sql';
+            $dbPath = $backupDir.'/database.sql';
             $this->dumpDatabase($dbPath, $output);
 
-            $filesPath = $backupDir . '/storage.tar.gz';
+            $filesPath = $backupDir.'/storage.tar.gz';
             $this->archiveStorage($filesPath, $output);
 
-            $zipPath = $backupDir . '/backup.zip';
+            $zipPath = $backupDir.'/backup.zip';
             $this->createZip($zipPath, [$dbPath, $filesPath], $output);
 
             $size = 0;
@@ -55,7 +55,7 @@ class BackupService
             $run->checksum = file_exists($zipPath) ? hash_file('sha256', $zipPath) : null;
 
             if ($uploadToS3) {
-                $remotePath = $s3Prefix . '/' . $timestamp . '/backup.zip';
+                $remotePath = $s3Prefix.'/'.$timestamp.'/backup.zip';
                 $stream = fopen($zipPath, 'r');
                 Storage::disk('s3')->put($remotePath, $stream);
                 if (is_resource($stream)) {
@@ -66,7 +66,7 @@ class BackupService
                 $output[] = 'Backup uploaded to S3.';
             }
 
-            if (!$keepLocal && file_exists($backupDir)) {
+            if (! $keepLocal && file_exists($backupDir)) {
                 $this->deleteDirectory($backupDir);
                 $run->path = null;
                 $output[] = 'Local backup removed.';
@@ -93,7 +93,7 @@ class BackupService
         $backupName = "tenant_{$tenant->id}_{$timestamp}";
         $backupDir = storage_path("app/backups/tenants/{$backupName}");
 
-        if (!is_dir($backupDir)) {
+        if (! is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
 
@@ -150,7 +150,7 @@ class BackupService
         exec($cmd, $output, $returnCode);
 
         if ($returnCode !== 0) {
-            throw new \RuntimeException("Tenant DB backup failed: " . implode("\n", $output));
+            throw new \RuntimeException('Tenant DB backup failed: '.implode("\n", $output));
         }
 
         return $outputFile;
@@ -164,8 +164,9 @@ class BackupService
         $filesRoot = storage_path("app/tenant-files/{$tenant->id}");
         $outputFile = "{$backupDir}/files.tar.gz";
 
-        if (!is_dir($filesRoot)) {
+        if (! is_dir($filesRoot)) {
             touch($outputFile); // Empty file
+
             return $outputFile;
         }
 
@@ -178,7 +179,7 @@ class BackupService
         exec($cmd, $output, $returnCode);
 
         if ($returnCode !== 0) {
-            throw new \RuntimeException("Tenant files backup failed");
+            throw new \RuntimeException('Tenant files backup failed');
         }
 
         return $outputFile;
@@ -189,7 +190,7 @@ class BackupService
      */
     public function restoreTenant(Tenant $tenant, string $backupFile): bool
     {
-        $extractDir = storage_path("app/backups/restore_" . uniqid());
+        $extractDir = storage_path('app/backups/restore_'.uniqid());
 
         try {
             mkdir($extractDir, 0755, true);
@@ -216,6 +217,7 @@ class BackupService
             return true;
         } catch (\Exception $e) {
             Log::error("Tenant restore failed: {$tenant->id}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -242,7 +244,7 @@ class BackupService
         exec($cmd, $output, $returnCode);
 
         if ($returnCode !== 0) {
-            throw new \RuntimeException("Database restore failed");
+            throw new \RuntimeException('Database restore failed');
         }
     }
 
@@ -253,7 +255,7 @@ class BackupService
     {
         $filesRoot = storage_path("app/tenant-files/{$tenant->id}");
 
-        if (!is_dir($filesRoot)) {
+        if (! is_dir($filesRoot)) {
             mkdir($filesRoot, 0755, true);
         }
 
@@ -266,7 +268,7 @@ class BackupService
         exec($cmd, $output, $returnCode);
 
         if ($returnCode !== 0) {
-            throw new \RuntimeException("Files restore failed");
+            throw new \RuntimeException('Files restore failed');
         }
     }
 
@@ -291,11 +293,12 @@ class BackupService
 
         if (($config['driver'] ?? '') === 'sqlite') {
             $source = $config['database'] ?? '';
-            if (!$source || !file_exists($source)) {
+            if (! $source || ! file_exists($source)) {
                 throw new \RuntimeException('SQLite database not found.');
             }
             copy($source, $path);
             $output[] = 'SQLite database copied.';
+
             return;
         }
 

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 
 class RoleService
@@ -20,6 +20,7 @@ class RoleService
         }
 
         $permissions = $this->getUserPermissions($user);
+
         return in_array($permission, $permissions);
     }
 
@@ -33,6 +34,7 @@ class RoleService
                 return true;
             }
         }
+
         return false;
     }
 
@@ -42,10 +44,11 @@ class RoleService
     public function hasAllPermissions(User $user, array $permissions): bool
     {
         foreach ($permissions as $permission) {
-            if (!$this->hasPermission($user, $permission)) {
+            if (! $this->hasPermission($user, $permission)) {
                 return false;
             }
         }
+
         return true;
     }
 

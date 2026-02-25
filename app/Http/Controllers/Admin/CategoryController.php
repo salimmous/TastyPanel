@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Support\AdminEnvironmentResolver;
-use App\Support\AdminTenantResolver;
 use App\Support\AdminPermissions;
+use App\Support\AdminTenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -25,13 +25,14 @@ class CategoryController extends Controller
         }
         $query->where('environment', $environment);
         $categories = $query->get();
+
         return response()->json($categories);
     }
 
     public function store(Request $request)
     {
         $role = AdminPermissions::role($request->user());
-        if (!AdminPermissions::canManageContent($request->user()) || $role === AdminPermissions::ROLE_WRITER) {
+        if (! AdminPermissions::canManageContent($request->user()) || $role === AdminPermissions::ROLE_WRITER) {
             abort(403);
         }
         $environment = AdminEnvironmentResolver::resolve($request);
@@ -58,6 +59,7 @@ class CategoryController extends Controller
         $validated['environment'] = $environment;
 
         $category = Category::create($validated);
+
         return response()->json($category, 201);
     }
 
@@ -71,13 +73,14 @@ class CategoryController extends Controller
             ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->where('environment', $environment)
             ->findOrFail($id);
+
         return response()->json($category);
     }
 
     public function update(Request $request, $id)
     {
         $role = AdminPermissions::role($request->user());
-        if (!AdminPermissions::canManageContent($request->user()) || $role === AdminPermissions::ROLE_WRITER) {
+        if (! AdminPermissions::canManageContent($request->user()) || $role === AdminPermissions::ROLE_WRITER) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId($request);
@@ -109,12 +112,13 @@ class CategoryController extends Controller
         }
 
         $category->update($validated);
+
         return response()->json($category);
     }
 
     public function destroy($id)
     {
-        if (!AdminPermissions::canDeleteContent(request()->user())) {
+        if (! AdminPermissions::canDeleteContent(request()->user())) {
             abort(403);
         }
         $tenantId = AdminTenantResolver::resolveId(request());
@@ -123,6 +127,7 @@ class CategoryController extends Controller
             ->where('environment', $environment)
             ->findOrFail($id);
         $category->delete();
+
         return response()->json(['message' => 'Category deleted successfully']);
     }
 }

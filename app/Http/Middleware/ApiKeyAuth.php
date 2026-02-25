@@ -14,17 +14,17 @@ class ApiKeyAuth
     public function handle(Request $request, Closure $next): Response
     {
         $token = $this->extractToken($request);
-        if (!$token) {
+        if (! $token) {
             return response()->json(['message' => 'API key required.'], 401);
         }
 
         $service = app(ApiKeyService::class);
         $key = $service->verify($token);
-        if (!$key) {
+        if (! $key) {
             return response()->json(['message' => 'Invalid API key.'], 401);
         }
 
-        if (!$this->checkRateLimit($key->id, (int) ($key->rate_limit_per_minute ?? 0))) {
+        if (! $this->checkRateLimit($key->id, (int) ($key->rate_limit_per_minute ?? 0))) {
             return response()->json(['message' => 'API key rate limit exceeded.'], 429);
         }
 
@@ -65,13 +65,15 @@ class ApiKeyAuth
         $cacheKey = "api_key_rate:{$keyId}:{$bucket}";
         $ttl = now()->addMinute();
 
-        if (!Cache::has($cacheKey)) {
+        if (! Cache::has($cacheKey)) {
             Cache::put($cacheKey, 1, $ttl);
+
             return true;
         }
 
         Cache::increment($cacheKey);
         $hits = (int) Cache::get($cacheKey, 1);
+
         return $hits <= $limit;
     }
 }

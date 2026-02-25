@@ -7,6 +7,7 @@ use MeiliSearch\Client;
 class MeilisearchProvider implements SearchProviderInterface
 {
     protected Client $client;
+
     protected string $indexName;
 
     public function __construct(string $tenantId)
@@ -29,7 +30,7 @@ class MeilisearchProvider implements SearchProviderInterface
         ];
 
         // Build filter string
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             $filterParts = [];
 
             if (isset($filters['category'])) {
@@ -49,7 +50,7 @@ class MeilisearchProvider implements SearchProviderInterface
                 $filterParts[] = "(prep_time + cook_time) <= {$maxTime}";
             }
 
-            if (!empty($filterParts)) {
+            if (! empty($filterParts)) {
                 $searchParams['filter'] = implode('AND', $filterParts);
             }
         }

@@ -84,8 +84,8 @@ class Invoice extends Model
     // Generate invoice number
     public static function generateInvoiceNumber(): string
     {
-        $prefix = 'INV-' . now()->format('Ym');
-        $lastInvoice = self::where('invoice_number', 'like', $prefix . '%')
+        $prefix = 'INV-'.now()->format('Ym');
+        $lastInvoice = self::where('invoice_number', 'like', $prefix.'%')
             ->orderByDesc('id')
             ->first();
 
@@ -96,6 +96,6 @@ class Invoice extends Model
             $newNumber = 1;
         }
 
-        return $prefix . '-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 }

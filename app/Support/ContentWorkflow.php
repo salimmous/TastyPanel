@@ -7,8 +7,11 @@ use App\Models\User;
 class ContentWorkflow
 {
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_REVIEW = 'review';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_PUBLISHED = 'published';
 
     public static function statuses(): array
@@ -54,6 +57,7 @@ class ContentWorkflow
             $model->published_at = $now;
             $model->approved_at = $model->approved_at ?? $now;
             $model->reviewed_at = $model->reviewed_at ?? $now;
+
             return;
         }
 
@@ -61,6 +65,7 @@ class ContentWorkflow
             $model->approved_at = $now;
             $model->reviewed_at = $model->reviewed_at ?? $now;
             $model->published_at = null;
+
             return;
         }
 
@@ -68,6 +73,7 @@ class ContentWorkflow
             $model->reviewed_at = $now;
             $model->approved_at = null;
             $model->published_at = null;
+
             return;
         }
 

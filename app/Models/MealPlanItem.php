@@ -69,7 +69,7 @@ class MealPlanItem extends Model
     // Get scaled ingredients for servings
     public function getScaledIngredients(): array
     {
-        if (!$this->recipe || !$this->recipe->ingredients) {
+        if (! $this->recipe || ! $this->recipe->ingredients) {
             return [];
         }
 

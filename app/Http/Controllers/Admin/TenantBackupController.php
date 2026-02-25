@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\TenantBackupRun;
-use App\Services\TenantBackupService;
 use App\Services\TenantBackupRestoreService;
+use App\Services\TenantBackupService;
 use App\Support\AdminPermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -73,14 +73,14 @@ class TenantBackupController extends Controller
             abort(409, 'Backup is not completed yet.');
         }
 
-        $localZip = $backup->path ? $backup->path . '/backup.zip' : null;
+        $localZip = $backup->path ? $backup->path.'/backup.zip' : null;
         if ($localZip && file_exists($localZip)) {
             return response()->download($localZip, "tenant-{$tenant->id}-backup-{$backup->id}.zip");
         }
 
         if ($backup->disk === 's3' && $backup->remote_path) {
             $stream = Storage::disk('s3')->readStream($backup->remote_path);
-            if (!$stream) {
+            if (! $stream) {
                 abort(404);
             }
 
@@ -91,7 +91,7 @@ class TenantBackupController extends Controller
                 }
             }, 200, [
                 'Content-Type' => 'application/zip',
-                'Content-Disposition' => 'attachment; filename="tenant-' . $tenant->id . '-backup-' . $backup->id . '.zip"',
+                'Content-Disposition' => 'attachment; filename="tenant-'.$tenant->id.'-backup-'.$backup->id.'.zip"',
             ]);
         }
 
@@ -111,7 +111,7 @@ class TenantBackupController extends Controller
         $data = $request->validate([
             'confirm' => ['required', 'boolean'],
         ]);
-        if (!$data['confirm']) {
+        if (! $data['confirm']) {
             return response()->json(['message' => 'Confirmation required.'], 422);
         }
 
@@ -125,10 +125,10 @@ class TenantBackupController extends Controller
     private function authorizeTenant(Request $request, Tenant $tenant): void
     {
         $user = $request->user();
-        if (!AdminPermissions::canManageTenantInfrastructure($user)) {
+        if (! AdminPermissions::canManageTenantInfrastructure($user)) {
             abort(403);
         }
-        if ($user && !AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
+        if ($user && ! AdminPermissions::isSuperadmin($user) && $user->tenant_id !== $tenant->id) {
             abort(403);
         }
     }

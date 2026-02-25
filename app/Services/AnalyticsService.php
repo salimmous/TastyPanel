@@ -11,7 +11,7 @@ class AnalyticsService
      */
     public function getTrackingScript(Tenant $tenant): ?string
     {
-        if (!$tenant->analytics_enabled) {
+        if (! $tenant->analytics_enabled) {
             return null;
         }
 
@@ -67,14 +67,14 @@ class AnalyticsService
     {
         // In a real app, this would query a dedicated analytics table or time-series DB (e.g. InfluxDB/Prometheus)
         // For this demo/first version, we will aggregate from existing data + some cache estimates.
-        
+
         $totalTenants = Tenant::count();
         $totalUsers = \App\Models\User::count();
         $failedJobs = \DB::table('failed_jobs')->count();
         $totalJobs = \DB::table('jobs')->count();
-        
+
         $errorRate = $totalJobs > 0 ? ($failedJobs / ($totalJobs + $failedJobs)) * 100 : 0;
-        
+
         return [
             'total_requests' => 'N/A', // valid requests tracking requires middleware
             'avg_response_time' => 'N/A',

@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Category;
-use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
 {
@@ -29,6 +28,6 @@ class CategorySeeder extends Seeder
             Category::create($category);
         }
 
-        $this->command->info('Created ' . count($categories) . ' categories');
+        $this->command->info('Created '.count($categories).' categories');
     }
 }

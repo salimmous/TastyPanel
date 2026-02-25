@@ -4,10 +4,10 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use App\Models\TenantMailEvent;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Mail\MailManager;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class TenantMailService
@@ -15,7 +15,7 @@ class TenantMailService
     public function updateTenantSettings(Tenant $tenant, array $config): Tenant
     {
         $errors = $this->validateSmtpConfig($config);
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             throw ValidationException::withMessages([
                 'mail' => $errors,
             ]);
@@ -52,7 +52,7 @@ class TenantMailService
             'mail_host' => $tenant->mail_host,
             'mail_port' => $tenant->mail_port,
             'mail_username' => $tenant->mail_username,
-            'has_password' => !empty($tenant->mail_password),
+            'has_password' => ! empty($tenant->mail_password),
             'mail_encryption' => $tenant->mail_encryption ?: 'none',
             'mail_from_address' => $tenant->mail_from_address,
             'mail_from_name' => $tenant->mail_from_name,
@@ -69,7 +69,7 @@ class TenantMailService
      */
     public function configureTenantMailer(Tenant $tenant): void
     {
-        if (!$tenant->mail_configured) {
+        if (! $tenant->mail_configured) {
             throw new \RuntimeException('Tenant email is not configured');
         }
 
@@ -86,7 +86,7 @@ class TenantMailService
                 'local_domain' => env('MAIL_EHLO_DOMAIN'),
             ],
             'mail.from' => [
-                'address' => $tenant->mail_from_address ? $tenant->mail_from_address : ("noreply@" . ($tenant->domains()->where('is_primary', true)->value('hostname') ?: 'localhost')),
+                'address' => $tenant->mail_from_address ? $tenant->mail_from_address : ('noreply@'.($tenant->domains()->where('is_primary', true)->value('hostname') ?: 'localhost')),
                 'name' => $tenant->mail_from_name ? $tenant->mail_from_name : $tenant->name,
             ],
         ]);
@@ -103,7 +103,7 @@ class TenantMailService
     {
         try {
             $gate = app(TenantMailGuardService::class)->checkAndTrack($tenant, 1);
-            if (!($gate['allowed'] ?? true)) {
+            if (! ($gate['allowed'] ?? true)) {
                 $this->logEvent($tenant, [
                     'event_type' => 'welcome_email',
                     'recipient' => (string) ($user->email ?? ''),
@@ -111,6 +111,7 @@ class TenantMailService
                     'response' => $gate['reason'] ?? 'mail_rate_limit_exceeded',
                     'meta' => ['usage' => $gate['usage'] ?? []],
                 ]);
+
                 return false;
             }
 
@@ -126,7 +127,7 @@ class TenantMailService
                     ->subject("Welcome to {$brandName}!");
             });
 
-            Log::info("Welcome email sent", [
+            Log::info('Welcome email sent', [
                 'tenant' => $tenant->id,
                 'user' => $user->email,
             ]);
@@ -138,7 +139,7 @@ class TenantMailService
 
             return true;
         } catch (\Exception $e) {
-            Log::error("Failed to send welcome email", [
+            Log::error('Failed to send welcome email', [
                 'tenant' => $tenant->id,
                 'user' => $user->email,
                 'error' => $e->getMessage(),
@@ -161,7 +162,7 @@ class TenantMailService
     {
         try {
             $gate = app(TenantMailGuardService::class)->checkAndTrack($tenant, 1);
-            if (!($gate['allowed'] ?? true)) {
+            if (! ($gate['allowed'] ?? true)) {
                 $this->logEvent($tenant, [
                     'event_type' => 'password_reset',
                     'recipient' => (string) ($user->email ?? ''),
@@ -169,6 +170,7 @@ class TenantMailService
                     'response' => $gate['reason'] ?? 'mail_rate_limit_exceeded',
                     'meta' => ['usage' => $gate['usage'] ?? []],
                 ]);
+
                 return false;
             }
 
@@ -186,7 +188,7 @@ class TenantMailService
                     ->subject("Password Reset - {$brandName}");
             });
 
-            Log::info("Password reset email sent", [
+            Log::info('Password reset email sent', [
                 'tenant' => $tenant->id,
                 'user' => $user->email,
             ]);
@@ -198,7 +200,7 @@ class TenantMailService
 
             return true;
         } catch (\Exception $e) {
-            Log::error("Failed to send password reset email", [
+            Log::error('Failed to send password reset email', [
                 'tenant' => $tenant->id,
                 'error' => $e->getMessage(),
             ]);
@@ -219,7 +221,7 @@ class TenantMailService
     public function sendTestEmail(Tenant $tenant, string $toEmail): bool
     {
         $result = $this->sendTestEmailWithResult($tenant, $toEmail);
-        if (!($result['success'] ?? false) && !empty($result['exception'])) {
+        if (! ($result['success'] ?? false) && ! empty($result['exception'])) {
             throw $result['exception'];
         }
 
@@ -230,7 +232,7 @@ class TenantMailService
     {
         $toEmail = trim($toEmail);
         $gate = app(TenantMailGuardService::class)->checkAndTrack($tenant, 1);
-        if (!($gate['allowed'] ?? true)) {
+        if (! ($gate['allowed'] ?? true)) {
             $reason = $gate['reason'] ?? 'mail_rate_limit_exceeded';
             $this->logEvent($tenant, [
                 'event_type' => 'smtp_test',
@@ -239,6 +241,7 @@ class TenantMailService
                 'response' => $reason,
                 'meta' => ['usage' => $gate['usage'] ?? []],
             ]);
+
             return [
                 'success' => false,
                 'message' => 'Rate limit reached for tenant mail sending.',
@@ -268,7 +271,7 @@ class TenantMailService
                 'usage' => $gate['usage'] ?? [],
             ];
         } catch (\Exception $e) {
-            Log::error("Test email failed", [
+            Log::error('Test email failed', [
                 'tenant' => $tenant->id,
                 'error' => $e->getMessage(),
             ]);
@@ -309,7 +312,7 @@ class TenantMailService
 
         if (empty($config['mail_from_address'])) {
             $errors[] = 'From email address is required';
-        } elseif (!filter_var($config['mail_from_address'], FILTER_VALIDATE_EMAIL)) {
+        } elseif (! filter_var($config['mail_from_address'], FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'From email address is invalid';
         }
 

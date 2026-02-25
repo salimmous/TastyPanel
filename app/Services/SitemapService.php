@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\Tenant;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 

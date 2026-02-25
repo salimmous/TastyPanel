@@ -6,13 +6,13 @@ class LogReaderService
 {
     public function tail(string $path, int $lines = 200): string
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return '';
         }
 
         $lines = max(1, min($lines, 2000));
         $handle = fopen($path, 'r');
-        if (!$handle) {
+        if (! $handle) {
             return '';
         }
 
@@ -31,7 +31,7 @@ class LogReaderService
             if ($chunk === false) {
                 break;
             }
-            $buffer = $chunk . $buffer;
+            $buffer = $chunk.$buffer;
             $lineCount = substr_count($buffer, "\n");
             if ($seek === 0) {
                 break;
@@ -43,6 +43,7 @@ class LogReaderService
 
         $linesArray = explode("\n", trim($buffer));
         $tail = array_slice($linesArray, -$lines);
+
         return implode("\n", $tail);
     }
 }

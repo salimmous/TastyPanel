@@ -39,13 +39,13 @@ class AdminAuditLog
                 'action' => $this->actionLabel($request),
                 'resource_type' => null,
                 'resource_id' => null,
-                'description' => $request->method() . ' ' . $request->path(),
+                'description' => $request->method().' '.$request->path(),
                 'method' => $request->method(),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'url' => $request->fullUrl(),
                 'status' => $success ? 'success' : 'failed',
-                'error_message' => $success ? null : ('HTTP ' . $statusCode),
+                'error_message' => $success ? null : ('HTTP '.$statusCode),
                 'new_values' => [
                     'status_code' => $statusCode,
                     'payload' => $payload,
@@ -67,6 +67,7 @@ class AdminAuditLog
         }
 
         $path = $request->path();
+
         return str_contains($path, 'admin/login')
             || str_contains($path, 'admin/2fa')
             || str_contains($path, 'admin/user');
@@ -74,7 +75,7 @@ class AdminAuditLog
 
     private function actionLabel(Request $request): string
     {
-        return strtoupper($request->method()) . ' ' . $request->path();
+        return strtoupper($request->method()).' '.$request->path();
     }
 
     private function redact(array $payload): array
@@ -98,7 +99,7 @@ class AdminAuditLog
         ];
 
         $walk = function ($value) use (&$walk, $sensitiveKeys) {
-            if (!is_array($value)) {
+            if (! is_array($value)) {
                 return $value;
             }
             $out = [];
@@ -106,15 +107,18 @@ class AdminAuditLog
                 $key = is_string($k) ? $k : '';
                 if ($key !== '' && in_array($key, $sensitiveKeys, true)) {
                     $out[$k] = '[REDACTED]';
+
                     continue;
                 }
                 // Also redact common patterns (covers snake/camel variations).
                 if ($key !== '' && preg_match('/(password|secret|token|client_secret|api[_-]?key|private[_-]?key|x509)/i', $key)) {
                     $out[$k] = '[REDACTED]';
+
                     continue;
                 }
                 $out[$k] = $walk($v);
             }
+
             return $out;
         };
 

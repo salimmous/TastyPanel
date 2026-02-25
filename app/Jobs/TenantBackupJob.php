@@ -35,14 +35,14 @@ class TenantBackupJob implements ShouldQueue
 
         try {
             $zipPath = $backupService->backupTenant($this->tenant);
-            
+
             $run->update([
                 'status' => 'success',
                 'path' => $zipPath,
                 'size_bytes' => file_exists($zipPath) ? filesize($zipPath) : 0,
                 'finished_at' => now(),
             ]);
-            
+
             Log::info("Tenant backup job success: {$this->tenant->id}");
         } catch (\Throwable $e) {
             $run->update([
@@ -50,7 +50,7 @@ class TenantBackupJob implements ShouldQueue
                 'output' => $e->getMessage(),
                 'finished_at' => now(),
             ]);
-            Log::error("Tenant backup job failed: " . $e->getMessage());
+            Log::error('Tenant backup job failed: '.$e->getMessage());
         }
     }
 }

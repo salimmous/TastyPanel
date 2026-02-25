@@ -20,10 +20,10 @@ class TenantMailGuardService
         $dayTtl = now()->endOfDay()->addMinutes(10);
         $minuteTtl = now()->addMinutes(2);
 
-        if (!Cache::has($dayKey)) {
+        if (! Cache::has($dayKey)) {
             Cache::put($dayKey, 0, $dayTtl);
         }
-        if (!Cache::has($minuteKey)) {
+        if (! Cache::has($minuteKey)) {
             Cache::put($minuteKey, 0, $minuteTtl);
         }
 

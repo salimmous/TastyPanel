@@ -7,6 +7,7 @@ use App\Models\Tenant;
 class TenantContext
 {
     private static ?Tenant $tenant = null;
+
     private static string $environment = 'production';
 
     public static function set(?Tenant $tenant, string $environment = 'production'): void

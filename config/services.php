@@ -121,7 +121,7 @@ return [
         'frontend_script' => env('FRONTEND_PROVISION_SCRIPT', base_path('infrastructure/provision-frontend.sh')),
         'frontend_deprovision_script' => env('FRONTEND_DEPROVISION_SCRIPT', base_path('infrastructure/deprovision-frontend.sh')),
         'frontend_use_sudo' => env('FRONTEND_PROVISION_USE_SUDO', true),
-        'frontend_api_base' => env('FRONTEND_PLATFORM_API_BASE', rtrim((string) env('APP_URL', 'http://localhost'), '/') . '/api'),
+        'frontend_api_base' => env('FRONTEND_PLATFORM_API_BASE', rtrim((string) env('APP_URL', 'http://localhost'), '/').'/api'),
         'access_script' => env('TENANT_ACCESS_SCRIPT', base_path('infrastructure/provision-tenant-access.sh')),
         'access_use_sudo' => env('TENANT_ACCESS_USE_SUDO', true),
         'access_auth_mode' => env('TENANT_ACCESS_AUTH_MODE', 'both'),

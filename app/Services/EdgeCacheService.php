@@ -17,14 +17,14 @@ class EdgeCacheService
     {
         $domain = Domain::where('tenant_id', $tenant->id)->where('is_primary', true)->first()
             ?? Domain::where('tenant_id', $tenant->id)->first();
-        if (!$domain) {
+        if (! $domain) {
             return 0;
         }
 
         $host = $domain->hostname;
         $base = str_starts_with($host, 'http') ? $host : "https://{$host}";
 
-        $urls = [$base . '/'];
+        $urls = [$base.'/'];
 
         $articles = Article::where('tenant_id', $tenant->id)
             ->where('environment', 'production')
@@ -33,7 +33,7 @@ class EdgeCacheService
             ->limit($limit)
             ->get(['slug']);
         foreach ($articles as $article) {
-            $urls[] = $base . '/articles/' . $article->slug;
+            $urls[] = $base.'/articles/'.$article->slug;
         }
 
         $recipes = Recipe::where('tenant_id', $tenant->id)
@@ -43,7 +43,7 @@ class EdgeCacheService
             ->limit($limit)
             ->get(['slug']);
         foreach ($recipes as $recipe) {
-            $urls[] = $base . '/recipes/' . $recipe->slug;
+            $urls[] = $base.'/recipes/'.$recipe->slug;
         }
 
         $warmed = 0;
@@ -78,12 +78,13 @@ class EdgeCacheService
 
     private function key(string $host, string $path): string
     {
-        return 'edgecache:' . $host . ':' . ltrim($path ?: '/', '/');
+        return 'edgecache:'.$host.':'.ltrim($path ?: '/', '/');
     }
 
     private function pathFromUrl(string $url): string
     {
         $parsed = parse_url($url);
+
         return $parsed['path'] ?? '/';
     }
 }

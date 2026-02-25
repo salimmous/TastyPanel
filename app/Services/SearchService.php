@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Article;
 use App\Models\Category;
-use App\Models\Recipe;
 use App\Models\PlatformSetting;
+use App\Models\Recipe;
 
 class SearchService
 {
@@ -25,6 +25,7 @@ class SearchService
     public function status(): array
     {
         $settings = $this->settings();
+
         return [
             'enabled' => (bool) ($settings['search_enabled'] ?? true),
             'driver' => $settings['search_driver'] ?? 'database',
@@ -58,7 +59,7 @@ class SearchService
     public function search(string $query, ?int $tenantId = null, string $environment = 'production', array $types = []): array
     {
         $settings = $this->settings();
-        if (!($settings['search_enabled'] ?? true)) {
+        if (! ($settings['search_enabled'] ?? true)) {
             return [
                 'results' => [],
                 'message' => 'Search disabled.',
@@ -119,6 +120,7 @@ class SearchService
         if ($environment === 'production') {
             $query->where('status', 'published');
         }
+
         return $query;
     }
 
@@ -132,6 +134,7 @@ class SearchService
         if ($environment === 'production') {
             $query->where('status', 'published');
         }
+
         return $query;
     }
 
@@ -142,6 +145,7 @@ class SearchService
             $query->where('tenant_id', $tenantId);
         }
         $query->where('environment', $environment);
+
         return $query;
     }
 }

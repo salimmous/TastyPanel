@@ -23,17 +23,17 @@ class BackupRestoreService
 
         try {
             $zipPath = $this->resolveBackupZip($backup, $output);
-            $extractDir = storage_path('app/backups/restore_' . $backup->id . '_' . time());
+            $extractDir = storage_path('app/backups/restore_'.$backup->id.'_'.time());
             File::ensureDirectoryExists($extractDir);
 
             $this->extractZip($zipPath, $extractDir, $output);
 
-            $dbPath = $extractDir . '/database.sql';
+            $dbPath = $extractDir.'/database.sql';
             if (file_exists($dbPath)) {
                 $this->restoreDatabase($dbPath, $output);
             }
 
-            $storagePath = $extractDir . '/storage.tar.gz';
+            $storagePath = $extractDir.'/storage.tar.gz';
             if (file_exists($storagePath)) {
                 $this->restoreStorage($storagePath, $output);
             }
@@ -52,16 +52,16 @@ class BackupRestoreService
 
     private function resolveBackupZip(BackupRun $backup, array &$output): string
     {
-        $localZip = $backup->path ? $backup->path . '/backup.zip' : null;
+        $localZip = $backup->path ? $backup->path.'/backup.zip' : null;
         if ($localZip && file_exists($localZip)) {
             return $localZip;
         }
 
         if ($backup->disk === 's3' && $backup->remote_path) {
-            $tmp = storage_path('app/backups/restore_' . $backup->id . '.zip');
+            $tmp = storage_path('app/backups/restore_'.$backup->id.'.zip');
             $disk = Storage::disk('s3');
             $stream = $disk->readStream($backup->remote_path);
-            if (!$stream) {
+            if (! $stream) {
                 throw new \RuntimeException('Unable to download backup from S3.');
             }
             $dest = fopen($tmp, 'w');
@@ -71,6 +71,7 @@ class BackupRestoreService
                 fclose($stream);
             }
             $output[] = 'Downloaded backup from S3.';
+
             return $tmp;
         }
 
@@ -79,7 +80,7 @@ class BackupRestoreService
 
     private function extractZip(string $zipPath, string $destination, array &$output): void
     {
-        $zip = new \ZipArchive();
+        $zip = new \ZipArchive;
         if ($zip->open($zipPath) !== true) {
             throw new \RuntimeException('Unable to open backup zip.');
         }
@@ -95,11 +96,12 @@ class BackupRestoreService
 
         if (($config['driver'] ?? '') === 'sqlite') {
             $source = $config['database'] ?? '';
-            if (!$source) {
+            if (! $source) {
                 throw new \RuntimeException('SQLite database path not configured.');
             }
             copy($path, $source);
             $output[] = 'SQLite database restored.';
+
             return;
         }
 
@@ -126,7 +128,7 @@ class BackupRestoreService
         $output[] = 'Restoring MySQL database...';
         $lines = [];
         $exitCode = 0;
-        exec('sh -c ' . escapeshellarg($cmd) . ' 2>&1', $lines, $exitCode);
+        exec('sh -c '.escapeshellarg($cmd).' 2>&1', $lines, $exitCode);
         $output = array_merge($output, $lines);
 
         if ($exitCode !== 0) {

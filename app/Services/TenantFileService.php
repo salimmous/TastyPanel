@@ -15,7 +15,7 @@ class TenantFileService
         $relativePath = $this->sanitizePath($path);
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (!is_dir($absolutePath)) {
+        if (! is_dir($absolutePath)) {
             File::makeDirectory($absolutePath, 0755, true);
         }
 
@@ -41,13 +41,13 @@ class TenantFileService
         $relativePath = $this->sanitizePath($path);
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (!is_dir($absolutePath)) {
+        if (! is_dir($absolutePath)) {
             File::makeDirectory($absolutePath, 0755, true);
         }
 
         $uploaded = [];
         foreach ($files as $file) {
-            if (!$file instanceof UploadedFile) {
+            if (! $file instanceof UploadedFile) {
                 continue;
             }
             $name = $this->sanitizeFileName($file->getClientOriginalName());
@@ -57,7 +57,7 @@ class TenantFileService
             $file->move($absolutePath, $name);
             $uploaded[] = [
                 'name' => $name,
-                'path' => trim($relativePath . '/' . $name, '/'),
+                'path' => trim($relativePath.'/'.$name, '/'),
             ];
         }
 
@@ -73,12 +73,12 @@ class TenantFileService
             throw new RuntimeException('Invalid folder name.');
         }
 
-        $absolutePath = $this->resolvePath($tenantRoot, trim($relativePath . '/' . $folderName, '/'));
-        if (!is_dir($absolutePath)) {
+        $absolutePath = $this->resolvePath($tenantRoot, trim($relativePath.'/'.$folderName, '/'));
+        if (! is_dir($absolutePath)) {
             File::makeDirectory($absolutePath, 0755, true);
         }
 
-        return trim($relativePath . '/' . $folderName, '/');
+        return trim($relativePath.'/'.$folderName, '/');
     }
 
     public function delete(int $tenantId, string $path): void
@@ -92,6 +92,7 @@ class TenantFileService
 
         if (is_dir($absolutePath)) {
             File::deleteDirectory($absolutePath);
+
             return;
         }
 
@@ -108,7 +109,7 @@ class TenantFileService
             throw new RuntimeException('Path required.');
         }
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
-        if (!file_exists($absolutePath)) {
+        if (! file_exists($absolutePath)) {
             throw new RuntimeException('Path not found.');
         }
 
@@ -118,7 +119,7 @@ class TenantFileService
         }
 
         $parent = dirname($relativePath);
-        $targetRelative = trim(($parent === '.' ? '' : $parent) . '/' . $newName, '/');
+        $targetRelative = trim(($parent === '.' ? '' : $parent).'/'.$newName, '/');
         $targetAbsolute = $this->resolvePath($tenantRoot, $targetRelative);
 
         File::move($absolutePath, $targetAbsolute);
@@ -135,7 +136,7 @@ class TenantFileService
         }
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (!is_file($absolutePath)) {
+        if (! is_file($absolutePath)) {
             throw new RuntimeException('File not found.');
         }
 
@@ -149,9 +150,9 @@ class TenantFileService
     {
         $root = config('services.storage.tenant_files_root', storage_path('app/tenant-files'));
         $root = rtrim($root, '/');
-        $tenantRoot = $root . '/' . $tenantId;
+        $tenantRoot = $root.'/'.$tenantId;
 
-        if (!is_dir($tenantRoot)) {
+        if (! is_dir($tenantRoot)) {
             File::makeDirectory($tenantRoot, 0755, true);
         }
 
@@ -182,7 +183,8 @@ class TenantFileService
     {
         $root = rtrim($root, '/');
         $relative = trim($relative, '/');
-        return $relative === '' ? $root : $root . '/' . $relative;
+
+        return $relative === '' ? $root : $root.'/'.$relative;
     }
 
     private function sanitizeFileName(string $name): string
@@ -194,13 +196,14 @@ class TenantFileService
             return '';
         }
         $name = preg_replace('/[^A-Za-z0-9._-]/', '_', $name);
+
         return $name ?? '';
     }
 
     private function mapItem(string $absolutePath, string $baseRelative, bool $isDir): array
     {
         $name = basename($absolutePath);
-        $relative = trim($baseRelative . '/' . $name, '/');
+        $relative = trim($baseRelative.'/'.$name, '/');
         $modified = file_exists($absolutePath) ? date('Y-m-d H:i:s', filemtime($absolutePath)) : null;
         $size = $isDir ? null : (file_exists($absolutePath) ? filesize($absolutePath) : null);
 

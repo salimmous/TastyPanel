@@ -27,7 +27,7 @@ class PlatformServiceManagerService
     public function status(string $serviceKey): array
     {
         $scriptResult = $this->runScript('status', $serviceKey);
-        if (!$scriptResult['success']) {
+        if (! $scriptResult['success']) {
             return [
                 'service_key' => $serviceKey,
                 'state' => 'unknown',
@@ -38,6 +38,7 @@ class PlatformServiceManagerService
         }
 
         $parsed = $this->parseKeyValueOutput($scriptResult['output']);
+
         return [
             'service_key' => $serviceKey,
             'state' => $parsed['STATE'] ?? 'unknown',
@@ -50,7 +51,7 @@ class PlatformServiceManagerService
 
     public function action(string $serviceKey, string $action): array
     {
-        if (!in_array($action, ['start', 'stop', 'restart'], true)) {
+        if (! in_array($action, ['start', 'stop', 'restart'], true)) {
             return [
                 'success' => false,
                 'output' => 'Unsupported action.',
@@ -85,7 +86,7 @@ class PlatformServiceManagerService
     private function runScript(string $mode, string $serviceKey, ?string $arg = null): array
     {
         $services = config('services.platform_service_manager.services', []);
-        if (!array_key_exists($serviceKey, $services)) {
+        if (! array_key_exists($serviceKey, $services)) {
             return [
                 'success' => false,
                 'output' => 'Unknown service key.',
@@ -94,7 +95,7 @@ class PlatformServiceManagerService
         }
 
         $script = config('services.platform_service_manager.script', base_path('infrastructure/manage-platform-service.sh'));
-        if (!$script || !file_exists($script)) {
+        if (! $script || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Service manager script not found.',
@@ -117,7 +118,7 @@ class PlatformServiceManagerService
         $escaped = implode(' ', array_map('escapeshellarg', $commandParts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -131,7 +132,7 @@ class PlatformServiceManagerService
         $parsed = [];
         foreach (preg_split('/\r?\n/', $output) as $line) {
             $line = trim($line);
-            if ($line === '' || !str_contains($line, '=')) {
+            if ($line === '' || ! str_contains($line, '=')) {
                 continue;
             }
             [$key, $value] = explode('=', $line, 2);

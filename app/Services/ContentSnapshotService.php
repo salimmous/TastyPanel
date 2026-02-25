@@ -33,7 +33,7 @@ class ContentSnapshotService
     public function restoreSnapshot(ContentSnapshot $snapshot, string $targetEnvironment): void
     {
         $data = $snapshot->data ?? null;
-        if (!$data || !is_array($data)) {
+        if (! $data || ! is_array($data)) {
             throw new RuntimeException('Snapshot data is missing.');
         }
 
@@ -117,7 +117,7 @@ class ContentSnapshotService
             $categoryMap = [];
             foreach (($data['categories'] ?? []) as $category) {
                 $slug = $category['slug'] ?? null;
-                if (!$slug && !empty($category['name'])) {
+                if (! $slug && ! empty($category['name'])) {
                     $slug = Str::slug($category['name']);
                 }
                 $record = Category::create([
@@ -136,11 +136,11 @@ class ContentSnapshotService
             foreach (($data['recipes'] ?? []) as $recipe) {
                 $categorySlug = $recipe['category_slug'] ?? null;
                 $categoryId = $categorySlug ? ($categoryMap[$categorySlug] ?? null) : null;
-                if (!$categoryId) {
+                if (! $categoryId) {
                     continue;
                 }
                 $slug = $recipe['slug'] ?? null;
-                if (!$slug && !empty($recipe['title'])) {
+                if (! $slug && ! empty($recipe['title'])) {
                     $slug = Str::slug($recipe['title']);
                 }
 
@@ -163,7 +163,7 @@ class ContentSnapshotService
 
             foreach (($data['articles'] ?? []) as $article) {
                 $slug = $article['slug'] ?? null;
-                if (!$slug && !empty($article['title'])) {
+                if (! $slug && ! empty($article['title'])) {
                     $slug = Str::slug($article['title']);
                 }
                 Article::create([

@@ -21,7 +21,7 @@ class TenantSecretService
         $secret = $tenant->secrets()->where('secret_key', $key)->first();
         $isRotation = $secret !== null;
 
-        if (!$secret) {
+        if (! $secret) {
             $secret = new TenantSecret([
                 'tenant_id' => $tenant->id,
                 'secret_key' => $key,
@@ -47,7 +47,7 @@ class TenantSecretService
     public function getSecretValue(Tenant $tenant, string $key): ?string
     {
         $secret = $tenant->secrets()->where('secret_key', $key)->first();
-        if (!$secret) {
+        if (! $secret) {
             return null;
         }
 
@@ -66,9 +66,9 @@ class TenantSecretService
         }
 
         $candidateKeys = [
-            $normalized . '.api_key',
-            $normalized . '.token',
-            $normalized . '.key',
+            $normalized.'.api_key',
+            $normalized.'.token',
+            $normalized.'.key',
         ];
 
         foreach ($candidateKeys as $candidate) {
@@ -81,4 +81,3 @@ class TenantSecretService
         return null;
     }
 }
-

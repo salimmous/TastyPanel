@@ -11,8 +11,7 @@ class RequestLogController extends Controller
 {
     public function __construct(
         protected RequestLogService $logService
-    ) {
-    }
+    ) {}
 
     /**
      * Get request logs with filters
@@ -28,7 +27,7 @@ class RequestLogController extends Controller
             'ip',
             'slow',
             'from',
-            'to'
+            'to',
         ]);
 
         $perPage = min(100, (int) $request->get('per_page', 50));

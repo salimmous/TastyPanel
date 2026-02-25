@@ -118,11 +118,11 @@ class MetricsCollector
     {
         try {
             $db = config('database.connections.mysql.database');
-            $result = DB::select("
+            $result = DB::select('
                 SELECT SUM(data_length + index_length) as size
                 FROM information_schema.TABLES
                 WHERE table_schema = ?
-            ", [$db]);
+            ', [$db]);
 
             return $result[0]->size ?? 0;
         } catch (\Exception $e) {
@@ -133,11 +133,11 @@ class MetricsCollector
     private function getTenantDatabaseSize(Tenant $tenant): int
     {
         try {
-            $result = DB::select("
+            $result = DB::select('
                 SELECT SUM(data_length + index_length) as size
                 FROM information_schema.TABLES
                 WHERE table_schema = ?
-            ", [$tenant->instance_db_name]);
+            ', [$tenant->instance_db_name]);
 
             return $result[0]->size ?? 0;
         } catch (\Exception $e) {
@@ -149,7 +149,7 @@ class MetricsCollector
     {
         $path = storage_path("app/tenant-files/{$tenant->id}");
 
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return 0;
         }
 

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessImportJob;
 use App\Models\Import;
 use App\Services\ImportService;
-use App\Jobs\ProcessImportJob;
 use App\Support\TenantContext;
 use Illuminate\Http\Request;
 
@@ -13,8 +13,7 @@ class ImportController extends Controller
 {
     public function __construct(
         protected ImportService $importService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of imports
@@ -23,7 +22,7 @@ class ImportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $imports = Import::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $imports = Import::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->with(['user'])
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -78,7 +77,7 @@ class ImportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $import = Import::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $import = Import::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->with(['user'])
             ->findOrFail($id);
 
@@ -92,7 +91,7 @@ class ImportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $import = Import::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $import = Import::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
 
         // Delete associated file
@@ -115,7 +114,7 @@ class ImportController extends Controller
     {
         $tenantId = TenantContext::id();
 
-        $import = Import::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+        $import = Import::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->findOrFail($id);
 
         return response()->json([

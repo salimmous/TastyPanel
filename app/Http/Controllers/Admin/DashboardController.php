@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Recipe;
-use App\Models\Category;
 use App\Models\Article;
+use App\Models\Category;
+use App\Models\Recipe;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use App\Support\AdminTenantResolver;
 use App\Support\AdminEnvironmentResolver;
+use App\Support\AdminTenantResolver;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {

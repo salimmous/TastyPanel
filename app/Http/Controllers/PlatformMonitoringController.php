@@ -7,9 +7,9 @@ use App\Models\BackupRun;
 use App\Models\Domain;
 use App\Models\PlatformSetting;
 use App\Models\SslCertificate;
+use App\Models\Tenant;
 use App\Models\UptimeCheck;
 use App\Models\UptimeEvent;
-use App\Models\Tenant;
 use App\Services\UptimeMonitorService;
 use App\Support\AdminPermissions;
 use Illuminate\Http\RedirectResponse;
@@ -21,15 +21,15 @@ class PlatformMonitoringController extends Controller
 {
     public function index(): View|RedirectResponse
     {
-        if (!PlatformInstallController::isInstalled()) {
+        if (! PlatformInstallController::isInstalled()) {
             return redirect()->route('platform.install');
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -99,11 +99,11 @@ class PlatformMonitoringController extends Controller
 
     public function updateSettings(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -126,11 +126,11 @@ class PlatformMonitoringController extends Controller
 
     public function storeUptimeCheck(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -165,11 +165,11 @@ class PlatformMonitoringController extends Controller
 
     public function updateUptimeCheck(Request $request, UptimeCheck $check): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -209,11 +209,11 @@ class PlatformMonitoringController extends Controller
 
     public function destroyUptimeCheck(Request $request, UptimeCheck $check): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 
@@ -231,11 +231,11 @@ class PlatformMonitoringController extends Controller
 
     public function runUptimeCheck(Request $request, UptimeCheck $check, UptimeMonitorService $monitor): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('platform.login');
         }
 
-        if (!AdminPermissions::isSuperadmin(Auth::user())) {
+        if (! AdminPermissions::isSuperadmin(Auth::user())) {
             abort(403);
         }
 

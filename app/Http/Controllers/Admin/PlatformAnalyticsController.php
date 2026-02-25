@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\PlatformAnalyticsService;
 use App\Models\PlatformMetric;
+use App\Services\PlatformAnalyticsService;
 use Illuminate\Http\Request;
 
 class PlatformAnalyticsController extends Controller
 {
     public function __construct(
         protected PlatformAnalyticsService $analytics
-    ) {
-    }
+    ) {}
 
     /**
      * Dashboard overview

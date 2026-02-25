@@ -95,7 +95,7 @@ class Export extends Model
      */
     public function getDownloadUrlAttribute(): ?string
     {
-        if (!$this->isReady()) {
+        if (! $this->isReady()) {
             return null;
         }
 
@@ -107,7 +107,7 @@ class Export extends Model
      */
     public function getFileSizeHumanAttribute(): ?string
     {
-        if (!$this->file_size) {
+        if (! $this->file_size) {
             return null;
         }
 
@@ -118,6 +118,6 @@ class Export extends Model
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 }

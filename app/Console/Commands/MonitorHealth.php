@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\Services\HealthCheckService;
 use App\Services\ErrorTrackerService;
+use App\Services\HealthCheckService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
 class MonitorHealth extends Command
 {
     protected $signature = 'monitor:health {--alert : Send alerts if health is degraded}';
+
     protected $description = 'Check system health and optionally send alerts';
 
     public function handle(HealthCheckService $healthCheck, ErrorTrackerService $errorTracker): int
@@ -59,17 +60,18 @@ class MonitorHealth extends Command
     {
         $adminEmail = config('monitoring.error_tracking.alert_email');
 
-        if (!$adminEmail) {
+        if (! $adminEmail) {
             $this->warn('No admin email configured for alerts');
+
             return;
         }
 
         try {
             Mail::raw(
-                "System Health Alert\n\n" .
-                "Status: {$health['status']}\n" .
-                "Time: {$health['timestamp']}\n\n" .
-                "Checks:\n" .
+                "System Health Alert\n\n".
+                "Status: {$health['status']}\n".
+                "Time: {$health['timestamp']}\n\n".
+                "Checks:\n".
                 json_encode($health['checks'], JSON_PRETTY_PRINT),
                 function ($message) use ($adminEmail, $health) {
                     $message->to($adminEmail)
@@ -77,9 +79,9 @@ class MonitorHealth extends Command
                 }
             );
 
-            $this->info('Alert sent to ' . $adminEmail);
+            $this->info('Alert sent to '.$adminEmail);
         } catch (\Exception $e) {
-            $this->error('Failed to send alert: ' . $e->getMessage());
+            $this->error('Failed to send alert: '.$e->getMessage());
         }
     }
 }

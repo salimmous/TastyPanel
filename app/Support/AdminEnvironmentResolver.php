@@ -13,7 +13,7 @@ class AdminEnvironmentResolver
         $value = $header ?? $param ?? 'production';
         $value = strtolower(trim((string) $value));
 
-        if (!in_array($value, ['production', 'staging', 'preview'], true)) {
+        if (! in_array($value, ['production', 'staging', 'preview'], true)) {
             return 'production';
         }
 

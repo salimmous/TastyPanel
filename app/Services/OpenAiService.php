@@ -31,7 +31,7 @@ class OpenAiService
         $payload = $this->buildPayload($settings, $prompt);
         $response = $this->client($apiKey)->post('/responses', $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             return null;
         }
 
@@ -54,11 +54,12 @@ class OpenAiService
         $payload = $this->buildPayload($settings, $prompt);
         $response = $this->client($apiKey)->post('/responses', $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             return null;
         }
 
         $text = $this->extractText($response->json());
+
         return $text ? trim($text, "\" \n\t") : null;
     }
 
@@ -88,11 +89,12 @@ class OpenAiService
         $payload = $this->buildPayload($settings, $prompt);
         $response = $this->client($apiKey)->post('/responses', $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             return null;
         }
 
         $text = $this->extractText($response->json());
+
         return $text ? trim($text) : null;
     }
 
@@ -115,7 +117,7 @@ class OpenAiService
 
     private function extractText(array $payload): ?string
     {
-        if (!empty($payload['output_text'])) {
+        if (! empty($payload['output_text'])) {
             return $payload['output_text'];
         }
 
@@ -133,7 +135,7 @@ class OpenAiService
             }
         }
 
-        if (!$chunks) {
+        if (! $chunks) {
             return null;
         }
 

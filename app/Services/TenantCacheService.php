@@ -12,7 +12,9 @@ class TenantCacheService
      * Cache TTL in seconds
      */
     private const TENANT_DATA_TTL = 1800; // 30 minutes
+
     private const ANALYTICS_TTL = 3600; // 1 hour
+
     private const STATS_TTL = 900; // 15 minutes
 
     /**
@@ -24,7 +26,7 @@ class TenantCacheService
             ->remember(
                 "tenant:{$tenant->id}:data",
                 self::TENANT_DATA_TTL,
-                fn() => $tenant->load(['domains', 'plan'])
+                fn () => $tenant->load(['domains', 'plan'])
             );
     }
 

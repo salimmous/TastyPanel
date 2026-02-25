@@ -63,7 +63,7 @@ class AuditLog extends Model
      */
     public function getChangesSummaryAttribute(): ?string
     {
-        if (!$this->new_values || !$this->old_values) {
+        if (! $this->new_values || ! $this->old_values) {
             return null;
         }
 

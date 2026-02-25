@@ -58,7 +58,7 @@ class PlatformMetric extends Model
             ->orderByDesc('date')
             ->first();
 
-        if (!$previous || !$previous->$field) {
+        if (! $previous || ! $previous->$field) {
             return null;
         }
 

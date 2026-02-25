@@ -13,7 +13,7 @@ class CanvaService
     public function buildAuthorizationUrl(int $tenantId, string $environment, int $userId): string
     {
         $clientId = $this->clientId();
-        if (!$clientId) {
+        if (! $clientId) {
             throw new \RuntimeException('Canva client ID is missing.');
         }
 
@@ -40,7 +40,7 @@ class CanvaService
             'code_challenge_method' => 's256',
         ], '', '&', PHP_QUERY_RFC3986);
 
-        return rtrim($this->authUrl(), '?') . '?' . $query;
+        return rtrim($this->authUrl(), '?').'?'.$query;
     }
 
     public function consumeState(string $state): ?array
@@ -67,7 +67,7 @@ class CanvaService
             'client_secret' => $clientSecret,
         ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             $message = data_get($response->json(), 'error_description')
                 ?: data_get($response->json(), 'message')
                 ?: 'Failed to exchange Canva code.';
@@ -93,7 +93,7 @@ class CanvaService
             'client_secret' => $clientSecret,
         ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             $message = data_get($response->json(), 'error_description')
                 ?: data_get($response->json(), 'message')
                 ?: 'Failed to refresh Canva token.';
@@ -108,9 +108,9 @@ class CanvaService
         $response = Http::withToken($accessToken)
             ->acceptJson()
             ->timeout(20)
-            ->get($this->apiBase() . '/users/me');
+            ->get($this->apiBase().'/users/me');
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             $message = data_get($response->json(), 'message') ?: 'Failed to fetch Canva profile.';
             throw new \RuntimeException($message);
         }
@@ -155,7 +155,7 @@ class CanvaService
 
     private function cacheKey(string $state): string
     {
-        return self::CACHE_PREFIX . $state;
+        return self::CACHE_PREFIX.$state;
     }
 
     private function makeVerifier(): string

@@ -39,8 +39,9 @@ class FileIntegrityService
             $changed = [];
             $missing = [];
             foreach ($baselineHashes as $path => $hash) {
-                if (!array_key_exists($path, $current)) {
+                if (! array_key_exists($path, $current)) {
                     $missing[] = $path;
+
                     continue;
                 }
                 if ($current[$path] !== $hash) {
@@ -93,7 +94,7 @@ class FileIntegrityService
         $hashes = [];
 
         foreach ($paths as $path) {
-            $fullPath = rtrim($rootPath, '/') . '/' . ltrim($path, '/');
+            $fullPath = rtrim($rootPath, '/').'/'.ltrim($path, '/');
             if (is_dir($fullPath)) {
                 $iterator = new \RecursiveIteratorIterator(
                     new \RecursiveDirectoryIterator($fullPath, \FilesystemIterator::SKIP_DOTS)
@@ -109,7 +110,7 @@ class FileIntegrityService
                 }
             } elseif (is_file($fullPath)) {
                 $relative = $this->relativePath($rootPath, $fullPath);
-                if (!$this->shouldSkip($relative)) {
+                if (! $this->shouldSkip($relative)) {
                     $hashes[$relative] = hash_file('sha256', $fullPath);
                 }
             }
@@ -120,10 +121,11 @@ class FileIntegrityService
 
     private function relativePath(string $rootPath, string $path): string
     {
-        $rootPath = rtrim($rootPath, '/') . '/';
+        $rootPath = rtrim($rootPath, '/').'/';
         if (str_starts_with($path, $rootPath)) {
             return substr($path, strlen($rootPath));
         }
+
         return $path;
     }
 
@@ -135,6 +137,7 @@ class FileIntegrityService
                 return true;
             }
         }
+
         return false;
     }
 }

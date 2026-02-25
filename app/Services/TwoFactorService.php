@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\TwoFactorSecret;
-use PragmaRX\Google2FA\Google2FA;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Str;
-use BaconQrCode\Renderer\ImageRenderer;
+use App\Models\User;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
+use PragmaRX\Google2FA\Google2FA;
 
 class TwoFactorService
 {
@@ -18,7 +18,7 @@ class TwoFactorService
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     /**
@@ -46,7 +46,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             $twoFactor = $this->generateSecret($user);
         }
 
@@ -61,10 +61,11 @@ class TwoFactorService
 
         $renderer = new ImageRenderer(
             new RendererStyle(200),
-            new SvgImageBackEnd()
+            new SvgImageBackEnd
         );
 
         $writer = new Writer($renderer);
+
         return $writer->writeString($qrCodeUrl);
     }
 
@@ -75,7 +76,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             return false;
         }
 
@@ -91,7 +92,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             return false;
         }
 
@@ -121,7 +122,7 @@ class TwoFactorService
      */
     public function enable(User $user, string $code): bool
     {
-        if (!$this->verify($user, $code)) {
+        if (! $this->verify($user, $code)) {
             return false;
         }
 
@@ -141,7 +142,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             return false;
         }
 
@@ -157,7 +158,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             throw new \Exception('2FA not set up for this user');
         }
 
@@ -177,7 +178,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             return [];
         }
 
@@ -194,7 +195,7 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor) {
+        if (! $twoFactor) {
             return;
         }
 
@@ -217,13 +218,13 @@ class TwoFactorService
     {
         $twoFactor = $user->twoFactorSecret;
 
-        if (!$twoFactor || !$twoFactor->enabled) {
+        if (! $twoFactor || ! $twoFactor->enabled) {
             return true;
         }
 
         $trustedDevices = $twoFactor->trusted_devices ?? [];
 
-        if (!isset($trustedDevices[$deviceId])) {
+        if (! isset($trustedDevices[$deviceId])) {
             return false;
         }
 
@@ -252,6 +253,6 @@ class TwoFactorService
      */
     public function getDeviceId(): string
     {
-        return hash('sha256', request()->userAgent() . request()->ip());
+        return hash('sha256', request()->userAgent().request()->ip());
     }
 }

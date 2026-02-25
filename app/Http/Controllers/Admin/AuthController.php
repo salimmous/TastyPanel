@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformSetting;
+use App\Models\User;
 use App\Support\AdminPermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -38,8 +38,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::guard('web')->user();
 
-            if (($settings['force_2fa'] ?? false) && AdminPermissions::isSuperadmin($user) && !$user->two_factor_enabled) {
+            if (($settings['force_2fa'] ?? false) && AdminPermissions::isSuperadmin($user) && ! $user->two_factor_enabled) {
                 Auth::guard('web')->logout();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Two-factor authentication is required for superadmins.',
@@ -54,19 +55,19 @@ class AuthController extends Controller
             } else {
                 $request->session()->put('two_factor_verified', true);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'user' => $this->transformUser($user),
                 'requires_2fa' => $requires2fa,
                 'must_change_password' => (bool) $user?->force_password_reset,
-                'message' => 'تم تسجيل الدخول بنجاح'
+                'message' => 'تم تسجيل الدخول بنجاح',
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
         ], 401);
     }
 
@@ -76,12 +77,12 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = Auth::guard('web')->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
-                'user' => null
+                'user' => null,
             ], 401);
         }
-        
+
         return response()->json([
             'user' => $this->transformUser($user),
             'two_factor_verified' => (bool) $request->session()->get('two_factor_verified', false),
@@ -101,14 +102,14 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم تسجيل الخروج بنجاح'
+            'message' => 'تم تسجيل الخروج بنجاح',
         ]);
     }
 
     public function requestTwoFactor(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->two_factor_enabled) {
+        if (! $user || ! $user->two_factor_enabled) {
             return response()->json([
                 'message' => 'Two-factor is not enabled.',
             ], 422);
@@ -126,7 +127,7 @@ class AuthController extends Controller
     public function verifyTwoFactor(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->two_factor_enabled) {
+        if (! $user || ! $user->two_factor_enabled) {
             return response()->json([
                 'message' => 'Two-factor is not enabled.',
             ], 422);
@@ -136,7 +137,7 @@ class AuthController extends Controller
             'code' => ['required', 'string', 'min:4'],
         ]);
 
-        if (!$user->two_factor_code || !$user->two_factor_expires_at) {
+        if (! $user->two_factor_code || ! $user->two_factor_expires_at) {
             return response()->json([
                 'message' => 'Verification code expired.',
             ], 422);
@@ -148,7 +149,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (!Hash::check($data['code'], $user->two_factor_code)) {
+        if (! Hash::check($data['code'], $user->two_factor_code)) {
             return response()->json([
                 'message' => 'Invalid verification code.',
             ], 422);
@@ -169,7 +170,7 @@ class AuthController extends Controller
     public function updatePassword(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 401);
@@ -180,7 +181,7 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        if (!Hash::check($data['current_password'], $user->password)) {
+        if (! Hash::check($data['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'Current password is incorrect.',
             ], 422);

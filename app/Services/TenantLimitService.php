@@ -12,15 +12,17 @@ class TenantLimitService
     public function limitsFor(Tenant $tenant): array
     {
         $subscription = $tenant->activeSubscription()->with('plan')->first();
+
         return $subscription?->plan?->limits ?? [];
     }
 
     public function limitValue(Tenant $tenant, string $key, int $default = 0): int
     {
         $limits = $this->limitsFor($tenant);
-        if (!array_key_exists($key, $limits)) {
+        if (! array_key_exists($key, $limits)) {
             return $default;
         }
+
         return (int) $limits[$key];
     }
 
@@ -32,8 +34,8 @@ class TenantLimitService
         }
 
         $count = Article::where('tenant_id', $tenant->id)
-                ->where('environment', $environment)
-                ->count()
+            ->where('environment', $environment)
+            ->count()
             + Recipe::where('tenant_id', $tenant->id)
                 ->where('environment', $environment)
                 ->count();
@@ -49,6 +51,7 @@ class TenantLimitService
         }
 
         $count = User::where('tenant_id', $tenant->id)->count();
+
         return $count < $limit;
     }
 

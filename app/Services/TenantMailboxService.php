@@ -28,7 +28,7 @@ class TenantMailboxService
             'MAILBOX_PASSWORD' => $password,
         ]);
 
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return $result;
         }
 
@@ -65,7 +65,7 @@ class TenantMailboxService
             'MAILBOX_PASSWORD' => $password,
         ]);
 
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return $result;
         }
 
@@ -83,7 +83,7 @@ class TenantMailboxService
             'MAILBOX_QUOTA_MB' => (string) ($mailbox->quota_mb ?: 1024),
         ]);
 
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return $result;
         }
 
@@ -102,7 +102,7 @@ class TenantMailboxService
             'MAILBOX_QUOTA_MB' => (string) ($mailbox->quota_mb ?: 1024),
         ]);
 
-        if (!($result['success'] ?? false)) {
+        if (! ($result['success'] ?? false)) {
             return $result;
         }
 
@@ -122,7 +122,7 @@ class TenantMailboxService
     private function runScript(string $action, Tenant $tenant, array $envVars): array
     {
         $script = (string) config('services.mailboxes.script');
-        if ($script === '' || !file_exists($script)) {
+        if ($script === '' || ! file_exists($script)) {
             return [
                 'success' => false,
                 'output' => 'Mailbox script not found.',
@@ -140,15 +140,15 @@ class TenantMailboxService
             $parts[] = '-n';
         }
         $parts[] = 'env';
-        $parts[] = 'TENANT_KEY=' . (string) ($tenant->instance_key ?: ('tenant-' . $tenant->id));
-        $parts[] = 'TENANT_ID=' . (string) $tenant->id;
-        $parts[] = 'MAILBOX_ROOT=' . $mailboxRoot;
-        $parts[] = 'MAILBOX_USERS_FILE=' . $usersFile;
-        $parts[] = 'MAILBOX_OS_USER=' . $osUser;
-        $parts[] = 'MAILBOX_OS_GROUP=' . $osGroup;
+        $parts[] = 'TENANT_KEY='.(string) ($tenant->instance_key ?: ('tenant-'.$tenant->id));
+        $parts[] = 'TENANT_ID='.(string) $tenant->id;
+        $parts[] = 'MAILBOX_ROOT='.$mailboxRoot;
+        $parts[] = 'MAILBOX_USERS_FILE='.$usersFile;
+        $parts[] = 'MAILBOX_OS_USER='.$osUser;
+        $parts[] = 'MAILBOX_OS_GROUP='.$osGroup;
 
         foreach ($envVars as $key => $value) {
-            $parts[] = $key . '=' . (string) $value;
+            $parts[] = $key.'='.(string) $value;
         }
 
         $parts[] = $script;
@@ -157,7 +157,7 @@ class TenantMailboxService
         $escaped = implode(' ', array_map('escapeshellarg', $parts));
         $output = [];
         $exitCode = 0;
-        exec($escaped . ' 2>&1', $output, $exitCode);
+        exec($escaped.' 2>&1', $output, $exitCode);
 
         return [
             'success' => $exitCode === 0,
@@ -171,7 +171,7 @@ class TenantMailboxService
     {
         $meta = [];
         foreach ($lines as $line) {
-            if (!str_contains((string) $line, '=')) {
+            if (! str_contains((string) $line, '=')) {
                 continue;
             }
             [$key, $value] = explode('=', (string) $line, 2);

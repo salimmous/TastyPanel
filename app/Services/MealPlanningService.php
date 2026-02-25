@@ -4,9 +4,8 @@ namespace App\Services;
 
 use App\Models\MealPlan;
 use App\Models\MealPlanItem;
-use App\Models\ShoppingList;
-use App\Models\ShoppingListItem;
 use App\Models\Recipe;
+use App\Models\ShoppingList;
 use Illuminate\Support\Facades\DB;
 
 class MealPlanningService
@@ -51,10 +50,11 @@ class MealPlanningService
 
             foreach ($scaled as $ingredient) {
                 $name = strtolower(trim($ingredient['name'] ?? ''));
-                if (empty($name))
+                if (empty($name)) {
                     continue;
+                }
 
-                $key = $name . '_' . ($ingredient['unit'] ?? 'unit');
+                $key = $name.'_'.($ingredient['unit'] ?? 'unit');
 
                 if (isset($aggregated[$key])) {
                     // Combine quantities
@@ -75,7 +75,7 @@ class MealPlanningService
         }
 
         // Sort by category and return
-        usort($aggregated, fn($a, $b) => strcmp($a['category'] ?? '', $b['category'] ?? ''));
+        usort($aggregated, fn ($a, $b) => strcmp($a['category'] ?? '', $b['category'] ?? ''));
 
         return array_values($aggregated);
     }
