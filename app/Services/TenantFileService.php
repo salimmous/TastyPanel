@@ -15,7 +15,7 @@ class TenantFileService
         $relativePath = $this->sanitizePath($path);
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (!is_dir($absolutePath)) {
+        if (!File::isDirectory($absolutePath)) {
             File::makeDirectory($absolutePath, 0755, true);
         }
 
@@ -41,7 +41,7 @@ class TenantFileService
         $relativePath = $this->sanitizePath($path);
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (!is_dir($absolutePath)) {
+        if (!File::isDirectory($absolutePath)) {
             File::makeDirectory($absolutePath, 0755, true);
         }
 
@@ -74,7 +74,7 @@ class TenantFileService
         }
 
         $absolutePath = $this->resolvePath($tenantRoot, trim($relativePath . '/' . $folderName, '/'));
-        if (!is_dir($absolutePath)) {
+        if (!File::isDirectory($absolutePath)) {
             File::makeDirectory($absolutePath, 0755, true);
         }
 
@@ -90,12 +90,12 @@ class TenantFileService
         }
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (is_dir($absolutePath)) {
+        if (File::isDirectory($absolutePath)) {
             File::deleteDirectory($absolutePath);
             return;
         }
 
-        if (file_exists($absolutePath)) {
+        if (File::exists($absolutePath)) {
             File::delete($absolutePath);
         }
     }
@@ -108,7 +108,7 @@ class TenantFileService
             throw new RuntimeException('Path required.');
         }
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
-        if (!file_exists($absolutePath)) {
+        if (!File::exists($absolutePath)) {
             throw new RuntimeException('Path not found.');
         }
 
@@ -135,7 +135,7 @@ class TenantFileService
         }
         $absolutePath = $this->resolvePath($tenantRoot, $relativePath);
 
-        if (!is_file($absolutePath)) {
+        if (!File::isFile($absolutePath)) {
             throw new RuntimeException('File not found.');
         }
 
@@ -151,7 +151,7 @@ class TenantFileService
         $root = rtrim($root, '/');
         $tenantRoot = $root . '/' . $tenantId;
 
-        if (!is_dir($tenantRoot)) {
+        if (!File::isDirectory($tenantRoot)) {
             File::makeDirectory($tenantRoot, 0755, true);
         }
 
@@ -201,8 +201,8 @@ class TenantFileService
     {
         $name = basename($absolutePath);
         $relative = trim($baseRelative . '/' . $name, '/');
-        $modified = file_exists($absolutePath) ? date('Y-m-d H:i:s', filemtime($absolutePath)) : null;
-        $size = $isDir ? null : (file_exists($absolutePath) ? filesize($absolutePath) : null);
+        $modified = File::exists($absolutePath) ? date('Y-m-d H:i:s', File::lastModified($absolutePath)) : null;
+        $size = $isDir ? null : (File::exists($absolutePath) ? File::size($absolutePath) : null);
 
         return [
             'name' => $name,
