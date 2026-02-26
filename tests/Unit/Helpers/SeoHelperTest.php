@@ -85,4 +85,82 @@ class SeoHelperTest extends TestCase
         $this->assertStringNotContainsString('<b>', $tags['description']);
         $this->assertStringNotContainsString('</a>', $tags['description']);
     }
+
+    /**
+     * Test articleMetaTags with full SEO data provided.
+     */
+    public function test_article_meta_tags_with_full_data(): void
+    {
+        $article = (object) [
+            'title' => 'Awesome Article',
+            'content' => 'This is the content of the article.',
+            'seo_title' => 'Best Article Ever',
+            'seo_description' => 'Custom SEO description for the article.',
+            'keywords' => 'article, news, tech',
+            'featured_image' => 'https://example.com/article.jpg',
+            'slug' => 'awesome-article',
+        ];
+
+        $tags = SeoHelper::articleMetaTags($article);
+
+        $this->assertEquals('Best Article Ever', $tags['title']);
+        $this->assertEquals('Custom SEO description for the article.', $tags['description']);
+        $this->assertEquals('article, news, tech', $tags['keywords']);
+        $this->assertEquals('Awesome Article', $tags['og:title']);
+        $this->assertEquals('This is the content of the article.', $tags['og:description']);
+        $this->assertEquals('https://example.com/article.jpg', $tags['og:image']);
+        $this->assertEquals('article', $tags['og:type']);
+        $this->assertEquals(url('/article/awesome-article'), $tags['og:url']);
+        $this->assertEquals('summary_large_image', $tags['twitter:card']);
+    }
+
+    /**
+     * Test articleMetaTags with default values when SEO fields are missing.
+     */
+    public function test_article_meta_tags_with_defaults(): void
+    {
+        $article = (object) [
+            'title' => 'Simple Article',
+            'content' => 'Just some content here.',
+            'slug' => 'simple-article',
+            // Missing: seo_title, seo_description, keywords, featured_image
+        ];
+
+        $tags = SeoHelper::articleMetaTags($article);
+
+        $this->assertEquals('Simple Article', $tags['title']);
+        $this->assertEquals('Just some content here.', $tags['description']);
+        $this->assertEquals('', $tags['keywords']);
+        $this->assertEquals('Simple Article', $tags['og:title']);
+        $this->assertEquals('Just some content here.', $tags['og:description']);
+        $this->assertEquals('', $tags['og:image']);
+        $this->assertEquals('article', $tags['og:type']);
+        $this->assertEquals(url('/article/simple-article'), $tags['og:url']);
+        $this->assertEquals('summary_large_image', $tags['twitter:card']);
+    }
+
+    /**
+     * Test articleMetaTags strips HTML tags and limits description length.
+     */
+    public function test_article_meta_tags_strips_html_and_limits_length(): void
+    {
+        $longContent = 'This is a <b>very long</b> article content that contains <a href="#">HTML tags</a> and should be stripped and truncated to a certain length to ensure it fits within the recommended meta tag limits. ' . str_repeat('Additional text to make it longer. ', 10);
+
+        $article = (object) [
+            'title' => 'Long Article',
+            'content' => $longContent,
+            'slug' => 'long-article',
+        ];
+
+        $tags = SeoHelper::articleMetaTags($article);
+
+        $stripped = strip_tags($longContent);
+
+        $this->assertEquals(Str::limit($stripped, 160), $tags['description']);
+        $this->assertEquals(Str::limit($stripped, 200), $tags['og:description']);
+
+        $this->assertStringNotContainsString('<b>', $tags['description']);
+        $this->assertStringNotContainsString('</a>', $tags['description']);
+        $this->assertStringNotContainsString('<b>', $tags['og:description']);
+    }
 }
