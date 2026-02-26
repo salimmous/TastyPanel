@@ -85,4 +85,134 @@ class SeoHelperTest extends TestCase
         $this->assertStringNotContainsString('<b>', $tags['description']);
         $this->assertStringNotContainsString('</a>', $tags['description']);
     }
+
+    /**
+     * Test recipeSchema generates correct structure with full data.
+     */
+    public function test_recipe_schema_generates_correct_structure(): void
+    {
+        $recipe = (object) [
+            'title' => 'Schema Test Recipe',
+            'image' => 'https://example.com/recipe.jpg',
+            'author' => 'Chef John',
+            'published_at' => '2023-01-01 12:00:00',
+            'created_at' => '2022-12-31 10:00:00',
+            'description' => 'A <b>bold</b> description.',
+            'ingredients' => ['1 cup flour', '2 eggs'],
+            'instructions' => '<p>Mix ingredients.</p>',
+            'cook_time' => 30,
+            'prep_time' => 15,
+            'total_time' => 45,
+            'servings' => 4,
+            'category_name' => 'Dessert',
+            'keywords' => 'baking, sweet',
+            'calories' => 500,
+        ];
+
+        $schema = SeoHelper::recipeSchema($recipe);
+
+        $this->assertEquals('https://schema.org', $schema['@context']);
+        $this->assertEquals('Recipe', $schema['@type']);
+        $this->assertEquals('Schema Test Recipe', $schema['name']);
+        $this->assertEquals('https://example.com/recipe.jpg', $schema['image']);
+
+        $this->assertIsArray($schema['author']);
+        $this->assertEquals('Person', $schema['author']['@type']);
+        $this->assertEquals('Chef John', $schema['author']['name']);
+
+        $this->assertEquals('2023-01-01 12:00:00', $schema['datePublished']);
+        $this->assertEquals('A bold description.', $schema['description']);
+
+        $this->assertEquals(['1 cup flour', '2 eggs'], $schema['recipeIngredient']);
+        $this->assertEquals('Mix ingredients.', $schema['recipeInstructions']);
+
+        $this->assertEquals('PT30M', $schema['cookTime']);
+        $this->assertEquals('PT15M', $schema['prepTime']);
+        $this->assertEquals('PT45M', $schema['totalTime']);
+
+        $this->assertEquals(4, $schema['recipeYield']);
+        $this->assertEquals('Dessert', $schema['recipeCategory']);
+        $this->assertEquals('baking, sweet', $schema['keywords']);
+
+        $this->assertIsArray($schema['nutrition']);
+        $this->assertEquals('NutritionInformation', $schema['nutrition']['@type']);
+        $this->assertEquals('500 calories', $schema['nutrition']['calories']);
+    }
+
+    /**
+     * Test recipeSchema with minimal data (nullable fields).
+     */
+    public function test_recipe_schema_with_minimal_data(): void
+    {
+        $recipe = (object) [
+            'title' => 'Minimal Recipe',
+            'image' => null,
+            'created_at' => '2023-01-01 10:00:00', // used as fallback for published_at
+            'description' => 'Just a description.',
+            'ingredients' => null,
+            'instructions' => null,
+        ];
+
+        $schema = SeoHelper::recipeSchema($recipe);
+
+        $this->assertEquals('Minimal Recipe', $schema['name']);
+        $this->assertNull($schema['image']);
+
+        // Author defaults to Admin
+        $this->assertEquals('Admin', $schema['author']['name']);
+
+        // datePublished falls back to created_at
+        $this->assertEquals('2023-01-01 10:00:00', $schema['datePublished']);
+
+        $this->assertNull($schema['recipeIngredient']);
+        $this->assertEquals('', $schema['recipeInstructions']); // stripping null results in empty string
+
+        $this->assertNull($schema['cookTime']);
+        $this->assertNull($schema['prepTime']);
+        $this->assertNull($schema['totalTime']);
+        $this->assertNull($schema['recipeYield']);
+        $this->assertNull($schema['recipeCategory']);
+        $this->assertEquals('', $schema['keywords']);
+        $this->assertNull($schema['nutrition']);
+    }
+
+    /**
+     * Test that recipeSchema handles ingredients as a JSON string.
+     */
+    public function test_recipe_schema_handles_json_ingredients(): void
+    {
+        $ingredients = ['Flour', 'Sugar', 'Eggs'];
+        $recipe = (object) [
+            'title' => 'Test Recipe',
+            'image' => 'test.jpg',
+            'created_at' => '2023-01-01',
+            'description' => 'Test Description',
+            'ingredients' => json_encode($ingredients),
+            'instructions' => 'Test Instructions',
+        ];
+
+        $schema = SeoHelper::recipeSchema($recipe);
+
+        $this->assertEquals($ingredients, $schema['recipeIngredient']);
+    }
+
+    /**
+     * Test that recipeSchema handles invalid JSON ingredients.
+     */
+    public function test_recipe_schema_handles_invalid_json_ingredients(): void
+    {
+        $recipe = (object) [
+            'title' => 'Test Recipe',
+            'image' => 'test.jpg',
+            'created_at' => '2023-01-01',
+            'description' => 'Test Description',
+            'ingredients' => '{invalid json}',
+            'instructions' => 'Test Instructions',
+        ];
+
+        $schema = SeoHelper::recipeSchema($recipe);
+
+        // json_decode('{invalid json}', true) returns null
+        $this->assertNull($schema['recipeIngredient']);
+    }
 }
