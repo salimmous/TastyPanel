@@ -13,6 +13,9 @@ DB_PASS="${7:-}"
 PHP_VERSION="${8:-8.3}"
 APP_URL="${9:-http://localhost}"
 SYSTEM_USER="${10:-}"
+ADMIN_EMAIL="${11:-}"
+ADMIN_USER="${12:-}"
+ADMIN_PASS="${13:-}"
 FPM_PM_MAX_CHILDREN="${FPM_PM_MAX_CHILDREN:-10}"
 FPM_PM_START_SERVERS="${FPM_PM_START_SERVERS:-2}"
 FPM_PM_MIN_SPARE_SERVERS="${FPM_PM_MIN_SPARE_SERVERS:-2}"
@@ -21,12 +24,11 @@ FPM_PM_MAX_REQUESTS="${FPM_PM_MAX_REQUESTS:-500}"
 FPM_MEMORY_LIMIT_MB="${FPM_MEMORY_LIMIT_MB:-256}"
 
 usage() {
-  echo "Usage: provision-instance.sh <site_key> <root_dir> <repo_url> <repo_branch> <db_name> <db_user> <db_pass> <php_version> <app_url> [system_user]"
+  echo "Usage: provision-instance.sh <site_key> <root_dir> <repo_url> <repo_branch> <db_name> <db_user> <db_pass> <php_version> <app_url> <system_user> [admin_email] [admin_user] [admin_pass]"
 }
 
 if [[ -z "${SITE_KEY}" || -z "${ROOT_DIR}" || -z "${REPO_URL}" || -z "${DB_NAME}" || -z "${DB_USER}" || -z "${DB_PASS}" ]]; then
   usage
-  exit 1
 fi
 
 if [[ -z "${SYSTEM_USER}" ]]; then
@@ -55,12 +57,12 @@ fi
 if [[ "${REPO_URL}" == "default" ]]; then
   echo "==> initializing default project"
   mkdir -p "${ROOT_DIR}/public"
-  cat > "${ROOT_DIR}/public/index.php" <<EOF
+  cat > "${ROOT_DIR}/public/index.php" <<PHP
 <?php
 // Site initialized by TastyPanel
 ?>
 $(cat /var/www/tastypanel/resources/views/placeholders/default-index.html)
-EOF
+PHP
   # Create basic structure usually needed
   mkdir -p "${ROOT_DIR}/storage/logs"
   mkdir -p "${ROOT_DIR}/bootstrap/cache"
@@ -72,7 +74,8 @@ else
   cd "${ROOT_DIR}"
   git fetch --all --prune
   git checkout "${REPO_BRANCH}"
-  git pull origin "${REPO_BRANCH}"
+  # Using full path to git to avoid alias issues, though not usually a problem in scripts
+  /usr/bin/git pull origin "${REPO_BRANCH}"
 fi
 
 cd "${ROOT_DIR}"
@@ -114,22 +117,46 @@ if [[ "${REPO_URL}" != "default" ]]; then
   if ! grep -qE "^APP_KEY=" ".env" || [[ -z "$(grep -E '^APP_KEY=' .env | cut -d= -f2-)" ]]; then
     php artisan key:generate --force
   fi
+
+  # Ensure storage permissions before migration
+  chown -R "${SYSTEM_USER}:www-data" "${ROOT_DIR}"
+  chmod -R 775 "${ROOT_DIR}/storage" "${ROOT_DIR}/bootstrap/cache"
+
   php artisan migrate --force
   php artisan storage:link || true
+
+  if [[ -n "${ADMIN_EMAIL}" ]]; then
+    echo "==> Creating admin user: ${ADMIN_EMAIL}"
+    # Use strict error handling inside tinker code block
+    sudo -u "${SYSTEM_USER}" php artisan tinker --execute="
+      try {
+          \$user = \App\Models\User::where('email', '${ADMIN_EMAIL}')->first();
+          if (!\$user) {
+              \App\Models\User::create([
+                  'name' => '${ADMIN_USER:-Admin}',
+                  'email' => '${ADMIN_EMAIL}',
+                  'password' => \Illuminate\Support\Facades\Hash::make('${ADMIN_PASS:-password}'),
+                  'email_verified_at' => now(),
+              ]);
+              echo 'Admin user created successfully.';
+          } else {
+              echo 'Admin user already exists.';
+          }
+      } catch (\Throwable \$e) {
+          echo 'Error creating admin user: ' . \$e->getMessage();
+          exit(1);
+      }
+    "
+  fi
+
 else
     # Minimal Setup for default
     echo "==> Minimal setup for default repo"
-    # Ensure database info is output or used if needed?
-    # For a simple index.php we might not need DB, but the script args provide it.
-    # We'll just skip DB creation for now to keep it simple, or create it just in case.
     
-    # Let's create the DB anyway so the user has one if they upload files later.
     echo "==> Creating database"
     mysql -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
     mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
     mysql -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost'; FLUSH PRIVILEGES;"
-    
-    # Create info file with DB crendetials? No, security risk.
 fi
 
 echo "==> PHP-FPM pool"
@@ -138,7 +165,7 @@ touch "${ROOT_DIR}/storage/logs/php-fpm.log"
 chown -R "${SYSTEM_USER}:www-data" "${ROOT_DIR}/storage/logs" || true
 FPM_POOL="/etc/php/${PHP_VERSION}/fpm/pool.d/${SITE_KEY}.conf"
 SOCKET="/run/php/php${PHP_VERSION}-fpm-${SITE_KEY}.sock"
-cat > "${FPM_POOL}" <<EOF
+cat > "${FPM_POOL}" <<INI
 [${SITE_KEY}]
 user = ${SYSTEM_USER}
 group = ${SYSTEM_USER}
@@ -155,7 +182,7 @@ php_admin_value[error_log] = ${ROOT_DIR}/storage/logs/php-fpm.log
 php_admin_flag[log_errors] = on
 php_admin_value[memory_limit] = ${FPM_MEMORY_LIMIT_MB}M
 chdir = /
-EOF
+INI
 
 systemctl restart "php${PHP_VERSION}-fpm" || service "php${PHP_VERSION}-fpm" restart
 

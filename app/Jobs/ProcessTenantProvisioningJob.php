@@ -42,12 +42,20 @@ class ProcessTenantProvisioningJob implements ShouldQueue
         $this->markRunning($job, 'Provisioning started.', ['step' => 'queued']);
 
         try {
+            $meta = $job->meta ?? [];
+            $adminConfig = [
+                'admin_email' => $meta['admin_email'] ?? '',
+                'admin_user' => $meta['admin_user'] ?? '',
+                'admin_password' => $meta['admin_password'] ?? '',
+            ];
+
             $result = $provisioning->provisionDomainWithState(
                 $domain,
                 null,
                 function (string $message, array $meta = []) use ($job): void {
                     $this->markRunning($job, $message, $meta);
-                }
+                },
+                $adminConfig
             );
             $domain = $result['domain'];
 
@@ -102,15 +110,7 @@ class ProcessTenantProvisioningJob implements ShouldQueue
                 'completed_steps' => $result['completed_steps'] ?? [],
             ]);
 
-            // Auto-install app after successful provisioning (create + install in one flow)
-            $meta = $job->meta ?? [];
-            $adminConfig = [
-                'admin_email' => $meta['admin_email'] ?? '',
-                'admin_user' => $meta['admin_user'] ?? 'admin',
-                'admin_password' => $meta['admin_password'] ?? '',
-                'url' => 'http://' . ($domain->hostname ?? 'localhost'),
-            ];
-            \App\Jobs\InstallTenantAppJob::dispatch($domain->tenant, 'laravel', null, $adminConfig);
+            // Removed InstallTenantAppJob dispatch to avoid double clone/wipe
         } catch (Throwable $e) {
             $this->markFailed($job, $e->getMessage(), ['step' => 'exception']);
             throw $e;

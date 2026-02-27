@@ -19,13 +19,13 @@ class ProvisioningService
     {
     }
 
-    public function provisionDomain(Domain $domain, ?string $targetIp = null, ?callable $progress = null): Domain
+    public function provisionDomain(Domain $domain, ?string $targetIp = null, ?callable $progress = null, array $adminConfig = []): Domain
     {
-        $result = $this->provisionDomainWithState($domain, $targetIp, $progress);
+        $result = $this->provisionDomainWithState($domain, $targetIp, $progress, $adminConfig);
         return $result['domain'];
     }
 
-    public function provisionDomainWithState(Domain $domain, ?string $targetIp = null, ?callable $progress = null): array
+    public function provisionDomainWithState(Domain $domain, ?string $targetIp = null, ?callable $progress = null, array $adminConfig = []): array
     {
         $state = [
             'success' => false,
@@ -100,7 +100,7 @@ class ProvisioningService
                 'completed_steps' => $state['completed_steps'],
             ]);
 
-            $instanceResult = $this->instances->provisionTenantWithResult($tenant, $domain);
+            $instanceResult = $this->instances->provisionTenantWithResult($tenant, $domain, $adminConfig);
             $tenant = $instanceResult['tenant'];
 
             if (!($instanceResult['success'] ?? false)) {
