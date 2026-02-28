@@ -12,12 +12,12 @@ class InstanceProvisioningService
     {
     }
 
-    public function provisionTenant(Tenant $tenant, ?Domain $domain = null): Tenant
+    public function provisionTenant(Tenant $tenant, ?Domain $domain = null, array $adminConfig = []): Tenant
     {
-        return $this->provisionTenantWithResult($tenant, $domain)['tenant'];
+        return $this->provisionTenantWithResult($tenant, $domain, $adminConfig)['tenant'];
     }
 
-    public function provisionTenantWithResult(Tenant $tenant, ?Domain $domain = null): array
+    public function provisionTenantWithResult(Tenant $tenant, ?Domain $domain = null, array $adminConfig = []): array
     {
         $wasReady = $tenant->instance_status === 'ready' && !empty($tenant->instance_root);
 
@@ -123,6 +123,9 @@ class InstanceProvisioningService
             $phpVersion,
             $appUrl,
             $systemUser,
+            $adminConfig['admin_email'] ?? '',
+            $adminConfig['admin_user'] ?? '',
+            $adminConfig['admin_password'] ?? '',
         ], [
             'FPM_PM_MAX_CHILDREN' => (string) $fpmMaxChildren,
             'FPM_PM_MAX_REQUESTS' => (string) $fpmMaxRequests,
