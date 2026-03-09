@@ -129,4 +129,117 @@ class TenantFileServiceTest extends TestCase
 
         $this->service->delete($this->tenantId, $relativePath);
     }
+
+    public function test_rename_throws_exception_if_path_is_empty()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Path required.');
+
+        $this->service->rename($this->tenantId, '', 'newname.txt');
+    }
+
+    public function test_rename_throws_exception_for_invalid_path()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid path.');
+
+        $this->service->rename($this->tenantId, '../secret', 'newname.txt');
+    }
+
+    public function test_rename_throws_exception_if_path_does_not_exist()
+    {
+        $relativePath = 'missing.txt';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath;
+
+        File::shouldReceive('exists')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(false);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Path not found.');
+
+        $this->service->rename($this->tenantId, $relativePath, 'newname.txt');
+    }
+
+    public function test_rename_throws_exception_if_new_name_is_invalid()
+    {
+        $relativePath = 'document.pdf';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath;
+
+        File::shouldReceive('exists')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(true);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid name.');
+
+        $this->service->rename($this->tenantId, $relativePath, '../..');
+    }
+
+    public function test_rename_moves_file_in_root_directory()
+    {
+        $relativePath = 'document.pdf';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath;
+        $newName = 'renamed.pdf';
+        $targetAbsolute = $this->tenantRoot . '/' . $newName;
+
+        File::shouldReceive('exists')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(true);
+
+        File::shouldReceive('move')
+            ->with($absolutePath, $targetAbsolute)
+            ->once();
+
+        $result = $this->service->rename($this->tenantId, $relativePath, $newName);
+
+        $this->assertEquals($newName, $result);
+    }
+
+    public function test_rename_moves_file_in_subdirectory()
+    {
+        $relativePath = 'images/photo.jpg';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath;
+        $newName = 'new_photo.jpg';
+        $targetRelative = 'images/' . $newName;
+        $targetAbsolute = $this->tenantRoot . '/' . $targetRelative;
+
+        File::shouldReceive('exists')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(true);
+
+        File::shouldReceive('move')
+            ->with($absolutePath, $targetAbsolute)
+            ->once();
+
+        $result = $this->service->rename($this->tenantId, $relativePath, $newName);
+
+        $this->assertEquals($targetRelative, $result);
+    }
+
+    public function test_rename_sanitizes_new_name()
+    {
+        $relativePath = 'document.pdf';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath;
+        $newName = 're/named.pdf';
+        $sanitizedName = 're_named.pdf';
+        $targetAbsolute = $this->tenantRoot . '/' . $sanitizedName;
+
+        File::shouldReceive('exists')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(true);
+
+        File::shouldReceive('move')
+            ->with($absolutePath, $targetAbsolute)
+            ->once();
+
+        $result = $this->service->rename($this->tenantId, $relativePath, $newName);
+
+        $this->assertEquals($sanitizedName, $result);
+    }
 }
