@@ -129,4 +129,67 @@ class TenantFileServiceTest extends TestCase
 
         $this->service->delete($this->tenantId, $relativePath);
     }
+
+    public function test_create_folder_creates_directory_if_not_exists()
+    {
+        $relativePath = 'images';
+        $folderName = 'vacation';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath . '/' . $folderName;
+
+        File::shouldReceive('isDirectory')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(false);
+
+        File::shouldReceive('makeDirectory')
+            ->with($absolutePath, 0755, true)
+            ->once();
+
+        $result = $this->service->createFolder($this->tenantId, $relativePath, $folderName);
+
+        $this->assertEquals($relativePath . '/' . $folderName, $result);
+    }
+
+    public function test_create_folder_does_not_create_directory_if_exists()
+    {
+        $relativePath = 'images';
+        $folderName = 'vacation';
+        $absolutePath = $this->tenantRoot . '/' . $relativePath . '/' . $folderName;
+
+        File::shouldReceive('isDirectory')
+            ->with($absolutePath)
+            ->once()
+            ->andReturn(true);
+
+        File::shouldReceive('makeDirectory')
+            ->never();
+
+        $result = $this->service->createFolder($this->tenantId, $relativePath, $folderName);
+
+        $this->assertEquals($relativePath . '/' . $folderName, $result);
+    }
+
+    public function test_create_folder_throws_exception_for_empty_name()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid folder name.');
+
+        $this->service->createFolder($this->tenantId, 'images', '');
+    }
+
+    public function test_create_folder_throws_exception_for_invalid_name()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid folder name.');
+
+        $this->service->createFolder($this->tenantId, 'images', '..');
+    }
+
+    public function test_create_folder_throws_exception_for_invalid_path()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Invalid path.');
+
+        $this->service->createFolder($this->tenantId, '../secret', 'folder');
+    }
 }
