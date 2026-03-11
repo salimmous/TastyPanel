@@ -7,6 +7,8 @@ use App\Models\Recipe;
 use App\Models\Category;
 use App\Support\TenantContext;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreRecipeRequest;
+use App\Http\Requests\UpdateRecipeRequest;
 
 /**
  * @OA\Tag(
@@ -106,47 +108,11 @@ class RecipeController extends Controller
      * )
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreRecipeRequest $request)
     {
         $tenantId = TenantContext::id();
         $environment = TenantContext::environment();
-        $validated = $request->validate([
-            'slug' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'title' => 'required',
-            'description' => 'required',
-            'image' => 'required',
-            'prep_time' => 'required',
-            'cook_time' => 'required',
-            'servings' => 'required|integer',
-            'ingredients' => 'required|array',
-            'instructions' => 'required|array',
-            'nutrition' => 'nullable|array',
-        ]);
-
-        if ($tenantId) {
-            $exists = Recipe::where('tenant_id', $tenantId)
-                ->where('environment', $environment)
-                ->where('slug', $validated['slug'])
-                ->exists();
-            if ($exists) {
-                return response()->json(['message' => 'Slug already exists.'], 422);
-            }
-        }
-
-        if ($tenantId) {
-            $category = Category::where('environment', $environment)->find($validated['category_id']);
-            if (!$category) {
-                return response()->json([
-                    'message' => 'Category does not belong to current environment.',
-                ], 422);
-            }
-            if ($category->tenant_id && $category->tenant_id !== $tenantId) {
-                return response()->json([
-                    'message' => 'Category does not belong to current tenant.',
-                ], 422);
-            }
-        }
+        $validated = $request->validated();
 
         if ($tenantId) {
             $validated['tenant_id'] = $tenantId;
@@ -217,7 +183,7 @@ class RecipeController extends Controller
      * )
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateRecipeRequest $request, string $id)
     {
         $tenantId = TenantContext::id();
         $environment = TenantContext::environment();
@@ -225,46 +191,7 @@ class RecipeController extends Controller
             ->where('environment', $environment)
             ->findOrFail($id);
 
-        $validated = $request->validate([
-            'slug' => 'sometimes',
-            'category_id' => 'sometimes|exists:categories,id',
-            'title' => 'sometimes',
-            'description' => 'sometimes',
-            'image' => 'sometimes',
-            'prep_time' => 'sometimes',
-            'cook_time' => 'sometimes',
-            'servings' => 'sometimes|integer',
-            'ingredients' => 'sometimes|array',
-            'instructions' => 'sometimes|array',
-            'nutrition' => 'nullable|array',
-        ]);
-
-        if (!empty($validated['slug']) && $tenantId) {
-            $exists = Recipe::where('tenant_id', $tenantId)
-                ->where('environment', $environment)
-                ->where('slug', $validated['slug'])
-                ->where('id', '!=', $recipe->id)
-                ->exists();
-            if ($exists) {
-                return response()->json(['message' => 'Slug already exists.'], 422);
-            }
-        }
-
-        if ($tenantId && isset($validated['category_id'])) {
-            $category = Category::where('environment', $environment)->find($validated['category_id']);
-            if (!$category) {
-                return response()->json([
-                    'message' => 'Category does not belong to current environment.',
-                ], 422);
-            }
-            if ($category->tenant_id && $category->tenant_id !== $tenantId) {
-                return response()->json([
-                    'message' => 'Category does not belong to current tenant.',
-                ], 422);
-            }
-        }
-
-        $recipe->update($validated);
+        $recipe->update($request->validated());
         return response()->json($recipe->load('category'));
     }
 
