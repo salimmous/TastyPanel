@@ -22,12 +22,9 @@ use App\Services\FileIntegrityService;
 use App\Services\AuditExportService;
 use App\Services\AutomationRunnerService;
 use App\Services\AutomationSettingsService;
-use App\Services\ContentScoringService;
 use App\Models\SecurityBaseline;
 use App\Models\TenantBackupRun;
 use App\Models\SiteSetting;
-use App\Models\Article;
-use App\Models\Recipe;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -188,68 +185,6 @@ Artisan::command('automation:run', function (AutomationRunnerService $runner, Au
 
     $this->info("Automation runs triggered: {$count}, skipped: {$skipped}");
 })->purpose('Run scheduled automation for all tenants');
-
-Artisan::command('content:score {--tenant=} {--type=}', function (ContentScoringService $scoring) {
-    $tenantId = $this->option('tenant');
-    $type = $this->option('type');
-
-    $scoreArticle = function (Article $article) use ($scoring) {
-        $score = $scoring->score($article->title ?? '', $article->description ?? '');
-        $article->fill($score);
-        $article->save();
-    };
-
-    $scoreRecipe = function (Recipe $recipe) use ($scoring) {
-        $parts = [];
-        if (!empty($recipe->description)) {
-            $parts[] = $recipe->description;
-        }
-        if (is_array($recipe->ingredients)) {
-            $parts[] = implode(' ', $recipe->ingredients);
-        }
-        if (is_array($recipe->instructions)) {
-            $parts[] = implode(' ', array_map(function ($item) {
-                if (is_string($item)) {
-                    return $item;
-                }
-                if (is_array($item)) {
-                    return implode(' ', $item);
-                }
-                return '';
-            }, $recipe->instructions));
-        }
-        $score = $scoring->score($recipe->title ?? '', implode("\n", $parts));
-        $recipe->fill($score);
-        $recipe->save();
-    };
-
-    $articleQuery = Article::query();
-    $recipeQuery = Recipe::query();
-    if ($tenantId) {
-        $articleQuery->where('tenant_id', $tenantId);
-        $recipeQuery->where('tenant_id', $tenantId);
-    }
-
-    $count = 0;
-    if (!$type || $type === 'articles') {
-        $articleQuery->chunkById(100, function ($articles) use (&$count, $scoreArticle) {
-            foreach ($articles as $article) {
-                $scoreArticle($article);
-                $count++;
-            }
-        });
-    }
-    if (!$type || $type === 'recipes') {
-        $recipeQuery->chunkById(100, function ($recipes) use (&$count, $scoreRecipe) {
-            foreach ($recipes as $recipe) {
-                $scoreRecipe($recipe);
-                $count++;
-            }
-        });
-    }
-
-    $this->info("Scored {$count} items.");
-})->purpose('Recalculate content scores for articles/recipes');
 
 Artisan::command('ssl:renew {--days=}', function (SslHealthService $sslHealth, SslProvisioningService $ssl) {
     if (!config('services.ssl.auto')) {
