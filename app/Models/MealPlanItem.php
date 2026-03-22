@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MealPlanItem extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'meal_plan_id',
         'recipe_id',
