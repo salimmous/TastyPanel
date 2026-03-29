@@ -24,6 +24,26 @@
     Deploy Center
 </a>
 
+<a href="{{ route('platform.databases') }}" class="{{ $navClass }} {{ request()->routeIs('platform.databases*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-database text-lg mr-3 {{ request()->routeIs('platform.databases*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
+    Databases
+</a>
+
+<a href="{{ route('platform.ssl') }}" class="{{ $navClass }} {{ request()->routeIs('platform.ssl*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-lock-key text-lg mr-3 {{ request()->routeIs('platform.ssl*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
+    SSL Certificates
+</a>
+
+<a href="{{ route('platform.php.index') }}" class="{{ $navClass }} {{ request()->routeIs('platform.php*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-file-code text-lg mr-3 {{ request()->routeIs('platform.php*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
+    PHP Versions
+</a>
+
+<a href="{{ route('platform.logs') }}" class="{{ $navClass }} {{ request()->routeIs('platform.logs*') ? $activeClass : $inactiveClass }}">
+    <i class="ph ph-list-numbers text-lg mr-3 {{ request()->routeIs('platform.logs*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
+    Platform Logs
+</a>
+
 <a href="{{ route('platform.tenants') }}" class="{{ $navClass }} {{ request()->routeIs('platform.tenants*') ? $activeClass : $inactiveClass }}">
     <i class="ph ph-globe text-lg mr-3 {{ request()->routeIs('platform.tenants*') ? 'text-amber-400' : 'text-stone-400 group-hover:text-white' }}"></i>
     Sites

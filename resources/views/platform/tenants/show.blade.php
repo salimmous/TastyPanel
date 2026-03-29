@@ -59,7 +59,7 @@
                 <button @click="activeTab = 'database'" 
                         :class="activeTab === 'database' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
-                    <i class="ph ph-database mr-2"></i> Database
+                    <i class="ph ph-database mr-2"></i> Databases
                 </button>
                 <button @click="activeTab = 'mail'" 
                         :class="activeTab === 'mail' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
@@ -284,9 +284,57 @@
         <!-- Access Tab -->
         <div x-show="activeTab === 'access'" style="display: none;" class="space-y-6">
             <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">System Users</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">System users with SSH/SFTP access to this site.</p>
+                    </div>
+                    <a href="{{ route('platform.users.system.create', ['tenant_id' => $tenant->id]) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Add System User
+                    </a>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Home</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 bg-gray-50"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse($tenant->systemUsers as $sysUser)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $sysUser->username }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ $sysUser->home_dir }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $sysUser->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                            {{ ucfirst($sysUser->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <form action="{{ route('platform.users.system.destroy', $sysUser->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete system user?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">No additional system users found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white shadow sm:rounded-lg">
                 <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">SSH & SFTP Access</h3>
-                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Connection details for remote access.</p>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Legacy Access Info</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Default provisioning user.</p>
                 </div>
                 <div class="px-4 py-5 sm:p-6 space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -320,10 +368,59 @@
                     <p class="text-sm text-red-800">{{ $errors->first('phpmyadmin') }}</p>
                 </div>
             @endif
+
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Databases</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Databases attached to this tenant.</p>
+                    </div>
+                    <a href="{{ route('platform.databases.create', ['tenant_id' => $tenant->id]) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Add Database
+                    </a>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 bg-gray-50"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse($tenant->databases as $db)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $db->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $db->username }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $db->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                            {{ ucfirst($db->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <form action="{{ route('platform.databases.destroy', $db->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete database?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">No additional databases found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="bg-white shadow sm:rounded-lg">
                 <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">Database Connection</h3>
-                    <p class="mt-1 text-sm text-gray-500">MySQL credentials for this site. Use them in phpMyAdmin or in the app.</p>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Legacy Database</h3>
+                    <p class="mt-1 text-sm text-gray-500">Primary database created during provisioning.</p>
                 </div>
                 <div class="px-4 py-5 sm:p-6 space-y-6">
                     <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
