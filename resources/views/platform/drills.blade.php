@@ -43,7 +43,7 @@
                             <dd>
                                 <div class="text-lg font-bold text-gray-900">
                                     @if($drills->first())
-                                        <span class="{{ $drills->first()->status === 'passed' ? 'text-green-600' : 'text-red-600' }}">
+                                        <span class="{{ $drills->first()->status === 'passed' ? 'text-green-600' : ($drills->first()->status === 'running' ? 'text-blue-600' : 'text-red-600') }}">
                                             {{ ucfirst($drills->first()->status) }}
                                         </span>
                                         <span class="text-xs text-gray-400 font-normal ml-1">({{ $drills->first()->created_at->diffForHumans() }})</span>
@@ -117,7 +117,7 @@
                                 {{ $drill->created_at->format('Y-m-d H:i') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $drill->status === 'passed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $drill->status === 'passed' ? 'bg-green-100 text-green-800' : ($drill->status === 'running' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800') }}">
                                     {{ ucfirst($drill->status) }}
                                 </span>
                             </td>
