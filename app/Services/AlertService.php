@@ -69,66 +69,44 @@ class AlertService
 
         $storageOverages = $this->storageOverages();
 
-        $tenantIds = [];
-        foreach ($sslExpiringMax as $cert) {
-            $tenantIds[] = $cert->domain?->tenant_id;
-        }
-        foreach ($http3Issues as $d) {
-            $tenantIds[] = $d->tenant_id;
-        }
-        foreach ($tenantBackupFailures as $b) {
-            $tenantIds[] = $b->tenant_id;
-        }
-        foreach ($uptimeFailures as $u) {
-            $tenantIds[] = $u->tenant_id;
-        }
-        foreach ($storageOverages as $o) {
-            $tenantIds[] = $o['tenant_id'] ?? null;
-        }
-
-        $tenantIds = array_values(array_unique(array_filter(array_map('intval', $tenantIds), fn ($id) => $id > 0)));
-        $tenantMap = Tenant::query()
-            ->whereIn('id', $tenantIds)
-            ->get(['id', 'name', 'slug'])
-            ->keyBy('id');
-
         $issuesByTenant = [];
 
         foreach ($sslExpiringMax as $cert) {
             $tenantId = (int) ($cert->domain?->tenant_id ?? 0);
-            if ($tenantId <= 0) {
-                continue;
+            if ($tenantId > 0) {
+                $issuesByTenant[$tenantId]['ssl'][] = $cert;
             }
-            $issuesByTenant[$tenantId]['ssl'][] = $cert;
         }
         foreach ($http3Issues as $d) {
             $tenantId = (int) ($d->tenant_id ?? 0);
-            if ($tenantId <= 0) {
-                continue;
+            if ($tenantId > 0) {
+                $issuesByTenant[$tenantId]['http3'][] = $d;
             }
-            $issuesByTenant[$tenantId]['http3'][] = $d;
         }
         foreach ($tenantBackupFailures as $b) {
             $tenantId = (int) ($b->tenant_id ?? 0);
-            if ($tenantId <= 0) {
-                continue;
+            if ($tenantId > 0) {
+                $issuesByTenant[$tenantId]['backup'][] = $b;
             }
-            $issuesByTenant[$tenantId]['backup'][] = $b;
         }
         foreach ($uptimeFailures as $u) {
             $tenantId = (int) ($u->tenant_id ?? 0);
-            if ($tenantId <= 0) {
-                continue;
+            if ($tenantId > 0) {
+                $issuesByTenant[$tenantId]['uptime'][] = $u;
             }
-            $issuesByTenant[$tenantId]['uptime'][] = $u;
         }
         foreach ($storageOverages as $o) {
             $tenantId = (int) ($o['tenant_id'] ?? 0);
-            if ($tenantId <= 0) {
-                continue;
+            if ($tenantId > 0) {
+                $issuesByTenant[$tenantId]['storage'][] = $o;
             }
-            $issuesByTenant[$tenantId]['storage'][] = $o;
         }
+
+        $tenantIds = array_keys($issuesByTenant);
+        $tenantMap = Tenant::query()
+            ->whereIn('id', $tenantIds)
+            ->get(['id', 'name', 'slug'])
+            ->keyBy('id');
 
         // PLATFORM DELIVERY (global channels)
         $platformEmails = $this->parseEmails((string) ($settings['alerts_emails'] ?? ''));
